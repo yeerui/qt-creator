@@ -12,6 +12,7 @@ Project {
         "qmljs/qmljs.qbs",
         "qmldebug/qmldebug.qbs",
         "qtcreatorcdbext/qtcreatorcdbext.qbs",
+        "sqlite/sqlite.qbs",
         "ssh/ssh.qbs",
         "timeline/timeline.qbs",
         "utils/process_stub.qbs",

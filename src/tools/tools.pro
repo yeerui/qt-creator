@@ -7,7 +7,8 @@ SUBDIRS = qtpromaker \
      valgrindfake \
      3rdparty \
      qml2puppet \
-     buildoutputparser
+     buildoutputparser \
+     codemodelbackend
 
 win32 {
     SUBDIRS += qtcdebugger \
