@@ -44,7 +44,6 @@ class CMBIPC_EXPORT ConnectionServer : public QObject
 {
     Q_OBJECT
 public:
-    using LocalSocketPointer = std::unique_ptr<QLocalSocket>;
     ConnectionServer();
     ~ConnectionServer();
 
@@ -52,6 +51,8 @@ public:
     void setIpcServer(IpcServerInterface *ipcServer);
 
     int clientProxyCount() const;
+
+    static void removeServer();
 
 signals:
     void newConnection();
@@ -65,13 +66,12 @@ private:
     void handleSocketDisconnect();
     void removeClientProxyWithLocalSocket(QLocalSocket *localSocket);
     QLocalSocket *nextPendingConnection();
-    static void removeSocket();
     void delayedExitApplicationIfNoSockedIsConnected();
     void exitApplicationIfNoSockedIsConnected();
 
 private:
     std::vector<IpcClientProxy> ipcClientProxies;
-    std::vector<LocalSocketPointer> localSockets;
+    std::vector<QLocalSocket*> localSockets;
     IpcServerInterface *ipcServer;
     QLocalServer localServer;
     int aliveTimerId;

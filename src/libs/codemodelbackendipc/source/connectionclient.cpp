@@ -86,6 +86,7 @@ bool ConnectionClient::isConnected() const
 void ConnectionClient::sendEndCommand()
 {
     serverProxy.end();
+    localSocket.flush();
 }
 
 void ConnectionClient::sendRegisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
@@ -126,8 +127,6 @@ void ConnectionClient::startProcess()
 
 void ConnectionClient::restartProcess()
 {
-    disconnectFromServer();
-
     finishProcess();
     startProcess();
 
@@ -153,20 +152,42 @@ bool ConnectionClient::retryToConnectToServer()
     return false;
 }
 
+void ConnectionClient::endProcess()
+{
+    if (isProcessIsRunning()) {
+        sendEndCommand();
+        process()->waitForFinished();
+    }
+}
+
+void ConnectionClient::terminateProcess()
+{
+#ifndef Q_OS_WIN32
+    if (isProcessIsRunning()) {
+        process()->terminate();
+        process()->waitForFinished();
+    }
+#endif
+}
+
+void ConnectionClient::killProcess()
+{
+    if (isProcessIsRunning()) {
+        process()->kill();
+        process()->waitForFinished();
+    }
+}
+
 void ConnectionClient::finishProcess()
 {
     processAliveTimer.stop();
 
-    if (isProcessIsRunning()) {
-        sendEndCommand();
-        process()->terminate();
-        process()->waitForFinished();
+    endProcess();
+    disconnectFromServer();
+    terminateProcess();
+    killProcess();
 
-        if (isProcessIsRunning())
-            process()->kill();
-
-        process_.reset();
-    }
+    process_.reset();
 
     serverProxy.resetCounter();
 }

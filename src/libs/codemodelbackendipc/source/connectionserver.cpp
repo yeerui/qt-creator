@@ -44,14 +44,14 @@ ConnectionServer::ConnectionServer()
     : aliveTimerId(startTimer(5000))
 {
     connect(&localServer, &QLocalServer::newConnection, this, &ConnectionServer::handleNewConnection);
-    std::atexit(&ConnectionServer::removeSocket);
-    std::at_quick_exit(&ConnectionServer::removeSocket);
-    std::set_terminate(&ConnectionServer::removeSocket);
+    std::atexit(&ConnectionServer::removeServer);
+    std::at_quick_exit(&ConnectionServer::removeServer);
+    std::set_terminate(&ConnectionServer::removeServer);
 }
 
 ConnectionServer::~ConnectionServer()
 {
-    removeSocket();
+    removeServer();
 }
 
 void ConnectionServer::start()
@@ -63,6 +63,7 @@ void ConnectionServer::start()
 void ConnectionServer::setIpcServer(IpcServerInterface *ipcServer)
 {
     this->ipcServer = ipcServer;
+
 }
 
 int ConnectionServer::clientProxyCount() const
@@ -78,13 +79,13 @@ void ConnectionServer::timerEvent(QTimerEvent *timerEvent)
 
 void ConnectionServer::handleNewConnection()
 {
-    LocalSocketPointer localSocket(nextPendingConnection());
+    QLocalSocket *localSocket(nextPendingConnection());
 
-    ipcClientProxies.emplace_back(ipcServer, localSocket.get());
+    ipcClientProxies.emplace_back(ipcServer, localSocket);
 
     ipcServer->addClient(&ipcClientProxies.back());
 
-    localSockets.push_back(std::move(localSocket));
+    localSockets.push_back(localSocket);
 
     emit newConnection();
 }
@@ -101,7 +102,7 @@ void ConnectionServer::handleSocketDisconnect()
     removeClientProxyWithLocalSocket(senderLocalSocket);
     localSockets.erase(std::remove_if(localSockets.begin(),
                                       localSockets.end(),
-                                      [senderLocalSocket](const LocalSocketPointer &localSocketInList) { return localSocketInList.get() == senderLocalSocket;}));
+                                      [senderLocalSocket](QLocalSocket *localSocketInList) { return localSocketInList == senderLocalSocket;}));
 
     delayedExitApplicationIfNoSockedIsConnected();
 }
@@ -122,7 +123,7 @@ QLocalSocket *ConnectionServer::nextPendingConnection()
     return localSocket;
 }
 
-void ConnectionServer::removeSocket()
+void ConnectionServer::removeServer()
 {
     QLocalServer::removeServer(QStringLiteral("blahxxxxxy"));
 }

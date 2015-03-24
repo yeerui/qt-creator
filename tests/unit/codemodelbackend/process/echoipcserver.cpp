@@ -37,10 +37,13 @@
 #include "cmbcompletecodecommand.h"
 #include "cmbcodecompletedcommand.h"
 
+#include "connectionserver.h"
+
 #include <QtDebug>
 
-namespace CodeModelBackEnd {
+#include <QCoreApplication>
 
+namespace CodeModelBackEnd {
 
 void EchoIpcServer::dispatch(const QVariant &command)
 {
@@ -49,7 +52,8 @@ void EchoIpcServer::dispatch(const QVariant &command)
 
 void EchoIpcServer::end()
 {
-    echoCommand(QVariant::fromValue(EndCommand()));
+    ConnectionServer::removeServer();
+    QCoreApplication::quit();
 }
 
 void EchoIpcServer::registerFilesForCodeCompletion(const RegisterFilesForCodeCompletionCommand &command)

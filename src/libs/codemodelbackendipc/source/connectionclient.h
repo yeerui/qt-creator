@@ -83,7 +83,9 @@ signals:
 
 private:
     bool retryToConnectToServer();
-
+    void endProcess();
+    void terminateProcess();
+    void killProcess();
 
     QProcess *process() const;
 

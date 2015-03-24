@@ -102,18 +102,6 @@ TEST_F(ClientServerOutsideProcess, ResetAliveTimer)
     ASSERT_TRUE(clientSpy.wait(100000));
 }
 
-TEST_F(ClientServerOutsideProcess, SendEndCommand)
-{
-    EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::EndCommand()));
-
-    EXPECT_CALL(mockIpcClient, echo(echoCommand))
-            .Times(1);
-
-    client.sendEndCommand();
-
-    ASSERT_TRUE(client.waitForEcho());
-}
-
 TEST_F(ClientServerOutsideProcess, SendRegisterFilesForCodeCompletionCommand)
 {
     CodeModelBackEnd::FileContainer fileContainer("foo");
@@ -159,10 +147,8 @@ void ClientServerOutsideProcess::SetUpTestCase()
 
 void ClientServerOutsideProcess::TearDownTestCase()
 {
-    ASSERT_TRUE(client.disconnectFromServer());
     client.finishProcess();
 }
-
 void ClientServerOutsideProcess::SetUp()
 {
     client.setProcessAliveTimerInterval(1000000);
