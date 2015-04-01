@@ -55,8 +55,7 @@ ConnectionClient::~ConnectionClient()
 }
 
 bool ConnectionClient::connectToServer()
-{
-    localSocket.connectToServer(QStringLiteral("blahxxxxxy"));
+{localSocket.connectToServer(QStringLiteral("blahxxxxxy"));
     isInConnectedMode = true;
     bool isConnected = localSocket.waitForConnected();
     if (!isConnected) {

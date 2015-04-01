@@ -25,6 +25,10 @@ INCLUDEPATH += $$GTEST_DIR $$GTEST_DIR/include $$GMOCK_DIR $$GMOCK_DIR/include
 include(../../../../src/libs/sqlite/sqlite-lib.pri)
 include(../../../../src/libs/codemodelbackendipc/codemodelbackendipc-lib.pri)
 include(../../../../src/tools/codemodelbackend/ipcsource/codemodelbackendclangipc-source.pri)
+include(../../../../src/tools/codemodelbackend/clang_installation.pri)
+
+LIBS += $$LLVM_LIBS
+INCLUDEPATH += $$LLVM_INCLUDEPATH
 
 SOURCES += main.cpp \
     $$GTEST_DIR/src/gtest-all.cc \
@@ -42,7 +46,8 @@ SOURCES += main.cpp \
     clientserverinprocesstest.cpp \
     clientserveroutsideprocess.cpp \
     gtest-qt-printing.cpp \
-    clanginprocesstest.cpp
+    clanginprocesstest.cpp \
+    codecompletiontest.cpp
 
 HEADERS += \
     gtest-qt-printing.h \
@@ -51,3 +56,4 @@ HEADERS += \
 DEFINES += QT_NO_CAST_FROM_ASCII
 DEFINES += CODEMODELBACKENDIPC_TESTS
 DEFINES += DONT_CHECK_COMMAND_COUNTER
+DEFINES += GTEST_HAS_STD_INITIALIZER_LIST_

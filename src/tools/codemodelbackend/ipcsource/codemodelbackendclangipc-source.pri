@@ -1,6 +1,8 @@
 VPATH += $$PWD
 INCLUDEPATH += $$PWD
 
-HEADERS += clangipcserver.h
+HEADERS += clangipcserver.h \
+           codecompleter.h
 
-SOURCES += clangipcserver.cpp
+SOURCES += clangipcserver.cpp \
+           codecompleter.cpp
