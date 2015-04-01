@@ -41,6 +41,7 @@ class SQLITE_EXPORT Utf8StringVector : public QVector<Utf8String>
 {
 public:
     Utf8StringVector();
+    explicit Utf8StringVector(std::initializer_list<Utf8String> initializerList);
     explicit Utf8StringVector(const Utf8String &utf8String);
     Utf8StringVector(const QVector<Utf8String> &vector);
     explicit Utf8StringVector(const QStringList &stringList);

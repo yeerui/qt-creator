@@ -89,8 +89,8 @@ TEST_F(ClangInProcess, GetCodeCompletion)
 }
 
 ClangInProcess::ClangInProcess()
-    : clientProxy(&clangServer, &buffer),
-      serverProxy(&mockIpcClient, &buffer)
+    : serverProxy(&mockIpcClient, &buffer),
+      clientProxy(&clangServer, &buffer)
 {
     clangServer.addClient(&mockIpcClient);
 }

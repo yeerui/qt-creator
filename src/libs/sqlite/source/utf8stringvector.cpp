@@ -37,6 +37,12 @@ Utf8StringVector::Utf8StringVector()
 {
 }
 
+Utf8StringVector::Utf8StringVector(std::initializer_list<Utf8String> initializerList)
+    : QVector<Utf8String>(initializerList)
+{
+
+}
+
 Utf8StringVector::Utf8StringVector(const Utf8String &utf8String)
 {
     append(utf8String);
