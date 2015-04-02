@@ -17,6 +17,7 @@ TEMPLATE = app
 unix:LIBS += -ldl
 
 include(../../../../src/libs/codemodelbackendipc/codemodelbackendipc-lib.pri)
+include(../../../../src/libs/sqlite/sqlite-lib.pri)
 
 SOURCES += \
     codemodelbackendserverprocessmain.cpp \

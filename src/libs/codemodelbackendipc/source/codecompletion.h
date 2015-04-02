@@ -32,7 +32,7 @@
 #define CODEMODELBACKEND_CODECOMPLETION_H
 
 #include <QMetaType>
-#include <QByteArray>
+#include <utf8string.h>
 
 #include "codemodelbackendipc_global.h"
 
@@ -75,26 +75,26 @@ public:
 
 public:
     CodeCompletion() = default;
-    CodeCompletion(const QByteArray &text,
-                   const QByteArray &hint = QByteArray(),
-                   const QByteArray &snippet = QByteArray(),
+    CodeCompletion(const Utf8String &text,
+                   const Utf8String &hint = Utf8String(),
+                   const Utf8String &snippet = Utf8String(),
                    quint32 priority = 0,
                    Kind completionKind = Other,
                    Availability availability = Available,
                    bool hasParameters = false);
 
-    const QByteArray &text() const;
-    const QByteArray &hint() const;
-    const QByteArray &snippet() const;
+    const Utf8String &text() const;
+    const Utf8String &hint() const;
+    const Utf8String &snippet() const;
     Kind completionKind() const;
     Availability availability() const;
     bool hasParameters() const;
     quint32 priority() const;
 
 private:
-    QByteArray text_;
-    QByteArray hint_;
-    QByteArray snippet_;
+    Utf8String text_;
+    Utf8String hint_;
+    Utf8String snippet_;
     quint32 priority_;
     union {
         Kind completionKind_;

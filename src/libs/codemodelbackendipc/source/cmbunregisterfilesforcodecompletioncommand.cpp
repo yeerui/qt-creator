@@ -5,12 +5,12 @@
 namespace CodeModelBackEnd {
 
 
-UnregisterFilesForCodeCompletionCommand::UnregisterFilesForCodeCompletionCommand(const QVector<QByteArray> &filePaths)
+UnregisterFilesForCodeCompletionCommand::UnregisterFilesForCodeCompletionCommand(const Utf8StringVector &filePaths)
     : filePaths_(filePaths)
 {
 }
 
-const QVector<QByteArray> &UnregisterFilesForCodeCompletionCommand::filePaths() const
+const Utf8StringVector &UnregisterFilesForCodeCompletionCommand::filePaths() const
 {
     return filePaths_;
 }
@@ -43,7 +43,7 @@ QDebug operator <<(QDebug debug, const UnregisterFilesForCodeCompletionCommand &
 {
     debug.nospace() << "UnregisterFileForCodeCompletion(";
 
-    for (const QByteArray &fileNames_ : command.filePaths())
+    for (const Utf8String &fileNames_ : command.filePaths())
         debug.nospace() << fileNames_ << ", ";
 
     debug.nospace() << ")";
@@ -55,7 +55,7 @@ void PrintTo(const UnregisterFilesForCodeCompletionCommand &command, ::std::ostr
 {
     *os << "UnregisterFileForCodeCompletion(";
 
-    for (const QByteArray &fileNames_ : command.filePaths())
+    for (const Utf8String &fileNames_ : command.filePaths())
         *os << fileNames_.constData() << ", ";
 
     *os << ")";

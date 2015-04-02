@@ -3,8 +3,7 @@
 
 #include <qmetatype.h>
 
-#include <QVector>
-#include <QByteArray>
+#include <utf8stringvector.h>
 
 #include "codemodelbackendipc_global.h"
 
@@ -20,12 +19,12 @@ class CMBIPC_EXPORT UnregisterFilesForCodeCompletionCommand
 
 public:
     UnregisterFilesForCodeCompletionCommand() = default;
-    UnregisterFilesForCodeCompletionCommand(const QVector<QByteArray> &filePaths);
+    UnregisterFilesForCodeCompletionCommand(const Utf8StringVector &filePaths);
 
-    const QVector<QByteArray> &filePaths() const;
+    const Utf8StringVector &filePaths() const;
 
 private:
-    QVector<QByteArray> filePaths_;
+    Utf8StringVector filePaths_;
 };
 
 QDataStream &operator<<(QDataStream &out, const UnregisterFilesForCodeCompletionCommand &command);

@@ -78,7 +78,7 @@ protected:
 
 TEST_F(ClangInProcess, GetCodeCompletion)
 {
-    CodeModelBackEnd::CompleteCodeCommand completeCodeCommand("foo.cpp", 24, 33, "do what I want");
+    CodeModelBackEnd::CompleteCodeCommand completeCodeCommand(Utf8StringLiteral("foo.cpp"), 24, 33, Utf8StringLiteral("do what I want"));
     CodeModelBackEnd::CodeCompletedCommand codeCompletedCommand;
 
     EXPECT_CALL(mockIpcClient, codeCompleted(codeCompletedCommand))

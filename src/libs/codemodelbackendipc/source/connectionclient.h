@@ -41,6 +41,9 @@ QT_BEGIN_NAMESPACE
 class QProcess;
 QT_END_NAMESPACE
 
+class Utf8String;
+class Utf8StringVector;
+
 namespace CodeModelBackEnd {
 
 class FileContainer;
@@ -59,11 +62,11 @@ public:
 
     void sendEndCommand();
     void sendRegisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers);
-    void sendUnregisterFilesForCodeCompletionCommand(const QVector<QByteArray> &fileNames);
-    void sendCompleteCodeCommand(const QByteArray &fileName,
+    void sendUnregisterFilesForCodeCompletionCommand(const Utf8StringVector &fileNames);
+    void sendCompleteCodeCommand(const Utf8String &fileName,
                                  quint32 line,
                                  quint32 column,
-                                 const QByteArray &commandLine);
+                                 const Utf8String &commandLine);
 
     void resetProcessAliveTimer();
     void setProcessAliveTimerInterval(int processTimerInterval);

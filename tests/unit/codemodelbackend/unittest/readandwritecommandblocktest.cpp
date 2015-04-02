@@ -129,7 +129,7 @@ TEST_F(ReadAndWriteCommandBlockTest, CompareAliveCommand)
 
 TEST_F(ReadAndWriteCommandBlockTest, CompareRegisterFilesForCodeCompletionCommand)
 {
-    CodeModelBackEnd::FileContainer fileContainer("foo.cpp");
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"));
     QVector<CodeModelBackEnd::FileContainer> fileContainers({fileContainer});
 
     CompareCommand(CodeModelBackEnd::RegisterFilesForCodeCompletionCommand(fileContainers));
@@ -137,19 +137,19 @@ TEST_F(ReadAndWriteCommandBlockTest, CompareRegisterFilesForCodeCompletionComman
 
 TEST_F(ReadAndWriteCommandBlockTest, CompareUnregisterFileForCodeCompletionCommand)
 {
-    QVector<QByteArray> fileNames({"foo"});
+    Utf8StringVector fileNames({Utf8StringLiteral("foo")});
 
     CompareCommand(CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand(fileNames));
 }
 
 TEST_F(ReadAndWriteCommandBlockTest, CompareCompleteCodeCommand)
 {
-    CompareCommand(CodeModelBackEnd::CompleteCodeCommand("foo.cpp", 24, 33, "do what I want"));
+    CompareCommand(CodeModelBackEnd::CompleteCodeCommand(Utf8StringLiteral("foo.cpp"), 24, 33, Utf8StringLiteral("do what I want")));
 }
 
 TEST_F(ReadAndWriteCommandBlockTest, CompareCodeCompletedCommand)
 {
-    QVector<CodeModelBackEnd::CodeCompletion> codeCompletions({QByteArrayLiteral("newFunction()")});
+    QVector<CodeModelBackEnd::CodeCompletion> codeCompletions({Utf8StringLiteral("newFunction()")});
 
     CompareCommand(CodeModelBackEnd::CodeCompletedCommand(codeCompletions));
 }

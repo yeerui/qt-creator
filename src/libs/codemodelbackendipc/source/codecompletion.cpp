@@ -34,9 +34,9 @@
 
 namespace CodeModelBackEnd {
 
-CodeCompletion::CodeCompletion(const QByteArray &text,
-                               const QByteArray &hint,
-                               const QByteArray &snippet,
+CodeCompletion::CodeCompletion(const Utf8String &text,
+                               const Utf8String &hint,
+                               const Utf8String &snippet,
                                quint32 priority,
                                Kind completionKind,
                                Availability availability,
@@ -51,16 +51,16 @@ CodeCompletion::CodeCompletion(const QByteArray &text,
 {
 }
 
-const QByteArray &CodeCompletion::text() const
+const Utf8String &CodeCompletion::text() const
 {
     return text_;
 }
-const QByteArray &CodeCompletion::hint() const
+const Utf8String &CodeCompletion::hint() const
 {
     return hint_;
 }
 
-const QByteArray &CodeCompletion::snippet() const
+const Utf8String &CodeCompletion::snippet() const
 {
     return snippet_;
 }

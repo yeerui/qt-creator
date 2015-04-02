@@ -93,12 +93,12 @@ void ConnectionClient::sendRegisterFilesForCodeCompletionCommand(const QVector<F
     serverProxy.registerFilesForCodeCompletion(RegisterFilesForCodeCompletionCommand(fileContainers));
 }
 
-void ConnectionClient::sendUnregisterFilesForCodeCompletionCommand(const QVector<QByteArray> &fileNames)
+void ConnectionClient::sendUnregisterFilesForCodeCompletionCommand(const Utf8StringVector &fileNames)
 {
     serverProxy.unregisterFilesForCodeCompletion(UnregisterFilesForCodeCompletionCommand(fileNames));
 }
 
-void ConnectionClient::sendCompleteCodeCommand(const QByteArray &fileName, quint32 line, quint32 column, const QByteArray &commandLine)
+void ConnectionClient::sendCompleteCodeCommand(const Utf8String &fileName, quint32 line, quint32 column, const Utf8String &commandLine)
 {
     serverProxy.completeCode(CompleteCodeCommand(fileName, line, column, commandLine));
 }

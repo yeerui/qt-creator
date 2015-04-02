@@ -34,8 +34,8 @@
 
 namespace CodeModelBackEnd {
 
-FileContainer::FileContainer(const QByteArray &fileName,
-                             const QByteArray &unsavedFileContent,
+FileContainer::FileContainer(const Utf8String &fileName,
+                             const Utf8String &unsavedFileContent,
                              bool hasUnsavedFileContent)
     : filePath_(fileName),
       unsavedFileContent_(unsavedFileContent),
@@ -43,12 +43,12 @@ FileContainer::FileContainer(const QByteArray &fileName,
 {
 }
 
-const QByteArray &FileContainer::filePath() const
+const Utf8String &FileContainer::filePath() const
 {
     return filePath_;
 }
 
-const QByteArray &FileContainer::unsavedFileContent() const
+const Utf8String &FileContainer::unsavedFileContent() const
 {
     return unsavedFileContent_;
 }

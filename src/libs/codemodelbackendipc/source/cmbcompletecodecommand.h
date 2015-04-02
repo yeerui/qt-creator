@@ -32,7 +32,7 @@
 #define CODEMODELBACKEND_COMPLETECODECOMMAND_H
 
 #include <QMetaType>
-#include <QByteArray>
+#include <utf8string.h>
 
 #include "codemodelbackendipc_global.h"
 
@@ -49,21 +49,21 @@ class CMBIPC_EXPORT CompleteCodeCommand
 
 public:
     CompleteCodeCommand() = default;
-    CompleteCodeCommand(const QByteArray &fileName,
+    CompleteCodeCommand(const Utf8String &filePath,
                         quint32 line,
                         quint32 column,
-                        const QByteArray &commandLine);
+                        const Utf8String &commandLine);
 
-    const QByteArray fileName() const;
+    const Utf8String filePath() const;
     quint32 line() const;
     quint32 column() const;
-    const QByteArray commandLine() const;
+    const Utf8String commandLine() const;
 
 private:
-    QByteArray fileName_;
+    Utf8String filePath_;
     quint32 line_ = 0;
     quint32 column_ = 0;
-    QByteArray commandLine_;
+    Utf8String commandLine_;
 };
 
 QDataStream &operator<<(QDataStream &out, const CompleteCodeCommand &command);

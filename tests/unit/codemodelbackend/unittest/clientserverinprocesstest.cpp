@@ -118,7 +118,7 @@ TEST_F(ClientServerInProcess, SendAliveCommand)
 
 TEST_F(ClientServerInProcess, SendRegisterFilesForCodeCompletionCommand)
 {
-    CodeModelBackEnd::FileContainer fileContainer("foo");
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo"));
     QVector<CodeModelBackEnd::FileContainer> fileContainers({fileContainer});
     CodeModelBackEnd::RegisterFilesForCodeCompletionCommand command(fileContainers);
 
@@ -131,7 +131,7 @@ TEST_F(ClientServerInProcess, SendRegisterFilesForCodeCompletionCommand)
 
 TEST_F(ClientServerInProcess, SendUnregisterFilesForCodeCompletionCommand)
 {
-    QVector<QByteArray> fileNames({"foo"});
+    Utf8StringVector fileNames({Utf8StringLiteral("foo")});
     CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand command(fileNames);
 
     EXPECT_CALL(mockIpcServer, unregisterFilesForCodeCompletion(command))
@@ -143,7 +143,7 @@ TEST_F(ClientServerInProcess, SendUnregisterFilesForCodeCompletionCommand)
 
 TEST_F(ClientServerInProcess, SendCompleteCodeCommand)
 {
-    CodeModelBackEnd::CompleteCodeCommand command("foo.cpp", 24, 33, "do what I want");
+    CodeModelBackEnd::CompleteCodeCommand command(Utf8StringLiteral("foo.cpp"), 24, 33, Utf8StringLiteral("do what I want"));
 
     EXPECT_CALL(mockIpcServer, completeCode(command))
         .Times(1);
@@ -154,7 +154,7 @@ TEST_F(ClientServerInProcess, SendCompleteCodeCommand)
 
 TEST_F(ClientServerInProcess, SendCodeCompletedCommand)
 {
-    QVector<CodeModelBackEnd::CodeCompletion> codeCompletions({QByteArrayLiteral("newFunction()")});
+    QVector<CodeModelBackEnd::CodeCompletion> codeCompletions({Utf8StringLiteral("newFunction()")});
     CodeModelBackEnd::CodeCompletedCommand command(codeCompletions);
 
     EXPECT_CALL(mockIpcClient, codeCompleted(command))

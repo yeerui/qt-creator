@@ -33,7 +33,7 @@
 
 #include <qmetatype.h>
 
-#include <QByteArray>
+#include <utf8string.h>
 
 #include <codemodelbackendipc_global.h>
 
@@ -47,17 +47,17 @@ class CMBIPC_EXPORT FileContainer
     friend bool operator < (const FileContainer &first, const FileContainer &second);
 public:
     FileContainer() = default;
-    FileContainer(const QByteArray &filePath,
-                  const QByteArray &unsavedFileContent = QByteArray(),
+    FileContainer(const Utf8String &filePath,
+                  const Utf8String &unsavedFileContent = Utf8String(),
                   bool hasUnsavedFileContent = false);
 
-    const QByteArray &filePath() const;
-    const QByteArray &unsavedFileContent() const;
+    const Utf8String &filePath() const;
+    const Utf8String &unsavedFileContent() const;
     bool hasUnsavedFileContent() const;
 
 private:
-    QByteArray filePath_;
-    QByteArray unsavedFileContent_;
+    Utf8String filePath_;
+    Utf8String unsavedFileContent_;
     bool hasUnsavedFileContent_ = false;
 };
 

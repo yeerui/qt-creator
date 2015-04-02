@@ -104,7 +104,7 @@ TEST_F(ClientServerOutsideProcess, ResetAliveTimer)
 
 TEST_F(ClientServerOutsideProcess, SendRegisterFilesForCodeCompletionCommand)
 {
-    CodeModelBackEnd::FileContainer fileContainer("foo");
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo"));
     QVector<CodeModelBackEnd::FileContainer> fileContainers({fileContainer});
     EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::RegisterFilesForCodeCompletionCommand(fileContainers)));
 
@@ -117,7 +117,7 @@ TEST_F(ClientServerOutsideProcess, SendRegisterFilesForCodeCompletionCommand)
 
 TEST_F(ClientServerOutsideProcess, SendUnregisterFilesForCodeCompletionCommand)
 {
-    QVector<QByteArray> fileNames({"foo"});
+    Utf8StringVector fileNames({Utf8StringLiteral("foo")});
     EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand(fileNames)));
 
     EXPECT_CALL(mockIpcClient, echo(echoCommand))
@@ -129,13 +129,13 @@ TEST_F(ClientServerOutsideProcess, SendUnregisterFilesForCodeCompletionCommand)
 
 TEST_F(ClientServerOutsideProcess, SendCompleteCodeCommand)
 {
-    CompleteCodeCommand codeCompleteCommand("foo.cpp", 24, 33, "do what I want");
+    CompleteCodeCommand codeCompleteCommand(Utf8StringLiteral("foo.cpp"), 24, 33, Utf8StringLiteral("do what I want"));
     EchoCommand echoCommand(QVariant::fromValue(codeCompleteCommand));
 
     EXPECT_CALL(mockIpcClient, echo(echoCommand))
             .Times(1);
 
-    client.sendCompleteCodeCommand("foo.cpp", 24, 33, "do what I want");
+    client.sendCompleteCodeCommand(Utf8StringLiteral("foo.cpp"), 24, 33, Utf8StringLiteral("do what I want"));
     ASSERT_TRUE(client.waitForEcho());
 }
 
