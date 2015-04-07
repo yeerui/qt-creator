@@ -28,33 +28,36 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_CODECOMPLETER_H
-#define CODEMODELBACKEND_CODECOMPLETER_H
+#ifndef CODEMODELBACKEND_CLANGCODECOMPLETERESULTS_H
+#define CODEMODELBACKEND_CLANGCODECOMPLETERESULTS_H
 
-#include <codecompletion.h>
-#include <utf8stringvector.h>
 
-#include "translationunit.h"
+#include <clang-c/Index.h>
+
+#include <utf8string.h>
 
 namespace CodeModelBackEnd {
 
-class TranslationUnit;
-
-class CodeCompleter
+class ClangCodeCompleteResults
 {
 public:
-    CodeCompleter(TranslationUnit translationUnit);
+    ClangCodeCompleteResults(CXCodeCompleteResults *cxCodeCompleteResults);
+    ~ClangCodeCompleteResults();
 
-    const QVector<CodeCompletion> complete(uint line, uint column) const;
+    ClangCodeCompleteResults(const ClangCodeCompleteResults &ClangCodeCompleteResults) = delete;
+    const ClangCodeCompleteResults &operator =(const ClangCodeCompleteResults &ClangCodeCompleteResults) = delete;
+
+    ClangCodeCompleteResults(ClangCodeCompleteResults &&ClangCodeCompleteResults);
+    ClangCodeCompleteResults &operator =(ClangCodeCompleteResults &&ClangCodeCompleteResults);
+
+    bool isNull() const;
+
+    CXCodeCompleteResults *data() const;
 
 private:
-    const Utf8String filePath() const;
-    static void checkCodeCompleteResult(CXCodeCompleteResults *completeResults);
-
-private:
-    TranslationUnit translationUnit;
+    CXCodeCompleteResults *cxCodeCompleteResults = nullptr;
 };
 
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_CODECOMPLETER_H
+#endif // CODEMODELBACKEND_CLANGCODECOMPLETERESULTS_H

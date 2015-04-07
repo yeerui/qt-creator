@@ -32,6 +32,9 @@
 #include "gmock/gmock-matchers.h"
 
 #include <codecompleter.h>
+#include <translationunit.h>
+#include <codecompleter.h>
+
 #include <utf8stringvector.h>
 
 namespace {
@@ -40,14 +43,16 @@ using ::testing::ElementsAreArray;
 using ::testing::Contains;
 using ::testing::AllOf;
 
+using CodeModelBackEnd::CodeCompletion;
+using CodeModelBackEnd::CodeCompleter;
+using CodeModelBackEnd::TranslationUnit;
+
 TEST(CodeCompletion, CompleteFunc)
 {
-    using CodeModelBackEnd::CodeCompletion;
-    CodeModelBackEnd::CodeCompleter completer;
-    completer.setFilePath(Utf8StringLiteral("data/complete_testfile_1.cpp"));
-    completer.setLine(49);
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
+    CodeCompleter completer = translationUnit.completer();
 
-    ASSERT_THAT(completer.complete(),
+    ASSERT_THAT(completer.complete(49, 1),
                 AllOf(Contains(CodeCompletion(Utf8StringLiteral("functionWithArguments"),
                                               Utf8String(),
                                               Utf8String(),

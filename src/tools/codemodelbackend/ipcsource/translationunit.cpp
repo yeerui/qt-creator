@@ -30,7 +30,14 @@
 
 #include "translationunit.h"
 
+#include <QFileInfo>
+
 #include <utf8string.h>
+
+#include "codecompleter.h"
+
+#include "translationunitisnullexception.h"
+#include "translationunitfilenotexits.h"
 
 namespace CodeModelBackEnd {
 
@@ -42,6 +49,7 @@ public:
 
     Utf8String filePath;
     CXTranslationUnit translationUnit = nullptr;
+    CXIndex index = nullptr;
 };
 
 TranslationUnitData::TranslationUnitData(const Utf8String &filePath)
@@ -52,16 +60,62 @@ TranslationUnitData::TranslationUnitData(const Utf8String &filePath)
 TranslationUnitData::~TranslationUnitData()
 {
     clang_disposeTranslationUnit(translationUnit);
+    clang_disposeIndex(index);
 }
 
 TranslationUnit::TranslationUnit(const Utf8String &filePath)
     : d(new TranslationUnitData(filePath))
 {
+    checkIfFileNotExists();
 }
 
 bool TranslationUnit::isNull() const
 {
     return !d;
+}
+
+CXIndex TranslationUnit::index() const
+{
+    checkIfNull();
+
+    if (!d->index)
+        d->index = clang_createIndex(1, 0);
+
+    return d->index;
+}
+
+CXTranslationUnit TranslationUnit::translationUnit() const
+{
+    checkIfNull();
+
+    if (!d->translationUnit)
+        d->translationUnit = clang_createTranslationUnitFromSourceFile(index(), d->filePath.constData(), 0, 0, 0, 0);
+
+    return d->translationUnit;
+}
+
+CodeCompleter TranslationUnit::completer() const
+{
+    return CodeCompleter(*this);
+}
+
+const Utf8String TranslationUnit::filePath() const
+{
+    checkIfNull();
+
+    return d->filePath;
+}
+
+void TranslationUnit::checkIfNull() const
+{
+    if (isNull())
+        throw TranslationUnitIsNullException();
+}
+
+void TranslationUnit::checkIfFileNotExists() const
+{
+    if (!QFileInfo::exists(d->filePath.toString()))
+        throw TranslationUnitFileNotExits();
 }
 
 TranslationUnit::~TranslationUnit() = default;

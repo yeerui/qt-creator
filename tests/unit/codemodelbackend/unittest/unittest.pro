@@ -51,7 +51,8 @@ SOURCES += main.cpp \
     codecompletiontest.cpp \
     ../../../../src/libs/utils/qtcassert.cpp \
     clangstringtest.cpp \
-    translationunittest.cpp
+    translationunittest.cpp \
+    clangcodecompleteresultstest.cpp
 
 HEADERS += \
     gtest-qt-printing.h \

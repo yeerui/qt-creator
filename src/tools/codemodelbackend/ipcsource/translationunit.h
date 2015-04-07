@@ -40,6 +40,7 @@ class Utf8String;
 namespace CodeModelBackEnd {
 
 class TranslationUnitData;
+class CodeCompleter;
 
 class TranslationUnit
 {
@@ -56,8 +57,19 @@ public:
 
     bool isNull() const;
 
+    CXIndex index() const;
+    CXTranslationUnit translationUnit() const;
+
+    CodeCompleter completer() const;
+
+    const Utf8String filePath() const;
+
 private:
-    QSharedPointer<TranslationUnitData> d;
+    void checkIfNull() const;
+    void checkIfFileNotExists() const;
+
+private:
+    mutable QSharedPointer<TranslationUnitData> d;
 };
 
 } // namespace CodeModelBackEnd

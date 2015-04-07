@@ -31,6 +31,9 @@
 #include "codecompleter.h"
 
 #include "clangstring.h"
+#include "clangcodecompleteresults.h"
+#include "translationunit.h"
+#include "codecompletefailedexception.h"
 
 #include <clang-c/Index.h>
 
@@ -90,19 +93,9 @@ QString toString(CXCompletionChunkKind kind)
     }
 }
 
-void CodeCompleter::setFilePath(const Utf8String &filePath)
+CodeCompleter::CodeCompleter(TranslationUnit translationUnit)
+    : translationUnit(std::move(translationUnit))
 {
-    this->filePath = filePath;
-}
-
-void CodeCompleter::setLine(uint line)
-{
-    this->line = line;
-}
-
-void CodeCompleter::setColumn(uint column)
-{
-    this->column = column;
 }
 
 //void printCompletionString(CXCompletionString completionString, QDebug &deb)
@@ -167,17 +160,32 @@ static QVector<CodeCompletion> extractCodeCompletions(CXCodeCompleteResults *com
     return completions;
 }
 
-const QVector<CodeCompletion> CodeCompleter::complete() const
+const QVector<CodeCompletion> CodeCompleter::complete(uint line, uint column) const
 {
     QVector<CodeCompletion> completions;
 
-    CXIndex index = clang_createIndex(1, 1);
-    CXTranslationUnit translationUnit = clang_createTranslationUnitFromSourceFile(index, filePath.constData(), 0, 0, 0, 0);
-    QTC_ASSERT(translationUnit, return completions);
+    ClangCodeCompleteResults completeResults(clang_codeCompleteAt(translationUnit.translationUnit(),
+                                                                  translationUnit.filePath().constData(),
+                                                                  line,
+                                                                  column,
+                                                                  0,
+                                                                  0,
+                                                                  0));
 
-    CXCodeCompleteResults *completeResults = clang_codeCompleteAt(translationUnit, filePath.constData(), line, 1, 0, 0, 0);
-    QTC_ASSERT(completeResults, return completions);
-    return extractCodeCompletions(completeResults);
+    checkCodeCompleteResult(completeResults.data());
+
+    return extractCodeCompletions(completeResults.data());
+}
+
+const Utf8String CodeCompleter::filePath() const
+{
+    return translationUnit.filePath();
+}
+
+void CodeCompleter::checkCodeCompleteResult(CXCodeCompleteResults *completeResults)
+{
+    if (!completeResults)
+        throw CodeCompleteFailedException();
 }
 
 } // namespace CodeModelBackEnd

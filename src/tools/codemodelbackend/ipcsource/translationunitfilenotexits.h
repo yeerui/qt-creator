@@ -28,33 +28,18 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_CODECOMPLETER_H
-#define CODEMODELBACKEND_CODECOMPLETER_H
+#ifndef CODEMODELBACKEND_TRANSLATIONUNITFILENOTEXITS_H
+#define CODEMODELBACKEND_TRANSLATIONUNITFILENOTEXITS_H
 
-#include <codecompletion.h>
-#include <utf8stringvector.h>
-
-#include "translationunit.h"
 
 namespace CodeModelBackEnd {
 
-class TranslationUnit;
-
-class CodeCompleter
+class TranslationUnitFileNotExits
 {
 public:
-    CodeCompleter(TranslationUnit translationUnit);
-
-    const QVector<CodeCompletion> complete(uint line, uint column) const;
-
-private:
-    const Utf8String filePath() const;
-    static void checkCodeCompleteResult(CXCodeCompleteResults *completeResults);
-
-private:
-    TranslationUnit translationUnit;
+    TranslationUnitFileNotExits();
 };
 
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_CODECOMPLETER_H
+#endif // CODEMODELBACKEND_TRANSLATIONUNITFILENOTEXITS_H

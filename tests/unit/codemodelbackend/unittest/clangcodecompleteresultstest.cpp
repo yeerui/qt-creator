@@ -34,72 +34,46 @@
 
 #include <clang-c/Index.h>
 
+#include <clangcodecompleteresults.h>
 #include <translationunit.h>
 #include <utf8string.h>
 
-#include "translationunitisnullexception.h"
-#include "translationunitfilenotexits.h"
-
-using CodeModelBackEnd::TranslationUnit;
-
-using testing::IsNull;
-using testing::NotNull;
-
 namespace {
 
-TEST(TranslationUnit, DefaultTranslationUnitIsInvalid)
-{
-    TranslationUnit translationUnit;
+using CodeModelBackEnd::ClangCodeCompleteResults;
+using CodeModelBackEnd::TranslationUnit;
 
-    ASSERT_TRUE(translationUnit.isNull());
-}
-
-TEST(TranslationUnit, ThrowExceptionForNonExistingFilePath)
-{
-    ASSERT_THROW(TranslationUnit(Utf8StringLiteral("file.cpp")), CodeModelBackEnd::TranslationUnitFileNotExits);
-}
-
-TEST(TranslationUnit, TranslationUnitIsValid)
+TEST(ClangCodeCompleteResults, GetData)
 {
     TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
+    CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(translationUnit.translationUnit(), translationUnit.filePath().constData(), 49, 1, 0, 0, 0);
 
-    ASSERT_FALSE(translationUnit.isNull());
+    ClangCodeCompleteResults codeCompleteResults(cxCodeCompleteResults);
+
+    ASSERT_THAT(codeCompleteResults.data(), cxCodeCompleteResults);
 }
 
-
-TEST(TranslationUnit, ThrowExceptionForGettingIndexForInvalidUnit)
-{
-    TranslationUnit translationUnit;
-
-    ASSERT_THROW(translationUnit.index(), CodeModelBackEnd::TranslationUnitIsNullException);
-}
-
-TEST(TranslationUnit, GetIndexNonNullForValidUnit)
+TEST(ClangCodeCompleteResults, GetInvalidData)
 {
     TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
+    CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(nullptr, "file.cpp", 49, 1, 0, 0, 0);
 
-    ASSERT_THAT(translationUnit.index(), NotNull());
+    ClangCodeCompleteResults codeCompleteResults(cxCodeCompleteResults);
+
+    ASSERT_THAT(codeCompleteResults.data(), cxCodeCompleteResults);
 }
 
-TEST(TranslationUnit, ThrowExceptionForGettingTranslationUnitForInvalidUnit)
-{
-    TranslationUnit translationUnit;
-
-    ASSERT_THROW(translationUnit.translationUnit(), CodeModelBackEnd::TranslationUnitIsNullException);
-}
-
-TEST(TranslationUnit, GetTranslationUnitNonNullForValidUnit)
+TEST(ClangCodeCompleteResults, MoveClangCodeCompleteResults)
 {
     TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
+    CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(translationUnit.translationUnit(), translationUnit.filePath().constData(), 49, 1, 0, 0, 0);
 
-    ASSERT_THAT(translationUnit.translationUnit(), NotNull());
-}
+    ClangCodeCompleteResults codeCompleteResults(cxCodeCompleteResults);
 
-TEST(TranslationUnit, ThrowExceptionIfGettingFilePathForNullUnit)
-{
-    TranslationUnit translationUnit;
+    const ClangCodeCompleteResults codeCompleteResults2 = std::move(codeCompleteResults);
 
-    ASSERT_THROW(translationUnit.filePath(), CodeModelBackEnd::TranslationUnitIsNullException);
+    ASSERT_TRUE(codeCompleteResults.isNull());
+    ASSERT_FALSE(codeCompleteResults2.isNull());
 }
 
 }
