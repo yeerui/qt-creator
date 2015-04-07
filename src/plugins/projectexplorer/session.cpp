@@ -48,7 +48,6 @@
 
 #include <utils/algorithm.h>
 #include <utils/stylehelper.h>
-#include <utils/algorithm.h>
 
 #include <QDebug>
 #include <QDir>
@@ -178,7 +177,8 @@ bool SessionManager::isDefaultSession(const QString &session)
 
 void SessionManager::saveActiveMode(IMode *mode)
 {
-    setValue(QLatin1String("ActiveMode"), mode->id().toString());
+    if (mode->id() != Id(Core::Constants::MODE_WELCOME))
+        setValue(QLatin1String("ActiveMode"), mode->id().toString());
 }
 
 void SessionManager::clearProjectFileCache()
@@ -692,7 +692,7 @@ void SessionManager::setValue(const QString &name, const QVariant &value)
 
 QVariant SessionManager::value(const QString &name)
 {
-    QMap<QString, QVariant>::const_iterator it = d->m_values.find(name);
+    QMap<QString, QVariant>::const_iterator it = d->m_values.constFind(name);
     return (it == d->m_values.constEnd()) ? QVariant() : *it;
 }
 
@@ -941,6 +941,9 @@ bool SessionManager::loadSession(const QString &session)
         d->restoreValues(reader);
         emit m_instance->aboutToLoadSession(session);
 
+        // retrieve all values before the following code could change them again
+        Id modeId = Id::fromSetting(value(QLatin1String("ActiveMode")));
+
         QColor c = QColor(reader.restoreValue(QLatin1String("Color")).toString());
         if (c.isValid())
             StyleHelper::setBaseColor(c);
@@ -965,7 +968,6 @@ bool SessionManager::loadSession(const QString &session)
         d->m_future = QFutureInterface<void>();
 
         // restore the active mode
-        Id modeId = Id::fromSetting(value(QLatin1String("ActiveMode")));
         if (!modeId.isValid())
             modeId = Id(Core::Constants::MODE_EDIT);
 

@@ -99,20 +99,20 @@ public:
         VcsBaseEditorParameterWidget(parent)
     {
         mapSetting(addToggleButton(QLatin1String("--verbose"), tr("Verbose"),
-                                   tr("Show files changed in each revision")),
+                                   tr("Show files changed in each revision.")),
                    settings->boolPointer(BazaarSettings::logVerboseKey));
         mapSetting(addToggleButton(QLatin1String("--forward"), tr("Forward"),
-                                   tr("Show from oldest to newest")),
+                                   tr("Show from oldest to newest.")),
                    settings->boolPointer(BazaarSettings::logForwardKey));
-        mapSetting(addToggleButton(QLatin1String("--include-merges"), tr("Include merges"),
-                                   tr("Show merged revisions")),
+        mapSetting(addToggleButton(QLatin1String("--include-merges"), tr("Include Merges"),
+                                   tr("Show merged revisions.")),
                    settings->boolPointer(BazaarSettings::logIncludeMergesKey));
 
         QList<ComboBoxItem> logChoices;
         logChoices << ComboBoxItem(tr("Detailed"), QLatin1String("long"))
-                   << ComboBoxItem(tr("Moderately short"), QLatin1String("short"))
-                   << ComboBoxItem(tr("One line"), QLatin1String("line"))
-                   << ComboBoxItem(tr("GNU ChangeLog"), QLatin1String("gnu-changelog"));
+                   << ComboBoxItem(tr("Moderately Short"), QLatin1String("short"))
+                   << ComboBoxItem(tr("One Line"), QLatin1String("line"))
+                   << ComboBoxItem(tr("GNU Change Log"), QLatin1String("gnu-changelog"));
         mapSetting(addComboBox(QStringList(QLatin1String("--log-format=%1")), logChoices),
                    settings->stringPointer(BazaarSettings::logFormatKey));
     }
@@ -278,7 +278,7 @@ BazaarClient::StatusItem BazaarClient::parseStatusLine(const QString &line) cons
         else if (flagVersion == QLatin1Char('-'))
             item.flags = QLatin1String("Unversioned");
         else if (flagVersion == QLatin1Char('R'))
-            item.flags = QLatin1String("Renamed");
+            item.flags = QLatin1String(Constants::FSTATUS_RENAMED);
         else if (flagVersion == QLatin1Char('?'))
             item.flags = QLatin1String("Unknown");
         else if (flagVersion == QLatin1Char('X'))
@@ -292,13 +292,13 @@ BazaarClient::StatusItem BazaarClient::parseStatusLine(const QString &line) cons
         if (lineLength >= 2) {
             const QChar flagContents = line[1];
             if (flagContents == QLatin1Char('N'))
-                item.flags = QLatin1String("Created");
+                item.flags = QLatin1String(Constants::FSTATUS_CREATED);
             else if (flagContents == QLatin1Char('D'))
-                item.flags = QLatin1String("Deleted");
+                item.flags = QLatin1String(Constants::FSTATUS_DELETED);
             else if (flagContents == QLatin1Char('K'))
                 item.flags = QLatin1String("KindChanged");
             else if (flagContents == QLatin1Char('M'))
-                item.flags = QLatin1String("Modified");
+                item.flags = QLatin1String(Constants::FSTATUS_MODIFIED);
         }
         if (lineLength >= 3) {
             const QChar flagExec = line[2];

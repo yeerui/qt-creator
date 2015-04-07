@@ -47,13 +47,25 @@ void SubversionSubmitEditor::setStatusList(const QList<StatusFilePair> &statusOu
 {
     typedef QList<StatusFilePair>::const_iterator ConstIterator;
     auto model = new VcsBase::SubmitFileModel(this);
+    // Hack to allow completion in "description" field : completion needs a root repository, the
+    // checkScriptWorkingDirectory property is fine (at this point it was set by SubversionPlugin)
+    model->setRepositoryRoot(checkScriptWorkingDirectory());
+    model->setFileStatusQualifier([](const QString &status, const QVariant &)
+                                  -> VcsBase::SubmitFileModel::FileStatusHint
+    {
+        if (status == QLatin1String("A"))
+            return VcsBase::SubmitFileModel::FileAdded;
+        if (status == QLatin1String("M"))
+            return VcsBase::SubmitFileModel::FileModified;
+        if (status == QLatin1String("D"))
+            return VcsBase::SubmitFileModel::FileDeleted;
+        return VcsBase::SubmitFileModel::FileStatusUnknown;
+    } );
 
     const ConstIterator cend = statusOutput.constEnd();
     for (ConstIterator it = statusOutput.constBegin(); it != cend; ++it)
         model->addFile(it->second, it->first);
-    // Hack to allow completion in "description" field : completion needs a root repository, the
-    // checkScriptWorkingDirectory property is fine (at this point it was set by SubversionPlugin)
-    setFileModel(model, this->checkScriptWorkingDirectory());
+    setFileModel(model);
 }
 
 QByteArray SubversionSubmitEditor::fileContents() const

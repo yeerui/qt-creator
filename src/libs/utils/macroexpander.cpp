@@ -37,6 +37,7 @@
 
 #include <QCoreApplication>
 #include <QDebug>
+#include <QDir>
 #include <QFileInfo>
 #include <QMap>
 
@@ -45,6 +46,8 @@ namespace Internal {
 
 const char kFilePathPostfix[] = ":FilePath";
 const char kPathPostfix[] = ":Path";
+const char kNativeFilePathPostfix[] = ":NativeFilePath";
+const char kNativePathPostfix[] = ":NativePath";
 const char kFileNamePostfix[] = ":FileName";
 const char kFileBaseNamePostfix[] = ":FileBaseName";
 
@@ -370,6 +373,22 @@ void MacroExpander::registerFileVariables(const QByteArray &prefix,
          [base]() -> QString { QString tmp = base(); return tmp.isEmpty() ? QString() : QFileInfo(tmp).path(); },
          visibleInChooser);
 
+    registerVariable(prefix + kNativeFilePathPostfix,
+         tr("%1: Full path including file name, with native path separator (backslash on Windows).").arg(heading),
+         [base]() -> QString {
+             QString tmp = base();
+             return tmp.isEmpty() ? QString() : QDir::toNativeSeparators(QFileInfo(tmp).filePath());
+         },
+         visibleInChooser);
+
+    registerVariable(prefix + kNativePathPostfix,
+         tr("%1: Full path excluding file name, with native path separator (backslash on Windows).").arg(heading),
+         [base]() -> QString {
+             QString tmp = base();
+             return tmp.isEmpty() ? QString() : QDir::toNativeSeparators(QFileInfo(tmp).path());
+         },
+         visibleInChooser);
+
     registerVariable(prefix + kFileNamePostfix,
          tr("%1: File name without path.").arg(heading),
          [base]() -> QString { QString tmp = base(); return tmp.isEmpty() ? QString() : Utils::FileName::fromString(tmp).fileName(); },
@@ -447,7 +466,7 @@ public:
     GlobalMacroExpander()
     {
         setDisplayName(MacroExpander::tr("Global variables"));
-        registerPrefix("Env", tr("Access environment variables."),
+        registerPrefix("Env", MacroExpander::tr("Access environment variables."),
            [](const QString &value) { return QString::fromLocal8Bit(qgetenv(value.toLocal8Bit())); });
     }
 };

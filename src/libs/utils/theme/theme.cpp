@@ -113,6 +113,8 @@ QPair<QColor, QString> Theme::readNamedColor(const QString &color) const
 {
     if (d->palette.contains(color))
         return qMakePair(d->palette[color], color);
+    if (color == QLatin1String("style"))
+        return qMakePair(QColor(), QString());
 
     bool ok = true;
     const QRgb rgba = color.toLongLong(&ok, 16);
@@ -285,7 +287,11 @@ void Theme::readSettings(QSettings &settings)
         QMetaEnum e = m.enumerator(m.indexOfEnumerator("Color"));
         for (int i = 0, total = e.keyCount(); i < total; ++i) {
             const QString key = QLatin1String(e.key(i));
-            QTC_ASSERT(settings.contains(key), return);;
+            if (!settings.contains(key)) {
+                qWarning("Theme \"%s\" misses color setting for key \"%s\".",
+                         qPrintable(d->fileName), qPrintable(key));
+                continue;
+            }
             d->colors[i] = readNamedColor(settings.value(key).toString());
         }
         settings.endGroup();
@@ -358,6 +364,8 @@ QPalette Theme::palette() const
     pal.setColor(QPalette::Dark,            color(Theme::BackgroundColorDark));
     pal.setColor(QPalette::HighlightedText, Qt::white);
     pal.setColor(QPalette::ToolTipText,     color(Theme::TextColorNormal));
+    pal.setColor(QPalette::Link,            color(Theme::TextColorLink));
+    pal.setColor(QPalette::LinkVisited,     color(Theme::TextColorLinkVisited));
     return pal;
 }
 

@@ -1850,8 +1850,8 @@ QString GdbEngine::cleanupFullName(const QString &fileName)
     cleanFilePath.clear();
     const QString base = FileName::fromString(fileName).fileName();
 
-    QMap<QString, QString>::const_iterator jt = m_baseNameToFullName.find(base);
-    while (jt != m_baseNameToFullName.end() && jt.key() == base) {
+    QMap<QString, QString>::const_iterator jt = m_baseNameToFullName.constFind(base);
+    while (jt != m_baseNameToFullName.constEnd() && jt.key() == base) {
         // FIXME: Use some heuristics to find the "best" match.
         return jt.value();
         //++jt;
@@ -3705,9 +3705,8 @@ bool GdbEngine::setToolTipExpression(const DebuggerToolTipContext &context)
         return false;
 
     UpdateParameters params;
-    params.tryPartial = true;
-    params.varList = context.iname;
-    updateLocalsPython(params);
+    params.partialVariable = context.iname;
+    doUpdateLocals(params);
     return true;
 }
 
@@ -3724,25 +3723,11 @@ void GdbEngine::reloadLocals()
     updateLocals();
 }
 
-void GdbEngine::updateWatchData(const WatchData &data)
+void GdbEngine::updateWatchItem(WatchItem *item)
 {
     UpdateParameters params;
-    params.tryPartial = m_pendingBreakpointRequests == 0;
-    params.varList = data.iname;
-    updateLocalsPython(params);
-}
-
-void GdbEngine::rebuildWatchModel()
-{
-    static int count = 0;
-    ++count;
-    PENDING_DEBUG("REBUILDING MODEL" << count);
-    if (boolSetting(LogTimeStamps))
-        showMessage(LogWindow::logTimeStamp(), LogMiscInput);
-    showMessage(_("<Rebuild Watchmodel %1>").arg(count), LogMiscInput);
-    showStatusMessage(tr("Finished retrieving data"), 400);
-
-    DebuggerToolTipManager::updateEngine(this);
+    params.partialVariable = item->iname;
+    doUpdateLocals(params);
 }
 
 void GdbEngine::handleVarAssign(const DebuggerResponse &)
@@ -3755,17 +3740,18 @@ void GdbEngine::handleVarAssign(const DebuggerResponse &)
 void GdbEngine::updateLocals()
 {
     watchHandler()->resetValueCache();
-    updateLocalsPython(UpdateParameters());
+    watchHandler()->notifyUpdateStarted();
+    doUpdateLocals(UpdateParameters());
 }
 
-void GdbEngine::assignValueInDebugger(const WatchData *data,
+void GdbEngine::assignValueInDebugger(WatchItem *item,
     const QString &expression, const QVariant &value)
 {
     DebuggerCommand cmd("assignValue");
-    cmd.arg("type", data->type.toHex());
+    cmd.arg("type", item->type.toHex());
     cmd.arg("expr", expression.toLatin1().toHex());
     cmd.arg("value", value.toString().toLatin1().toHex());
-    cmd.arg("simpleType", isIntOrFloatType(data->type));
+    cmd.arg("simpleType", isIntOrFloatType(item->type));
     cmd.callback = CB(handleVarAssign);
     runCommand(cmd);
 }
@@ -4032,7 +4018,7 @@ bool GdbEngine::handleCliDisassemblerResult(const QByteArray &output, Disassembl
     currentFunction = -1;
     DisassemblerLines result;
     result.setBytesLength(dlines.bytesLength());
-    for (LineMap::const_iterator it = lineMap.begin(), et = lineMap.end(); it != et; ++it) {
+    for (LineMap::const_iterator it = lineMap.constBegin(), et = lineMap.constEnd(); it != et; ++it) {
         LineData d = *it;
         if (d.function != currentFunction) {
             if (d.function != -1) {
@@ -4272,7 +4258,7 @@ void GdbEngine::startGdb(const QStringList &args)
     if (!commands.isEmpty())
         postCommand(commands.toLocal8Bit(), flags);
 
-    runCommand(DebuggerCommand("setupDumper", flags, CB(handlePythonSetup)));
+    runCommand(DebuggerCommand("loadDumpers", flags, CB(handlePythonSetup)));
 }
 
 void GdbEngine::handleGdbStartFailed()
@@ -4302,7 +4288,7 @@ void GdbEngine::loadInitScript()
 
 void GdbEngine::reloadDebuggingHelpers()
 {
-    runCommand("reloadDumper");
+    runCommand("reloadDumpers");
     reloadLocals();
 }
 
@@ -4708,9 +4694,8 @@ void addGdbOptionPages(QList<IOptionsPage *> *opts)
     opts->push_back(new GdbOptionsPage2());
 }
 
-void GdbEngine::updateLocalsPython(const UpdateParameters &params)
+void GdbEngine::doUpdateLocals(const UpdateParameters &params)
 {
-    //m_pendingWatchRequests = 0;
     m_pendingBreakpointRequests = 0;
 
     DebuggerCommand cmd("showData");
@@ -4747,7 +4732,6 @@ void GdbEngine::updateLocalsPython(const UpdateParameters &params)
     cmd.arg("autoderef", boolSetting(AutoDerefPointers));
     cmd.arg("dyntype", boolSetting(UseDynamicType));
     cmd.arg("nativemixed", isNativeMixedActive());
-    cmd.arg("partial", params.tryPartial);
 
     if (isNativeMixedActive()) {
         StackFrame frame = stackHandler()->currentFrame();
@@ -4756,17 +4740,18 @@ void GdbEngine::updateLocalsPython(const UpdateParameters &params)
     }
 
     cmd.arg("resultvarname", m_resultVarName);
-    cmd.arg("vars", params.varList);
+    cmd.arg("partialVariable", params.partialVariable);
     cmd.flags = Discardable;
-    cmd.callback = [this, params](const DebuggerResponse &r) { handleStackFramePython(r, params.tryPartial); };
+    cmd.callback = [this, params](const DebuggerResponse &r) { handleStackFramePython(r); };
     runCommand(cmd);
 
     cmd.arg("passExceptions", true);
     m_lastDebuggableCommand = cmd;
 }
 
-void GdbEngine::handleStackFramePython(const DebuggerResponse &response, bool partial)
+void GdbEngine::handleStackFramePython(const DebuggerResponse &response)
 {
+    watchHandler()->notifyUpdateFinished();
     if (response.resultClass == ResultDone) {
         QByteArray out = response.consoleStreamOutput;
         while (out.endsWith(' ') || out.endsWith('\n'))
@@ -4779,56 +4764,9 @@ void GdbEngine::handleStackFramePython(const DebuggerResponse &response, bool pa
         }
         GdbMi all;
         all.fromStringMultiple(out);
-        GdbMi data = all["data"];
 
-        GdbMi ns = all["qtnamespace"];
-        if (ns.isValid()) {
-            setQtNamespace(ns.data());
-            showMessage(_("FOUND NAMESPACED QT: " + ns.data()));
-        }
+        updateLocalsView(all);
 
-        WatchHandler *handler = watchHandler();
-
-        const GdbMi typeInfo = all["typeinfo"];
-        if (typeInfo.type() == GdbMi::List) {
-            foreach (const GdbMi &s, typeInfo.children()) {
-                const GdbMi name = s["name"];
-                const GdbMi size = s["size"];
-                if (name.isValid() && size.isValid())
-                    m_typeInfoCache.insert(QByteArray::fromHex(name.data()),
-                                           TypeInfo(size.data().toUInt()));
-            }
-        }
-
-        QSet<QByteArray> toDelete;
-        if (!partial) {
-            foreach (WatchItem *item, handler->model()->treeLevelItems<WatchItem *>(2))
-                toDelete.insert(item->d.iname);
-        }
-
-        foreach (const GdbMi &child, data.children()) {
-            WatchItem *item = new WatchItem(child);
-            const TypeInfo ti = m_typeInfoCache.value(item->d.type);
-            if (ti.size)
-                item->d.size = ti.size;
-
-            handler->insertItem(item);
-            toDelete.remove(item->d.iname);
-        }
-
-        handler->purgeOutdatedItems(toDelete);
-
-        //PENDING_DEBUG("AFTER handleStackFrame()");
-        // FIXME: This should only be used when updateLocals() was
-        // triggered by expanding an item in the view.
-        //if (m_pendingWatchRequests <= 0) {
-            //PENDING_DEBUG("\n\n ....  AND TRIGGERS MODEL UPDATE\n");
-            rebuildWatchModel();
-        //}
-        if (!partial) {
-            emit stackFrameCompleted();
-            DebuggerToolTipManager::updateEngine(this);
-        }
     } else {
         showMessage(_("DUMPER FAILED: " + response.toString()));
     }

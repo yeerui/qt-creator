@@ -28,9 +28,10 @@
 **
 ****************************************************************************/
 
+#include "autoreleasepool.h"
+
 #include <QUrl>
 
-#include <Foundation/NSAutoreleasePool.h>
 #include <Foundation/NSURL.h>
 
 namespace Utils {
@@ -38,12 +39,11 @@ namespace Internal {
 
 QUrl filePathUrl(const QUrl &url)
 {
+    Utils::AutoreleasePool pool; Q_UNUSED(pool)
     QUrl ret = url;
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSURL *nsurl = url.toNSURL();
     if ([nsurl isFileReferenceURL])
         ret = QUrl::fromNSURL([nsurl filePathURL]);
-    [pool release];
     return ret;
 }
 

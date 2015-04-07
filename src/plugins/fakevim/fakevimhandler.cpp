@@ -2416,6 +2416,9 @@ void FakeVimHandler::Private::enterFakeVim()
 {
     QTC_ASSERT(!m_inFakeVim, qDebug() << "enterFakeVim() shouldn't be called recursively!"; return);
 
+    if (!m_buffer->currentHandler)
+        m_buffer->currentHandler = this;
+
     pullOrCreateBufferData();
 
     m_inFakeVim = true;
@@ -4566,7 +4569,7 @@ bool FakeVimHandler::Private::handleRegisterSubMode(const Input &input)
     bool handled = false;
 
     QChar reg = input.asChar();
-    if (QString::fromLatin1("*+.%#:-\"").contains(reg) || reg.isLetterOrNumber()) {
+    if (QString::fromLatin1("*+.%#:-\"_").contains(reg) || reg.isLetterOrNumber()) {
         m_register = reg.unicode();
         handled = true;
     }
@@ -4914,6 +4917,15 @@ void FakeVimHandler::Private::handleInsertMode(const Input &input)
         const int beginPos = position();
         Range range(beginPos, endPos, RangeCharMode);
         removeText(range);
+    } else if (input.isControl('u')) {
+        const int blockNumber = m_cursor.blockNumber();
+        const int endPos = position();
+        moveToStartOfLine();
+        if (blockNumber != m_cursor.blockNumber())
+            moveToEndOfLine();
+        const int beginPos = position();
+        Range range(beginPos, endPos, RangeCharMode);
+        removeText(range);
     } else if (input.isKey(Key_Insert)) {
         g.mode = ReplaceMode;
     } else if (input.isKey(Key_Left)) {
@@ -4944,7 +4956,8 @@ void FakeVimHandler::Private::handleInsertMode(const Input &input)
             endEditBlock();
         }
     } else if (input.isBackspace()) {
-        if (!handleInsertInEditor(input)) {
+        // pass C-h as backspace, too
+        if (!handleInsertInEditor(Input(Qt::Key_Backspace, Qt::NoModifier))) {
             joinPreviousEditBlock();
             if (!m_buffer->lastInsertion.isEmpty()
                     || hasConfig(ConfigBackspace, "start")
@@ -6926,9 +6939,6 @@ void FakeVimHandler::Private::yankText(const Range &range, int reg)
 
     // If register is not specified or " ...
     if (m_register == '"') {
-        // copy to yank register 0 too
-        setRegister('0', text, range.rangemode);
-
         // with delete and change commands set register 1 (if text contains more lines) or
         // small delete register -
         if (g.submode == DeleteSubMode || g.submode == ChangeSubMode) {
@@ -6936,9 +6946,12 @@ void FakeVimHandler::Private::yankText(const Range &range, int reg)
                 setRegister('1', text, range.rangemode);
             else
                 setRegister('-', text, range.rangemode);
+        } else {
+            // copy to yank register 0 too
+            setRegister('0', text, range.rangemode);
         }
-    } else {
-        // Always copy to " register too.
+    } else if (m_register != '_') {
+        // Always copy to " register too (except black hole register).
         setRegister('"', text, range.rangemode);
     }
 

@@ -303,7 +303,7 @@ void LldbEngine::setupInferior()
         runCommand(cmd);
     }
 
-    DebuggerCommand cmd1("loadDumperFiles");
+    DebuggerCommand cmd1("loadDumpers");
     runCommand(cmd1);
 }
 
@@ -445,9 +445,10 @@ void LldbEngine::handleResponse(const QByteArray &response)
 
     foreach (const GdbMi &item, all.children()) {
         const QByteArray name = item.name();
-        if (name == "data")
-            refreshLocals(item);
-        else if (name == "dumpers") {
+        if (name == "all") {
+            watchHandler()->notifyUpdateFinished();
+            updateLocalsView(item);
+        } else if (name == "dumpers") {
             watchHandler()->addDumpers(item);
             setupInferiorStage2();
         } else if (name == "stack")
@@ -456,6 +457,8 @@ void LldbEngine::handleResponse(const QByteArray &response)
             refreshRegisters(item);
         else if (name == "threads")
             refreshThreads(item);
+        else if (name == "current-thread")
+            refreshCurrentThread(item);
         else if (name == "typeinfo")
             refreshTypeInfo(item);
         else if (name == "state")
@@ -567,10 +570,15 @@ void LldbEngine::activateFrame(int frameIndex)
 
 void LldbEngine::selectThread(ThreadId threadId)
 {
-    DebuggerCommand cmd("selectThread");
-    cmd.arg("id", threadId.raw());
+    DebuggerCommand cmd1("selectThread");
+    cmd1.arg("id", threadId.raw());
+    runCommand(cmd1);
+
+    DebuggerCommand cmd("reportStack");
+    cmd.arg("nativeMixed", isNativeMixedActive());
+    cmd.arg("stacklimit", action(MaximalStackDepth)->value().toInt());
+    cmd.arg("continuation", "updateLocals");
     runCommand(cmd);
-    updateAll();
 }
 
 bool LldbEngine::stateAcceptsBreakpointChanges() const
@@ -814,8 +822,7 @@ bool LldbEngine::setToolTipExpression(const DebuggerToolTipContext &context)
     }
 
     UpdateParameters params;
-    params.tryPartial = true;
-    params.varList = context.iname;
+    params.partialVariable = context.iname;
     doUpdateLocals(params);
 
     return true;
@@ -823,6 +830,12 @@ bool LldbEngine::setToolTipExpression(const DebuggerToolTipContext &context)
 
 void LldbEngine::updateAll()
 {
+    DebuggerCommand cmd1("reportThreads");
+    runCommand(cmd1);
+
+    DebuggerCommand cmd2("reportCurrentThread");
+    runCommand(cmd2);
+
     DebuggerCommand cmd("reportStack");
     cmd.arg("nativeMixed", isNativeMixedActive());
     cmd.arg("stacklimit", action(MaximalStackDepth)->value().toInt());
@@ -844,19 +857,17 @@ void LldbEngine::reloadFullStack()
 //
 //////////////////////////////////////////////////////////////////////
 
-void LldbEngine::assignValueInDebugger(const Internal::WatchData *data,
+void LldbEngine::assignValueInDebugger(WatchItem *,
     const QString &expression, const QVariant &value)
 {
-    Q_UNUSED(data);
     DebuggerCommand cmd("assignValue");
     cmd.arg("exp", expression.toLatin1().toHex());
     cmd.arg("value", value.toString().toLatin1().toHex());
     runCommand(cmd);
 }
 
-void LldbEngine::updateWatchData(const WatchData &data)
+void LldbEngine::updateWatchItem(WatchItem *)
 {
-    Q_UNUSED(data);
     updateLocals();
 }
 
@@ -882,7 +893,7 @@ void LldbEngine::doUpdateLocals(UpdateParameters params)
     cmd.arg("fancy", boolSetting(UseDebuggingHelpers));
     cmd.arg("autoderef", boolSetting(AutoDerefPointers));
     cmd.arg("dyntype", boolSetting(UseDynamicType));
-    cmd.arg("partial", params.tryPartial);
+    cmd.arg("partialVariable", params.partialVariable);
 
     cmd.beginList("watchers");
 
@@ -912,6 +923,7 @@ void LldbEngine::doUpdateLocals(UpdateParameters params)
     m_lastDebuggableCommand = cmd;
     m_lastDebuggableCommand.args.replace("\"passexceptions\":0", "\"passexceptions\":1");
 
+    watchHandler()->notifyUpdateStarted();
     runCommand(cmd);
 
     reloadRegisters();
@@ -992,27 +1004,6 @@ void LldbEngine::readLldbStandardOutput()
     }
 }
 
-void LldbEngine::refreshLocals(const GdbMi &vars)
-{
-    //const bool partial = response.cookie.toBool();
-    WatchHandler *handler = watchHandler();
-    handler->resetValueCache();
-
-    QSet<QByteArray> toDelete;
-    foreach (WatchItem *item, handler->model()->treeLevelItems<WatchItem *>(2))
-        toDelete.insert(item->d.iname);
-
-    foreach (const GdbMi &child, vars.children()) {
-        WatchItem *item = new WatchItem(child);
-        handler->insertItem(item);
-        toDelete.remove(item->d.iname);
-    }
-
-    handler->purgeOutdatedItems(toDelete);
-
-    DebuggerToolTipManager::updateEngine(this);
- }
-
 void LldbEngine::refreshStack(const GdbMi &stack)
 {
     StackHandler *handler = stackHandler();
@@ -1061,11 +1052,14 @@ void LldbEngine::refreshThreads(const GdbMi &threads)
 {
     ThreadsHandler *handler = threadsHandler();
     handler->updateThreads(threads);
-    if (!handler->currentThread().isValid()) {
-        ThreadId other = handler->threadAt(0);
-        if (other.isValid())
-            selectThread(other);
-    }
+    updateViews(); // Adjust Threads combobox.
+}
+
+void LldbEngine::refreshCurrentThread(const GdbMi &data)
+{
+    ThreadsHandler *handler = threadsHandler();
+    ThreadId id(data["id"].toInt());
+    handler->setCurrentThread(id);
     updateViews(); // Adjust Threads combobox.
 }
 
@@ -1102,9 +1096,10 @@ void LldbEngine::refreshState(const GdbMi &reportedState)
         } else {
             updateAll();
         }
-    } else if (newState == "inferiorstopok")
+    } else if (newState == "inferiorstopok") {
         notifyInferiorStopOk();
-    else if (newState == "inferiorstopfailed")
+        updateAll();
+    } else if (newState == "inferiorstopfailed")
         notifyInferiorStopFailed();
     else if (newState == "inferiorill")
         notifyInferiorIll();
@@ -1156,6 +1151,12 @@ void LldbEngine::reloadRegisters()
 {
     if (Internal::isDockVisible(QLatin1String(DOCKWIDGET_REGISTER)))
         runCommand("reportRegisters");
+}
+
+void LldbEngine::reloadDebuggingHelpers()
+{
+    runCommand("reloadDumpers");
+    updateAll();
 }
 
 void LldbEngine::fetchDisassembler(DisassemblerAgent *agent)

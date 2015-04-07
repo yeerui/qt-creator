@@ -76,7 +76,6 @@ public:
     QmlProfilerTraceViewPrivate(QmlProfilerTraceView *qq) : q(qq) {}
     QmlProfilerTraceView *q;
 
-    QmlProfilerStateManager *m_profilerState;
     QmlProfilerTool *m_profilerTool;
     QmlProfilerViewManager *m_viewContainer;
 
@@ -90,7 +89,7 @@ public:
     Timeline::TimelineZoomControl *m_zoomControl;
 };
 
-QmlProfilerTraceView::QmlProfilerTraceView(QWidget *parent, QmlProfilerTool *profilerTool, QmlProfilerViewManager *container, QmlProfilerModelManager *modelManager, QmlProfilerStateManager *profilerState)
+QmlProfilerTraceView::QmlProfilerTraceView(QWidget *parent, QmlProfilerTool *profilerTool, QmlProfilerViewManager *container, QmlProfilerModelManager *modelManager)
     : QWidget(parent), d(new QmlProfilerTraceViewPrivate(this))
 {
     setObjectName(QLatin1String("QML Profiler"));
@@ -141,9 +140,6 @@ QmlProfilerTraceView::QmlProfilerTraceView(QWidget *parent, QmlProfilerTool *pro
 
     // Connect this last so that it's executed after the models have updated their data.
     connect(modelManager->qmlModel(), SIGNAL(changed()), d->m_modelProxy, SIGNAL(stateChanged()));
-    connect(d->m_modelManager, SIGNAL(stateChanged()), this, SLOT(profilerDataModelStateChanged()));
-
-    d->m_profilerState = profilerState;
 
     // Minimum height: 5 rows of 20 pixels + scrollbar of 50 pixels + 20 pixels margin
     setMinimumHeight(170);
@@ -175,18 +171,12 @@ bool QmlProfilerTraceView::hasValidSelection() const
 
 qint64 QmlProfilerTraceView::selectionStart() const
 {
-    QQuickItem *rootObject = d->m_mainView->rootObject();
-    if (rootObject)
-        return rootObject->property("selectionRangeStart").toLongLong();
-    return 0;
+    return d->m_zoomControl->selectionStart();
 }
 
 qint64 QmlProfilerTraceView::selectionEnd() const
 {
-    QQuickItem *rootObject = d->m_mainView->rootObject();
-    if (rootObject)
-        return rootObject->property("selectionRangeEnd").toLongLong();
-    return 0;
+    return d->m_zoomControl->selectionEnd();
 }
 
 void QmlProfilerTraceView::clear()
@@ -308,23 +298,6 @@ void QmlProfilerTraceView::showContextMenu(QPoint position)
 }
 
 ////////////////////////////////////////////////////////////////
-// Profiler State
-void QmlProfilerTraceView::profilerDataModelStateChanged()
-{
-    switch (d->m_modelManager->state()) {
-        case QmlProfilerDataState::Empty: break;
-        case QmlProfilerDataState::ClearingData:
-            d->m_mainView->hide();
-        break;
-        case QmlProfilerDataState::AcquiringData: break;
-        case QmlProfilerDataState::ProcessingData: break;
-        case QmlProfilerDataState::Done:
-            d->m_mainView->show();
-        break;
-    default:
-        break;
-    }
-}
 
 void QmlProfilerTraceView::changeEvent(QEvent *e)
 {

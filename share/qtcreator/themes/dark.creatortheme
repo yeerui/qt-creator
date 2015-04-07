@@ -53,6 +53,8 @@ MenuBarEmptyAreaBackgroundColor=shadowBackground
 MenuBarItemBackgroundColor=shadowBackground
 MenuBarItemTextColorDisabled=textDisabled
 MenuBarItemTextColorNormal=text
+MenuItemTextColorDisabled=textDisabled
+MenuItemTextColorNormal=text
 MiniProjectTargetSelectorBackgroundColor=shadowBackground
 MiniProjectTargetSelectorBorderColor=shadowBackground
 MiniProjectTargetSelectorSummaryBackgroundColor=shadowBackground
@@ -70,6 +72,8 @@ SplitterColor=ffb0b0b0
 TextColorDisabled=textDisabled
 TextColorError=ffff4040
 TextColorHighlight=ffff0000
+TextColorLink=ff007af4
+TextColorLinkVisited=ffa57aff
 TextColorNormal=text
 TodoItemTextColor=ff000000
 ToggleButtonBackgroundColor=shadowBackground
@@ -77,15 +81,24 @@ ToolBarBackgroundColor=shadowBackground
 TreeViewArrowColorNormal=hoverBackground
 TreeViewArrowColorSelected=text
 
-OutputFormatter_DebugTextColor=text
-OutputFormatter_ErrorMessageTextColor=error
-OutputFormatter_NormalMessageTextColor=text
-OutputFormatter_StdErrTextColor=error
-OutputFormatter_StdOutTextColor=text
+OutputPanes_DebugTextColor=text
+OutputPanes_ErrorMessageTextColor=ffff6c6c
+OutputPanes_MessageOutput=ff008787
+OutputPanes_NormalMessageTextColor=text
+OutputPanes_StdErrTextColor=error
+OutputPanes_StdOutTextColor=text
+OutputPanes_WarningMessageTextColor=fff3c300
 OutputPaneButtonFlashColor=error
 OutputPaneToggleButtonTextColorChecked=text
 OutputPaneToggleButtonTextColorUnchecked=text
-QtOutputFormatter_LinkTextColor=ff0000ff
+
+Debugger_LogWindow_LogInput=ff00acac
+Debugger_LogWindow_LogStatus=ff00875a
+Debugger_LogWindow_LogTime=ffbf0303
+
+Debugger_WatchItem_ValueNormal=text
+Debugger_WatchItem_ValueInvalid=textDisabled
+Debugger_WatchItem_ValueChanged=ffbf0303
 
 Welcome_BackgroundColorNormal=normalBackground
 Welcome_Button_BorderColorNormal=0
@@ -106,6 +119,12 @@ Welcome_SessionItem_BackgroundColorNormal=0
 Welcome_SideBar_BackgroundColor=ff434343
 Welcome_TextColorHeading=text
 Welcome_TextColorNormal=text
+
+VcsBase_FileStatusUnknown_TextColor=text
+VcsBase_FileAdded_TextColor=ff00ff00
+VcsBase_FileModified_TextColor=ff8ee0ff
+VcsBase_FileDeleted_TextColor=fffff6c6c
+VcsBase_FileRenamed_TextColor=ffffa500
 
 [Flags]
 ComboBoxDrawTextShadow=false

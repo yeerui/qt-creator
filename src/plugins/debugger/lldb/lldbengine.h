@@ -105,8 +105,7 @@ private:
     void removeBreakpoint(Breakpoint bp);
     void changeBreakpoint(Breakpoint bp);
 
-    void assignValueInDebugger(const WatchData *data,
-        const QString &expr, const QVariant &value);
+    void assignValueInDebugger(WatchItem *item, const QString &expr, const QVariant &value);
     void executeDebuggerCommand(const QString &command, DebuggerLanguages languages);
 
     void loadSymbols(const QString &moduleName);
@@ -116,12 +115,13 @@ private:
     void reloadRegisters();
     void reloadSourceFiles() {}
     void reloadFullStack();
+    void reloadDebuggingHelpers();
     void fetchDisassembler(Internal::DisassemblerAgent *);
     void refreshDisassembly(const GdbMi &data);
 
     bool supportsThreads() const { return true; }
     bool isSynchronous() const { return true; }
-    void updateWatchData(const WatchData &data);
+    void updateWatchItem(WatchItem *item);
     void setRegisterValue(const QByteArray &name, const QString &value);
 
     void fetchMemory(Internal::MemoryAgent *, QObject *, quint64 addr, quint64 length);
@@ -148,9 +148,9 @@ private:
 
     void refreshAll(const GdbMi &all);
     void refreshThreads(const GdbMi &threads);
+    void refreshCurrentThread(const GdbMi &data);
     void refreshStack(const GdbMi &stack);
     void refreshRegisters(const GdbMi &registers);
-    void refreshLocals(const GdbMi &vars);
     void refreshTypeInfo(const GdbMi &typeInfo);
     void refreshState(const GdbMi &state);
     void refreshLocation(const GdbMi &location);

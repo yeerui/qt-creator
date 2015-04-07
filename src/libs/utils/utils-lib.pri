@@ -4,7 +4,7 @@ dll {
     DEFINES += QTCREATOR_UTILS_STATIC_LIB
 }
 
-QT += script network
+QT += network
 
 CONFIG += exceptions # used by portlist.cpp, textfileformat.cpp, and ssh/*
 
@@ -187,7 +187,8 @@ HEADERS += \
     $$PWD/theme/theme.h \
     $$PWD/theme/theme_p.h \
     $$PWD/progressindicator.h \
-    $$PWD/fadingindicator.h
+    $$PWD/fadingindicator.h \
+    $$PWD/executeondestruction.h
 
 FORMS += $$PWD/filewizardpage.ui \
     $$PWD/projectintropage.ui \
@@ -197,6 +198,7 @@ FORMS += $$PWD/filewizardpage.ui \
 RESOURCES += $$PWD/utils.qrc
 
 osx {
+    HEADERS += $$PWD/autoreleasepool.h
     OBJECTIVE_SOURCES += \
         $$PWD/fileutils_mac.mm
     LIBS += -framework Foundation

@@ -52,6 +52,7 @@
 #include <projectexplorer/buildconfiguration.h>
 #include <projectexplorer/session.h>
 #include <projectexplorer/target.h>
+#include <projectexplorer/taskhub.h>
 
 #include <utils/algorithm.h>
 #include <utils/fancymainwindow.h>
@@ -101,7 +102,7 @@ public:
         : IMode(parent)
     {
         setContext(Context(C_ANALYZEMODE, C_NAVIGATION_PANE));
-        setDisplayName(tr("Analyze"));
+        setDisplayName(AnalyzerManager::tr("Analyze"));
         setIcon(QIcon(QLatin1String(":/images/analyzer_mode.png")));
         setPriority(P_MODE_ANALYZE);
         setId(MODE_ANALYZE);
@@ -124,6 +125,7 @@ public:
 
 class AnalyzerManagerPrivate : public QObject
 {
+    Q_DECLARE_TR_FUNCTIONS(Analyzer::AnalyzerManager)
 public:
     typedef QHash<QString, QVariant> FancyMainWindowSettings;
 
@@ -420,6 +422,7 @@ bool AnalyzerManagerPrivate::showPromptDialog(const QString &title, const QStrin
 void AnalyzerManagerPrivate::startTool()
 {
     QTC_ASSERT(m_currentAction, return);
+    TaskHub::clearTasks(Constants::ANALYZERTASK_ID);
     m_currentAction->toolStarter()();
 }
 

@@ -98,6 +98,8 @@ public:
         MenuBarItemBackgroundColor,
         MenuBarItemTextColorDisabled,
         MenuBarItemTextColorNormal,
+        MenuItemTextColorDisabled,
+        MenuItemTextColorNormal,
         MiniProjectTargetSelectorBackgroundColor,
         MiniProjectTargetSelectorBorderColor,
         MiniProjectTargetSelectorSummaryBackgroundColor,
@@ -118,6 +120,8 @@ public:
         TextColorDisabled,
         TextColorError,
         TextColorHighlight,
+        TextColorLink,
+        TextColorLinkVisited,
         TextColorNormal,
         TodoItemTextColor,
         ToggleButtonBackgroundColor,
@@ -125,13 +129,27 @@ public:
         TreeViewArrowColorNormal,
         TreeViewArrowColorSelected,
 
-        OutputFormatter_NormalMessageTextColor,
-        OutputFormatter_ErrorMessageTextColor,
-        OutputFormatter_StdOutTextColor,
-        OutputFormatter_StdErrTextColor,
-        OutputFormatter_DebugTextColor,
+        /* Output panes */
 
-        QtOutputFormatter_LinkTextColor,
+        OutputPanes_DebugTextColor,
+        OutputPanes_ErrorMessageTextColor,
+        OutputPanes_MessageOutput,
+        OutputPanes_NormalMessageTextColor,
+        OutputPanes_StdErrTextColor,
+        OutputPanes_StdOutTextColor,
+        OutputPanes_WarningMessageTextColor,
+
+        /* Debugger Log Window */
+
+        Debugger_LogWindow_LogInput,
+        Debugger_LogWindow_LogStatus,
+        Debugger_LogWindow_LogTime,
+
+        /* Debugger Watch Item */
+
+        Debugger_WatchItem_ValueNormal,
+        Debugger_WatchItem_ValueInvalid,
+        Debugger_WatchItem_ValueChanged,
 
         /* Welcome Plugin */
 
@@ -155,7 +173,14 @@ public:
         Welcome_SessionItem_BackgroundColorNormal,
         Welcome_SessionItem_BackgroundColorHover,
         Welcome_SessionItemExpanded_BackgroundColorNormal,
-        Welcome_SessionItemExpanded_BackgroundColorHover
+        Welcome_SessionItemExpanded_BackgroundColorHover,
+
+        /* VcsBase Plugin */
+        VcsBase_FileStatusUnknown_TextColor,
+        VcsBase_FileAdded_TextColor,
+        VcsBase_FileModified_TextColor,
+        VcsBase_FileDeleted_TextColor,
+        VcsBase_FileRenamed_TextColor
     };
 
     enum Gradient {

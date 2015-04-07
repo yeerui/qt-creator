@@ -148,7 +148,7 @@ void BaseController::runCommand(const QList<QStringList> &args, QTextCodec *code
         m_command->cancel();
     }
 
-    m_command = new VcsCommand(gitClient()->gitExecutable(), m_directory, gitClient()->processEnvironment());
+    m_command = new VcsCommand(gitClient()->vcsBinary(), m_directory, gitClient()->processEnvironment());
     m_command->setCodec(codec ? codec : EditorManager::defaultTextCodec());
     connect(m_command, &VcsCommand::output, this, &BaseController::processOutput);
     connect(m_command, &VcsCommand::finished, this, &BaseController::reloadFinished);
@@ -157,7 +157,7 @@ void BaseController::runCommand(const QList<QStringList> &args, QTextCodec *code
     foreach (const QStringList &arg, args) {
         QTC_ASSERT(!arg.isEmpty(), continue);
 
-        m_command->addJob(arg, GitPlugin::instance()->settings().intValue(GitSettings::timeoutKey));
+        m_command->addJob(arg, gitClient()->vcsTimeout());
     }
 
     m_command->execute();
@@ -361,8 +361,6 @@ private:
 
 void ShowController::reload()
 {
-    QTC_ASSERT(m_state == Idle, return);
-
     QStringList args;
     args << QLatin1String("show") << QLatin1String("-s") << QLatin1String(noColorOption)
               << QLatin1String(decorateOption) << m_id;
@@ -757,14 +755,11 @@ void GitClient::stage(const QString &patch, bool revert)
  * (using the file's codec). Makes use of a dynamic property to find an
  * existing instance and to reuse it (in case, say, 'git diff foo' is
  * already open). */
-VcsBaseEditorWidget *GitClient::createVcsEditor(
-        Id id,
-        QString title,
-        const QString &source, // Source file or directory
-        CodecType codecType,
-        const char *registerDynamicProperty, // Dynamic property and value to identify that editor
-        const QString &dynamicPropertyValue,
-        VcsBaseEditorParameterWidget *configWidget) const
+VcsBaseEditorWidget *GitClient::createVcsEditor(Id id, QString title,
+                                                const QString &source, // Source file or directory
+                                                CodecType codecType,
+                                                const char *registerDynamicProperty, // Dynamic property and value to identify that editor
+                                                const QString &dynamicPropertyValue) const
 {
     VcsBaseEditorWidget *rc = 0;
     QTC_CHECK(!findExistingVCSEditor(registerDynamicProperty, dynamicPropertyValue));
@@ -783,9 +778,6 @@ VcsBaseEditorWidget *GitClient::createVcsEditor(
         rc->setCodec(encoding(source, "i18n.logOutputEncoding"));
 
     rc->setForceReadOnly(true);
-
-    if (configWidget)
-        rc->setConfigurationWidget(configWidget);
 
     return rc;
 }
@@ -906,8 +898,8 @@ void GitClient::log(const QString &workingDirectory, const QString &fileName,
         auto *argWidget = new GitLogArgumentsWidget(settings());
         connect(argWidget, &VcsBaseEditorParameterWidget::commandExecutionRequested,
                 [=]() { this->log(workingDirectory, fileName, enableAnnotationContextMenu, args); });
-        editor = createVcsEditor(editorId, title, sourceFile, CodecLogOutput, "logTitle", msgArg,
-                                 argWidget);
+        editor = createVcsEditor(editorId, title, sourceFile, CodecLogOutput, "logTitle", msgArg);
+        editor->setConfigurationWidget(argWidget);
     }
     editor->setFileLogAnnotateEnabled(enableAnnotationContextMenu);
     editor->setWorkingDirectory(workingDirectory);
@@ -939,7 +931,7 @@ void GitClient::reflog(const QString &workingDirectory)
     VcsBaseEditorWidget *editor = findExistingVCSEditor("reflogRepository", workingDirectory);
     if (!editor) {
         editor = createVcsEditor(editorId, title, workingDirectory, CodecLogOutput,
-                                 "reflogRepository", workingDirectory, 0);
+                                 "reflogRepository", workingDirectory);
     }
     editor->setWorkingDirectory(workingDirectory);
 
@@ -1033,7 +1025,8 @@ void GitClient::blame(const QString &workingDirectory,
                     const int line = VcsBaseEditor::lineNumberOfCurrentEditor();
                     blame(workingDirectory, args, fileName, revision, line);
                 } );
-        editor = createVcsEditor(editorId, title, sourceFile, CodecSource, "blameFileName", id, argWidget);
+        editor = createVcsEditor(editorId, title, sourceFile, CodecSource, "blameFileName", id);
+        editor->setConfigurationWidget(argWidget);
     }
 
     editor->setWorkingDirectory(workingDirectory);
@@ -1584,15 +1577,14 @@ void GitClient::branchesForCommit(const QString &revision)
 
     auto controller = qobject_cast<DiffEditorController *>(sender());
     QString workingDirectory = controller->baseDirectory();
-    auto command = new VcsCommand(gitExecutable(), workingDirectory, processEnvironment());
+    auto command = new VcsCommand(vcsBinary(), workingDirectory, processEnvironment());
     command->setCodec(getSourceCodec(currentDocumentPath()));
+    command->setCookie(workingDirectory);
 
     connect(command, &VcsCommand::output, controller,
             &DiffEditorController::informationForCommitReceived);
 
-    command->addJob(arguments, -1);
-    command->setCookie(workingDirectory);
-    command->execute();
+    enqueueJob(command, arguments);
 }
 
 bool GitClient::isRemoteCommit(const QString &workingDirectory, const QString &commit)
@@ -1986,21 +1978,18 @@ bool GitClient::synchronousApplyPatch(const QString &workingDirectory,
 }
 
 // Factory function to create an asynchronous command
-VcsCommand *GitClient::createCommand(const QString &workingDirectory,
-                                     VcsBaseEditorWidget* editor,
-                                     bool useOutputToWindow,
-                                     int editorLineNumber)
+VcsCommand *GitClient::createCommand(const QString &workingDirectory, VcsBaseEditorWidget *editor,
+                                     JobOutputBindMode mode)
 {
     GitEditorWidget *gitEditor = qobject_cast<GitEditorWidget *>(editor);
-    auto command = new VcsCommand(gitExecutable(), workingDirectory, processEnvironment());
+    auto command = new VcsCommand(vcsBinary(), workingDirectory, processEnvironment());
     command->setCodec(getSourceCodec(currentDocumentPath()));
-    command->setCookie(QVariant(editorLineNumber));
     if (gitEditor) {
         gitEditor->setCommand(command);
         connect(command, &VcsCommand::finished,
                 gitEditor, &GitEditorWidget::commandFinishedGotoLine);
     }
-    if (useOutputToWindow) {
+    if (mode & VcsWindowOutputBind) {
         command->addFlags(VcsBasePlugin::ShowStdOutInLogWindow);
         command->addFlags(VcsBasePlugin::ShowSuccessMessage);
         if (editor) // assume that the commands output is the important thing
@@ -2012,6 +2001,12 @@ VcsCommand *GitClient::createCommand(const QString &workingDirectory,
     return command;
 }
 
+void GitClient::enqueueJob(VcsCommand *cmd, const QStringList &args, ExitCodeInterpreter *interpreter)
+{
+    cmd->addJob(args, vcsTimeout(), interpreter);
+    cmd->execute();
+}
+
 // Execute a single command
 VcsCommand *GitClient::executeGit(const QString &workingDirectory,
                                   const QStringList &arguments,
@@ -2020,13 +2015,12 @@ VcsCommand *GitClient::executeGit(const QString &workingDirectory,
                                   unsigned additionalFlags,
                                   int editorLineNumber)
 {
-    VcsOutputWindow::appendCommand(workingDirectory,
-                                   FileName::fromUserInput(settings()->stringValue(GitSettings::binaryPathKey)),
-                                   arguments);
-    VcsCommand *command = createCommand(workingDirectory, editor, useOutputToWindow, editorLineNumber);
-    command->addJob(arguments, settings()->intValue(GitSettings::timeoutKey));
+    VcsOutputWindow::appendCommand(workingDirectory, vcsBinary(), arguments);
+    VcsCommand *command = createCommand(workingDirectory, editor,
+                                        useOutputToWindow ? VcsWindowOutputBind : NoOutputBind);
+    command->setCookie(editorLineNumber);
     command->addFlags(additionalFlags);
-    command->execute();
+    enqueueJob(command, arguments);
     return command;
 }
 
@@ -2090,8 +2084,7 @@ SynchronousProcessResponse GitClient::synchronousGit(const QString &workingDirec
                                                      unsigned flags,
                                                      QTextCodec *outputCodec) const
 {
-    return VcsBasePlugin::runVcs(workingDirectory, gitExecutable(), gitArguments,
-                                 settings()->intValue(GitSettings::timeoutKey) * 1000,
+    return VcsBasePlugin::runVcs(workingDirectory, vcsBinary(), gitArguments, vcsTimeout() * 1000,
                                  flags, outputCodec, processEnvironment());
 }
 
@@ -2101,10 +2094,9 @@ bool GitClient::fullySynchronousGit(const QString &workingDirectory,
                                     QByteArray* errorText,
                                     unsigned flags) const
 {
-    VcsCommand command(gitExecutable(), workingDirectory, processEnvironment());
+    VcsCommand command(vcsBinary(), workingDirectory, processEnvironment());
     command.addFlags(flags);
-    return command.runFullySynchronous(gitArguments,
-                                       settings()->intValue(GitSettings::timeoutKey) * 1000,
+    return command.runFullySynchronous(gitArguments, vcsTimeout() * 1000,
                                        outputText, errorText);
 }
 
@@ -2389,7 +2381,7 @@ QStringList GitClient::synchronousRepositoryBranches(const QString &repositoryUR
 
 void GitClient::launchGitK(const QString &workingDirectory, const QString &fileName)
 {
-    const QFileInfo binaryInfo = gitExecutable().toFileInfo();
+    const QFileInfo binaryInfo = vcsBinary().toFileInfo();
     QDir foundBinDir(binaryInfo.dir());
     const bool foundBinDirIsCmdDir = foundBinDir.dirName() == QLatin1String("cmd");
     QProcessEnvironment env = processEnvironment();
@@ -2471,7 +2463,7 @@ bool GitClient::tryLauchingGitK(const QProcessEnvironment &env,
 
 bool GitClient::launchGitGui(const QString &workingDirectory) {
     bool success;
-    FileName gitBinary = gitExecutable(&success);
+    FileName gitBinary = vcsBinary(&success);
     if (success) {
         success = QProcess::startDetached(gitBinary.toString(), QStringList(QLatin1String("gui")),
                                           workingDirectory);
@@ -2485,7 +2477,7 @@ bool GitClient::launchGitGui(const QString &workingDirectory) {
 
 FileName GitClient::gitBinDirectory()
 {
-    const QString git = gitExecutable().toString();
+    const QString git = vcsBinary().toString();
     if (git.isEmpty())
         return FileName();
 
@@ -2501,19 +2493,24 @@ FileName GitClient::gitBinDirectory()
     return FileName::fromString(path);
 }
 
-FileName GitClient::gitExecutable(bool *ok, QString *errorMessage) const
+FileName GitClient::vcsBinary(bool *ok, QString *errorMessage) const
 {
     return settings()->gitExecutable(ok, errorMessage);
 }
 
+int GitClient::vcsTimeout() const
+{
+    return settings()->intValue(GitSettings::timeoutKey);
+}
+
 QTextCodec *GitClient::encoding(const QString &workingDirectory, const QByteArray &configVar) const
 {
-    QByteArray codecName = readConfigBytes(workingDirectory, QLatin1String(configVar)).trimmed();
+    QString codecName = readConfigValue(workingDirectory, QLatin1String(configVar)).trimmed();
     // Set default commit encoding to 'UTF-8', when it's not set,
     // to solve displaying error of commit log with non-latin characters.
     if (codecName.isEmpty())
-        codecName = "UTF-8";
-    return QTextCodec::codecForName(codecName);
+        return QTextCodec::codecForName("UTF-8");
+    return QTextCodec::codecForName(codecName.toUtf8());
 }
 
 // returns first line from log and removes it
@@ -3073,7 +3070,7 @@ void GitClient::subversionLog(const QString &workingDirectory)
     const QString sourceFile = VcsBaseEditor::getSource(workingDirectory, QStringList());
     VcsBaseEditorWidget *editor = findExistingVCSEditor("svnLog", sourceFile);
     if (!editor)
-        editor = createVcsEditor(editorId, title, sourceFile, CodecNone, "svnLog", sourceFile, 0);
+        editor = createVcsEditor(editorId, title, sourceFile, CodecNone, "svnLog", sourceFile);
     editor->setWorkingDirectory(workingDirectory);
     executeGit(workingDirectory, arguments, editor);
 }
@@ -3135,13 +3132,12 @@ void GitClient::asyncCommand(const QString &workingDirectory, const QStringList 
     // and without timeout
     QString gitCommand = arguments.first();
     VcsOutputWindow::appendCommand(workingDirectory, settings()->binaryPath(), arguments);
-    VcsCommand *command = createCommand(workingDirectory, 0, true);
+    VcsCommand *command = createCommand(workingDirectory, 0, VcsWindowOutputBind);
     new ConflictHandler(command, workingDirectory, gitCommand);
     if (hasProgress)
         command->setProgressParser(new GitProgressParser);
-    command->addJob(arguments, -1);
-    command->execute();
     command->setCookie(workingDirectory);
+    enqueueJob(command, arguments);
 }
 
 bool GitClient::synchronousRevert(const QString &workingDirectory, const QString &commit)
@@ -3265,21 +3261,6 @@ bool GitClient::synchronousStashList(const QString &workingDirectory,
     return true;
 }
 
-QByteArray GitClient::readConfigBytes(const QString &workingDirectory, const QString &configVar) const
-{
-    QStringList arguments;
-    arguments << QLatin1String("config") << configVar;
-
-    QByteArray outputText;
-    QByteArray errorText;
-    if (!fullySynchronousGit(workingDirectory, arguments, &outputText, &errorText,
-                             VcsBasePlugin::SuppressCommandLogging))
-        return QByteArray();
-    if (HostOsInfo::isWindowsHost())
-        outputText.replace("\r\n", "\n");
-    return outputText;
-}
-
 // Read a single-line config value, return trimmed
 QString GitClient::readConfigValue(const QString &workingDirectory, const QString &configVar) const
 {
@@ -3288,8 +3269,18 @@ QString GitClient::readConfigValue(const QString &workingDirectory, const QStrin
     static QTextCodec *codec = HostOsInfo::isWindowsHost()
             ? QTextCodec::codecForName("UTF-8")
             : QTextCodec::codecForLocale();
-    const QByteArray value = readConfigBytes(workingDirectory, configVar).trimmed();
-    return SynchronousProcess::normalizeNewlines(codec->toUnicode(value));
+    QStringList arguments;
+    arguments << QLatin1String("config") << configVar;
+
+    QByteArray outputText;
+    QByteArray errorText;
+    if (!fullySynchronousGit(workingDirectory, arguments, &outputText, &errorText,
+                             VcsBasePlugin::SuppressCommandLogging))
+        return QString();
+    if (HostOsInfo::isWindowsHost())
+        outputText.replace("\r\n", "\n");
+
+    return SynchronousProcess::normalizeNewlines(codec->toUnicode(outputText.trimmed()));
 }
 
 bool GitClient::cloneRepository(const QString &directory,const QByteArray &url)
@@ -3350,7 +3341,7 @@ GitSettings *GitClient::settings() const
 // determine version as '(major << 16) + (minor << 8) + patch' or 0.
 unsigned GitClient::gitVersion(QString *errorMessage) const
 {
-    const FileName newGitBinary = gitExecutable();
+    const FileName newGitBinary = vcsBinary();
     if (m_gitVersionForBinary != newGitBinary && !newGitBinary.isEmpty()) {
         // Do not execute repeatedly if that fails (due to git
         // not being installed) until settings are changed.
@@ -3363,7 +3354,7 @@ unsigned GitClient::gitVersion(QString *errorMessage) const
 // determine version as '(major << 16) + (minor << 8) + patch' or 0.
 unsigned GitClient::synchronousGitVersion(QString *errorMessage) const
 {
-    if (gitExecutable().isEmpty())
+    if (vcsBinary().isEmpty())
         return 0;
 
     // run git --version

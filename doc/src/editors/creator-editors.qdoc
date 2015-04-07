@@ -750,6 +750,12 @@
     If this does not help, try changing the QML emulation layer to the one that
     was built with the same Qt version as the one selected in the build and run
     kit. For more information, see \l{Running QML Modules in Qt Quick Designer}.
+
+    \section1 Inspecting QML and JavaScript
+
+    To inspect QML and JavaScript properties, methods, and enums, move the
+    cursor over them and select \uicontrol Tools > \uicontrol {QML/JS} >
+    \uicontrol {Inspect API for Element Under Cursor}.
 */
 
 
@@ -1029,6 +1035,9 @@
     To paste any content that you copied to the clipboard, select \uicontrol Tools >
     \uicontrol {Code Pasting} > \uicontrol {Paste Snippet}.
 
+    To paste content from the \l{Comparing Files}{diff editor}, right-click a
+    chunk and select \uicontrol {Send Chunk to CodePaster} in the context menu.
+
     To fetch a snippet of code from the server, select \uicontrol{Tools} >
     \uicontrol{Code Pasting} > \uicontrol{Fetch Snippet} or press \key{Alt+C,Alt+F}. Select
     the snippet to fetch from the list.
@@ -1056,16 +1065,16 @@
 
     \title Using Text Editing Macros
 
-    To record a text editing macro, select \uicontrol {Tools > Macros > Record Macro}
-    or press \key {Alt+(}. To stop recording, select \uicontrol {Tools > Macros >
+    To record a text editing macro, select \uicontrol {Tools > Text Editing Macros > Record Macro}
+    or press \key {Alt+(}. To stop recording, select \uicontrol {Tools > Text Editing Macros >
     Stop Recording Macro} or press \key {Alt+)}.
 
     \note The macro recorder does not support code completion.
 
-    To play the last macro, select \uicontrol {Tools > Macros > Play Last Macro} or
+    To play the last macro, select \uicontrol {Tools > Text Editing Macros > Play Last Macro} or
     press \key {Alt+R}.
 
-    To save the last macro, select \uicontrol {Tools > Macros > Save Last Macro}.
+    To save the last macro, select \uicontrol {Tools > Text Editing Macros > Save Last Macro}.
 
     To assign a keyboard shortcut to a text editing macro, select \uicontrol {Tools >
     Options > Environment > Keyboard}. For more information, see

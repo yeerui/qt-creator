@@ -87,7 +87,8 @@ SearchResultWidget::SearchResultWidget(QWidget *parent) :
     m_count(0),
     m_preserveCaseSupported(true),
     m_isShowingReplaceUI(false),
-    m_searchAgainSupported(false)
+    m_searchAgainSupported(false),
+    m_replaceSupported(false)
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setMargin(0);
@@ -104,10 +105,23 @@ SearchResultWidget::SearchResultWidget(QWidget *parent) :
         topWidget->setLineWidth(1);
     }
     topWidget->setAutoFillBackground(true);
-    QHBoxLayout *topLayout = new QHBoxLayout(topWidget);
-    topLayout->setMargin(2);
+    auto topLayout = new QVBoxLayout(topWidget);
+    topLayout->setContentsMargins(2, 2, 2, 2);
+    topLayout->setSpacing(2);
     topWidget->setLayout(topLayout);
     layout->addWidget(topWidget);
+
+    auto topFindWidget = new QWidget(topWidget);
+    auto topFindLayout = new QHBoxLayout(topFindWidget);
+    topFindLayout->setMargin(0);
+    topFindWidget->setLayout(topFindLayout);
+    topLayout->addWidget(topFindWidget);
+
+    m_topReplaceWidget = new QWidget(topWidget);
+    auto topReplaceLayout = new QHBoxLayout(m_topReplaceWidget);
+    topReplaceLayout->setMargin(0);
+    m_topReplaceWidget->setLayout(topReplaceLayout);
+    topLayout->addWidget(m_topReplaceWidget);
 
     m_messageWidget = new QFrame;
     pal.setColor(QPalette::WindowText, creatorTheme()->color(Theme::CanceledSearchTextColor));
@@ -138,7 +152,7 @@ SearchResultWidget::SearchResultWidget(QWidget *parent) :
     m_infoBarDisplay.setTarget(layout, 2);
     m_infoBarDisplay.setInfoBar(&m_infoBar);
 
-    m_descriptionContainer = new QWidget(topWidget);
+    m_descriptionContainer = new QWidget(topFindWidget);
     QHBoxLayout *descriptionLayout = new QHBoxLayout(m_descriptionContainer);
     m_descriptionContainer->setLayout(descriptionLayout);
     descriptionLayout->setMargin(0);
@@ -150,28 +164,28 @@ SearchResultWidget::SearchResultWidget(QWidget *parent) :
     m_searchTerm->setVisible(false);
     descriptionLayout->addWidget(m_label);
     descriptionLayout->addWidget(m_searchTerm);
-    m_cancelButton = new QToolButton(topWidget);
+    m_cancelButton = new QToolButton(topFindWidget);
     m_cancelButton->setText(tr("Cancel"));
     m_cancelButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
     connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
-    m_searchAgainButton = new QToolButton(topWidget);
+    m_searchAgainButton = new QToolButton(topFindWidget);
     m_searchAgainButton->setToolTip(tr("Repeat the search with same parameters."));
     m_searchAgainButton->setText(tr("Search again"));
     m_searchAgainButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
     m_searchAgainButton->setVisible(false);
     connect(m_searchAgainButton, SIGNAL(clicked()), this, SLOT(searchAgain()));
 
-    m_replaceLabel = new QLabel(tr("Replace with:"), topWidget);
-    m_replaceTextEdit = new WideEnoughLineEdit(topWidget);
+    m_replaceLabel = new QLabel(tr("Replace with:"), m_topReplaceWidget);
+    m_replaceTextEdit = new WideEnoughLineEdit(m_topReplaceWidget);
     m_replaceTextEdit->setMinimumWidth(120);
     m_replaceTextEdit->setEnabled(false);
     m_replaceTextEdit->setTabOrder(m_replaceTextEdit, m_searchResultTreeView);
-    m_replaceButton = new QToolButton(topWidget);
+    m_replaceButton = new QToolButton(m_topReplaceWidget);
     m_replaceButton->setToolTip(tr("Replace all occurrences."));
     m_replaceButton->setText(tr("Replace"));
     m_replaceButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
     m_replaceButton->setEnabled(false);
-    m_preserveCaseCheck = new QCheckBox(topWidget);
+    m_preserveCaseCheck = new QCheckBox(m_topReplaceWidget);
     m_preserveCaseCheck->setText(tr("Preserve case"));
     m_preserveCaseCheck->setEnabled(false);
 
@@ -180,22 +194,21 @@ SearchResultWidget::SearchResultWidget(QWidget *parent) :
         connect(m_preserveCaseCheck, SIGNAL(clicked(bool)), plugin, SLOT(setPreserveCase(bool)));
     }
 
-    m_matchesFoundLabel = new QLabel(topWidget);
+    m_matchesFoundLabel = new QLabel(topFindWidget);
     updateMatchesFoundLabel();
 
-    topLayout->addWidget(m_descriptionContainer);
-    topLayout->addWidget(m_cancelButton);
-    topLayout->addWidget(m_searchAgainButton);
-    topLayout->addWidget(m_replaceLabel);
-    topLayout->addWidget(m_replaceTextEdit);
-    topLayout->addWidget(m_replaceButton);
-    topLayout->addWidget(m_preserveCaseCheck);
-    topLayout->addStretch(2);
-    topLayout->addWidget(m_matchesFoundLabel);
-    topWidget->setMinimumHeight(m_cancelButton->sizeHint().height()
-                                + topLayout->contentsMargins().top() + topLayout->contentsMargins().bottom()
-                                + topWidget->lineWidth());
-    setShowReplaceUI(false);
+    topFindLayout->addWidget(m_descriptionContainer);
+    topFindLayout->addWidget(m_cancelButton);
+    topFindLayout->addWidget(m_searchAgainButton);
+    topFindLayout->addStretch(2);
+    topFindLayout->addWidget(m_matchesFoundLabel);
+    topReplaceLayout->addWidget(m_replaceLabel);
+    topReplaceLayout->addWidget(m_replaceTextEdit);
+    topReplaceLayout->addWidget(m_replaceButton);
+    topReplaceLayout->addWidget(m_preserveCaseCheck);
+    topReplaceLayout->addStretch(2);
+    setShowReplaceUI(m_replaceSupported);
+    setSupportPreserveCase(true);
 
     connect(m_searchResultTreeView, SIGNAL(jumpToSearchResult(SearchResultItem)),
             this, SLOT(handleJumpToSearchResult(SearchResultItem)));
@@ -250,7 +263,8 @@ void SearchResultWidget::addResults(const QList<SearchResultItem> &items, Search
 
         m_replaceTextEdit->setEnabled(true);
         // We didn't have an item before, set the focus to the search widget or replace text edit
-        if (m_isShowingReplaceUI) {
+        setShowReplaceUI(m_replaceSupported);
+        if (m_replaceSupported) {
             m_replaceTextEdit->setFocus();
             m_replaceTextEdit->selectAll();
         } else {
@@ -282,13 +296,10 @@ int SearchResultWidget::count() const
     return m_count;
 }
 
-QString SearchResultWidget::dontAskAgainGroup() const
+void SearchResultWidget::setSupportsReplace(bool replaceSupported, const QString &group)
 {
-    return m_dontAskAgainGroup;
-}
-
-void SearchResultWidget::setDontAskAgainGroup(const QString &group)
-{
+    m_replaceSupported = replaceSupported;
+    setShowReplaceUI(replaceSupported);
     m_dontAskAgainGroup = group;
 }
 
@@ -306,15 +317,13 @@ QString SearchResultWidget::textToReplace() const
 void SearchResultWidget::setSupportPreserveCase(bool enabled)
 {
     m_preserveCaseSupported = enabled;
+    m_preserveCaseCheck->setVisible(m_preserveCaseSupported);
 }
 
 void SearchResultWidget::setShowReplaceUI(bool visible)
 {
     m_searchResultTreeView->model()->setShowReplaceUI(visible);
-    m_replaceLabel->setVisible(visible);
-    m_replaceTextEdit->setVisible(visible);
-    m_replaceButton->setVisible(visible);
-    m_preserveCaseCheck->setVisible(visible && m_preserveCaseSupported);
+    m_topReplaceWidget->setVisible(visible);
     m_isShowingReplaceUI = visible;
 }
 
@@ -465,6 +474,7 @@ void SearchResultWidget::handleReplaceButton()
     // by pressing return in replace line edit
     if (m_replaceButton->isEnabled()) {
         m_infoBar.clear();
+        setShowReplaceUI(false);
         emit replaceButtonClicked(m_replaceTextEdit->text(), checkedItems(),
                                   m_preserveCaseSupported && m_preserveCaseCheck->isChecked());
     }

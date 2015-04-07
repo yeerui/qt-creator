@@ -59,7 +59,6 @@ class MemoryAgentCookie;
 class BreakpointParameters;
 class BreakpointResponse;
 
-class WatchData;
 class DisassemblerAgentCookie;
 class DisassemblerLines;
 
@@ -88,8 +87,6 @@ private: ////////// General Interface //////////
 
     virtual bool acceptsDebuggerCommands() const;
     virtual void executeDebuggerCommand(const QString &command, DebuggerLanguages languages);
-    virtual QByteArray qtNamespace() const { return m_qtNamespace; }
-    virtual void setQtNamespace(const QByteArray &ns) { m_qtNamespace = ns; }
 
 private: ////////// General State //////////
 
@@ -384,7 +381,7 @@ protected:
     // Watch specific stuff
     //
     virtual bool setToolTipExpression(const DebuggerToolTipContext &);
-    virtual void assignValueInDebugger(const WatchData *data,
+    virtual void assignValueInDebugger(WatchItem *item,
         const QString &expr, const QVariant &value);
 
     virtual void fetchMemory(MemoryAgent *agent, QObject *token,
@@ -398,8 +395,7 @@ protected:
     virtual void watchPoint(const QPoint &);
     void handleWatchPoint(const DebuggerResponse &response);
 
-    void updateWatchData(const WatchData &data);
-    void rebuildWatchModel();
+    void updateWatchItem(WatchItem *item);
     void showToolTip();
 
     void handleVarAssign(const DebuggerResponse &response);
@@ -411,26 +407,16 @@ protected:
     void handleCreateFullBacktrace(const DebuggerResponse &response);
 
     void updateLocals();
-        void updateLocalsPython(const UpdateParameters &parameters);
-        void handleStackFramePython(const DebuggerResponse &response, bool partial);
+        void doUpdateLocals(const UpdateParameters &parameters);
+        void handleStackFramePython(const DebuggerResponse &response);
 
     void setLocals(const QList<GdbMi> &locals);
-
-    struct TypeInfo
-    {
-        TypeInfo(uint s = 0) : size(s) {}
-
-        uint size;
-    };
-
-    QHash<QByteArray, TypeInfo> m_typeInfoCache;
 
     //
     // Dumper Management
     //
     void reloadDebuggingHelpers();
 
-    QByteArray m_qtNamespace;
     QString m_gdb;
 
     //

@@ -211,7 +211,7 @@ class Dumper(DumperBase):
         self.currentMaxNumChild = None
         self.currentPrintsAddress = None
         self.currentChildType = None
-        self.currentChildNumChild = None
+        self.currentChildNumChild = -1
         self.currentWatchers = {}
 
         self.executable_ = None
@@ -509,13 +509,16 @@ class Dumper(DumperBase):
         return int(value.GetLoadAddress())
 
     def extractInt(self, address):
-        return int(self.createValue(address, self.intType()))
+        error = SBError()
+        return int(self.process.ReadUnsignedFromMemory(address, 4, error))
 
     def extractInt64(self, address):
-        return int(self.createValue(address, self.int64Type()))
+        error = SBError()
+        return int(self.process.ReadUnsignedFromMemory(address, 8, error))
 
     def extractByte(self, address):
-        return int(self.createValue(address, self.charType())) & 0xFF
+        error = SBError()
+        return int(self.process.ReadUnsignedFromMemory(address, 1, error) & 0xFF)
 
     def handleCommand(self, command):
         result = lldb.SBCommandReturnObject()
@@ -534,11 +537,6 @@ class Dumper(DumperBase):
         if type.GetTypeClass() in (lldb.eTypeClassBuiltin, lldb.eTypeClassPointer):
             return True
         return self.isKnownMovableType(self.stripNamespaceFromType(type.GetName()))
-
-    def putNumChild(self, numchild):
-        #self.warn("NUM CHILD: '%s' '%s'" % (numchild, self.currentChildNumChild))
-        #if numchild != self.currentChildNumChild:
-        self.put('numchild="%s",' % numchild)
 
     def putPointerValue(self, value):
         # Use a lower priority
@@ -782,7 +780,8 @@ class Dumper(DumperBase):
                 return thread
         return None
 
-    def reportThreads(self):
+    def reportThreads(self, args):
+        self.reportToken(args)
         result = 'threads={threads=['
         for i in xrange(0, self.process.GetNumThreads()):
             thread = self.process.GetThreadAtIndex(i)
@@ -810,8 +809,12 @@ class Dumper(DumperBase):
             result += ',file="%s"' % fileName(frame.line_entry.file)
             result += '}},'
 
-        result += '],current-thread-id="%s"},' % self.currentThread().id
+        result += ']},'
         self.report(result)
+
+    def reportCurrentThread(self, args):
+        self.reportToken(args)
+        self.report('current-thread={id="%s"}' % self.currentThread().id)
 
     def firstUsableFrame(self, thread):
         for i in xrange(10):
@@ -901,7 +904,7 @@ class Dumper(DumperBase):
             self.report('token(\"%s\")' % args["token"])
 
     def reportContinuation(self, args):
-        if "continuation" in args:
+        if not self.isShuttingDown_ and "continuation" in args:
             self.report('continuation=\"%s\"' % args["continuation"])
 
     def extractBlob(self, base, size):
@@ -1063,15 +1066,8 @@ class Dumper(DumperBase):
 
         #warn("VALUE: %s" % value)
         #warn("FANCY: %s" % self.useFancy)
-        if self.useFancy:
-            stripped = self.stripNamespaceFromType(typeName).replace("::", "__")
-            #warn("STRIPPED: %s" % stripped)
-            #warn("DUMPABLE: %s" % (stripped in self.qqDumpers))
-            if stripped in self.qqDumpers:
-                self.putType(typeName)
-                self.context = value
-                self.qqDumpers[stripped](self, value)
-                return
+        if self.tryPutPrettyItem(typeName, value):
+            return
 
         # Normal value
         #numchild = 1 if value.MightHaveChildren() else 0
@@ -1140,18 +1136,26 @@ class Dumper(DumperBase):
             self.reportVariablesHelper(args)
             sys.stdout.write("@\n")
 
-    def reportVariablesHelper(self, _ = None):
+    def reportVariablesHelper(self, args = None):
         frame = self.currentFrame()
         if frame is None:
             return
+
+        partialVariable = args.get("partialVariable", "")
+        isPartial = len(partialVariable) > 0
+
         self.currentIName = 'local'
-        self.put('data=[')
+        self.put('all={data=[')
         self.anonNumber = 0
         shadowed = {}
         ids = {} # Filter out duplicates entries at the same address.
-        values = list(frame.GetVariables(True, True, False, False))
 
-        values.reverse() # To get shadowed vars numbered backwards.
+        if isPartial:
+            values = [frame.FindVariable(partialVariable)]
+        else:
+            values = list(frame.GetVariables(True, True, False, False))
+            values.reverse() # To get shadowed vars numbered backwards.
+
         for value in values:
             if not value.IsValid():
                 continue
@@ -1200,16 +1204,9 @@ class Dumper(DumperBase):
                             self.putEmptyValue()
                             self.putNumChild(0)
 
-        # 'watchers':[{'id':'watch.0','exp':'23'},...]
-        #if not self.dummyValue is None:
-        for watcher in self.currentWatchers:
-            iname = watcher['iname']
-            # could be 'watch.0' or 'tooltip.deadbead'
-            (base, component) = iname.split('.')
-            exp = self.hexdecode(watcher['exp'])
-            self.handleWatch(exp, exp, iname)
+        self.handleWatches(args)
 
-        self.put(']')
+        self.put('],partial="%d"}' % isPartial)
 
     def reportData(self, _ = None):
         if self.process is None:
@@ -1217,7 +1214,6 @@ class Dumper(DumperBase):
         else:
             state = self.process.GetState()
             if state == lldb.eStateStopped:
-                self.reportThreads()
                 self.reportVariables()
 
     def reportRegisters(self, _ = None):
@@ -1336,7 +1332,6 @@ class Dumper(DumperBase):
                 stoppedThread = self.firstStoppedThread()
                 if stoppedThread:
                     self.process.SetSelectedThread(stoppedThread)
-                self.reportThreads()
         elif eventType == lldb.SBProcess.eBroadcastBitInterrupt: # 2
             pass
         elif eventType == lldb.SBProcess.eBroadcastBitSTDOUT:
@@ -1388,7 +1383,7 @@ class Dumper(DumperBase):
                 result += ',ignorecount="%s"' % loc.GetIgnoreCount()
                 result += ',file="%s"' % lineEntry.GetFileSpec()
                 result += ',line="%s"' % lineEntry.GetLine()
-                result += ',addr="%s"},' % loc.GetLoadAddress()
+                result += ',addr="%s"},' % addr.GetFileAddress()
         result += ']'
         if lineEntry is not None:
             result += ',file="%s"' % lineEntry.GetFileSpec()
@@ -1670,10 +1665,12 @@ class Dumper(DumperBase):
             result += ',offset="%s"},' % (addr - base)
         self.report(result + ']')
 
-    def loadDumperFiles(self, args):
+    def loadDumpers(self, args):
         self.reportToken(args)
-        result = self.setupDumper()
-        self.report(result)
+        self.setupDumpers()
+
+    def reportDumpers(self, msg):
+        self.report(msg)
 
     def fetchMemory(self, args):
         address = args['address']
@@ -1721,7 +1718,7 @@ class Tester(Dumper):
         self.expandedINames = set(expandedINames)
         self.passExceptions = True
 
-        self.loadDumperFiles({})
+        self.loadDumpers({})
         error = lldb.SBError()
         self.target = self.debugger.CreateTarget(binary, None, None, True, error)
 

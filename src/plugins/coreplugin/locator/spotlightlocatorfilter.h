@@ -28,17 +28,26 @@
 **
 ****************************************************************************/
 
-#ifndef VARIABLEMANAGER_H
-#define VARIABLEMANAGER_H
 
-#include "core_global.h"
+#ifndef SPOTLIGHTLOCATORFILTER_H
+#define SPOTLIGHTLOCATORFILTER_H
 
-#include <utils/macroexpander.h>
+#include "basefilefilter.h"
 
 namespace Core {
+namespace Internal {
 
-CORE_EXPORT Utils::MacroExpander *globalMacroExpander();
+class SpotlightLocatorFilter : public BaseFileFilter
+{
+public:
+    SpotlightLocatorFilter();
 
-} // namespace Core
+    void prepareSearch(const QString &entry);
+    void refresh(QFutureInterface<void> &future);
+};
 
-#endif // VARIABLEMANAGER_H
+} // Internal
+} // Core
+
+#endif // SPOTLIGHTLOCATORFILTER_H
+

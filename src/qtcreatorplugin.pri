@@ -10,6 +10,7 @@ exists($$depfile) {
 TARGET = $$QTC_PLUGIN_NAME
 
 plugin_deps = $$QTC_PLUGIN_DEPENDS
+plugin_test_deps = $$QTC_TEST_DEPENDS
 plugin_recmds = $$QTC_PLUGIN_RECOMMENDS
 
 include(../qtcreator.pri)
@@ -35,6 +36,9 @@ for(dep, plugin_deps) {
 }
 for(dep, plugin_recmds) {
     dependencyList += "        { \"Name\" : \"$$dependencyName($$dep)\", \"Version\" : \"$$QTCREATOR_VERSION\", \"Type\" : \"optional\" }"
+}
+for(dep, plugin_test_deps) {
+    dependencyList += "        { \"Name\" : \"$$dependencyName($$dep)\", \"Version\" : \"$$QTCREATOR_VERSION\", \"Type\" : \"test\" }"
 }
 dependencyList = $$join(dependencyList, ",$$escape_expand(\\n)")
 
@@ -62,6 +66,7 @@ isEmpty(USE_USER_DESTDIR) {
     DESTDIR = "$$DESTDIRBASE/QtProject/$$DESTDIRAPPNAME/plugins/$$QTCREATOR_VERSION"
 }
 LIBS += -L$$DESTDIR
+INCLUDEPATH += $$OUT_PWD
 
 # copy the plugin spec
 isEmpty(TARGET) {

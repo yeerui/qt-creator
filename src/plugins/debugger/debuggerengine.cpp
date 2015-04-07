@@ -40,8 +40,10 @@
 
 #include "breakhandler.h"
 #include "disassembleragent.h"
+#include "logwindow.h"
 #include "memoryagent.h"
 #include "moduleshandler.h"
+#include "gdb/gdbengine.h" // REMOVE
 #include "registerhandler.h"
 #include "sourcefileshandler.h"
 #include "stackhandler.h"
@@ -152,6 +154,12 @@ Location::Location(const StackFrame &frame, bool marker)
 enum RemoteSetupState { RemoteSetupNone, RemoteSetupRequested,
                         RemoteSetupSucceeded, RemoteSetupFailed,
                         RemoteSetupCancelled };
+
+struct TypeInfo
+{
+    TypeInfo(uint s = 0) : size(s) {}
+    uint size;
+};
 
 class DebuggerEnginePrivate : public QObject
 {
@@ -323,6 +331,8 @@ public:
     bool m_isStateDebugging;
 
     Utils::FileInProjectFinder m_fileFinder;
+    QHash<QByteArray, TypeInfo> m_typeInfoCache;
+    QByteArray m_qtNamespace;
 };
 
 
@@ -1204,7 +1214,7 @@ void DebuggerEngine::notifyDebuggerProcessFinished(int exitCode,
         notifyEngineIll(); // Initiate shutdown sequence
         const QString msg = exitStatus == QProcess::CrashExit ?
                 tr("The %1 process terminated.") :
-                tr("The %2 process terminated unexpectedly (exitCode %1)").arg(exitCode);
+                tr("The %2 process terminated unexpectedly (exit code %1).").arg(exitCode);
         AsynchronousMessageBox::critical(tr("Unexpected %1 Exit").arg(backendName),
                                          msg.arg(backendName));
         break;
@@ -1439,10 +1449,6 @@ bool DebuggerEngine::setToolTipExpression(const DebuggerToolTipContext &)
     return false;
 }
 
-void DebuggerEngine::updateWatchData(const WatchData &)
-{
-}
-
 void DebuggerEngine::watchDataSelected(const QByteArray &)
 {
 }
@@ -1518,7 +1524,12 @@ bool DebuggerEngine::isSynchronous() const
 
 QByteArray DebuggerEngine::qtNamespace() const
 {
-    return QByteArray();
+    return d->m_qtNamespace;
+}
+
+void DebuggerEngine::setQtNamespace(const QByteArray &ns)
+{
+    d->m_qtNamespace = ns;
 }
 
 void DebuggerEngine::createSnapshot()
@@ -1635,7 +1646,7 @@ void DebuggerEngine::changeBreakpoint(Breakpoint bp)
     QTC_CHECK(false);
 }
 
-void DebuggerEngine::assignValueInDebugger(const WatchData *,
+void DebuggerEngine::assignValueInDebugger(WatchItem *,
     const QString &, const QVariant &)
 {
 }
@@ -1712,7 +1723,7 @@ bool DebuggerEngine::isDying() const
 
 QString DebuggerEngine::msgStopped(const QString &reason)
 {
-    return reason.isEmpty() ? tr("Stopped.") : tr("Stopped: \"%1\"").arg(reason);
+    return reason.isEmpty() ? tr("Stopped.") : tr("Stopped: \"%1\".").arg(reason);
 }
 
 QString DebuggerEngine::msgStoppedBySignal(const QString &meaning,
@@ -1739,11 +1750,11 @@ void DebuggerEngine::showStoppedBySignalMessageBox(QString meaning, QString name
     if (meaning.isEmpty())
         meaning = QLatin1Char(' ') + tr("<Unknown>", "meaning") + QLatin1Char(' ');
     const QString msg = tr("<p>The inferior stopped because it received a "
-                           "signal from the Operating System.<p>"
+                           "signal from the operating system.<p>"
                            "<table><tr><td>Signal name : </td><td>%1</td></tr>"
                            "<tr><td>Signal meaning : </td><td>%2</td></tr></table>")
             .arg(name, meaning);
-    AsynchronousMessageBox::information(tr("Signal received"), msg);
+    AsynchronousMessageBox::information(tr("Signal Received"), msg);
 }
 
 void DebuggerEngine::showStoppedByExceptionMessageBox(const QString &description)
@@ -1782,6 +1793,8 @@ void DebuggerEngine::setStateDebugging(bool on)
 
 void DebuggerEngine::validateExecutable(DebuggerStartParameters *sp)
 {
+    if (sp->skipExecutableValidation)
+        return;
     if (sp->languages == QmlLanguage)
         return;
     QString binary = sp->executable;
@@ -1910,6 +1923,59 @@ void DebuggerEngine::validateExecutable(DebuggerStartParameters *sp)
                           "Setting breakpoints by file name and line number may fail.")
                        + QLatin1Char('\n') + detailedWarning);
     }
+}
+
+void DebuggerEngine::updateLocalsView(const GdbMi &all)
+{
+    WatchHandler *handler = watchHandler();
+
+    const bool partial = all["partial"].toInt();
+
+    const GdbMi typeInfo = all["typeinfo"];
+    if (typeInfo.type() == GdbMi::List) {
+        foreach (const GdbMi &s, typeInfo.children()) {
+            const GdbMi name = s["name"];
+            const GdbMi size = s["size"];
+            if (name.isValid() && size.isValid())
+                d->m_typeInfoCache.insert(QByteArray::fromHex(name.data()),
+                                       TypeInfo(size.data().toUInt()));
+        }
+    }
+
+    QSet<QByteArray> toDelete;
+    if (!partial) {
+        foreach (WatchItem *item, handler->model()->treeLevelItems<WatchItem *>(2))
+            toDelete.insert(item->iname);
+    }
+
+    GdbMi data = all["data"];
+    foreach (const GdbMi &child, data.children()) {
+        WatchItem *item = new WatchItem(child);
+        const TypeInfo ti = d->m_typeInfoCache.value(item->type);
+        if (ti.size)
+            item->size = ti.size;
+
+        handler->insertItem(item);
+        toDelete.remove(item->iname);
+    }
+
+    GdbMi ns = all["qtnamespace"];
+    if (ns.isValid()) {
+        setQtNamespace(ns.data());
+        showMessage(_("FOUND NAMESPACED QT: " + ns.data()));
+    }
+
+    handler->purgeOutdatedItems(toDelete);
+
+    static int count = 0;
+    showMessage(_("<Rebuild Watchmodel %1 @ %2 >")
+                .arg(++count).arg(LogWindow::logTimeStamp()), LogMiscInput);
+    showStatusMessage(GdbEngine::tr("Finished retrieving data"), 400); // FIXME: String
+
+    DebuggerToolTipManager::updateEngine(this);
+
+    if (!partial)
+        emit stackFrameCompleted();
 }
 
 } // namespace Internal

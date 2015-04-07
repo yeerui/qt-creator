@@ -725,11 +725,30 @@ void TreeItem::removeChildren()
     }
 }
 
+void TreeItem::sortChildren(const std::function<bool(const TreeItem *, const TreeItem *)> &cmp)
+{
+    if (m_model) {
+        m_model->layoutAboutToBeChanged();
+        std::sort(m_children.begin(), m_children.end(), cmp);
+        m_model->layoutChanged();
+    } else {
+        std::sort(m_children.begin(), m_children.end(), cmp);
+    }
+}
+
 void TreeItem::update()
 {
     if (m_model) {
         QModelIndex idx = index();
         m_model->dataChanged(idx.sibling(idx.row(), 0), idx.sibling(idx.row(), m_model->m_columnCount - 1));
+    }
+}
+
+void TreeItem::updateColumn(int column)
+{
+    if (m_model) {
+        QModelIndex idx = index();
+        m_model->dataChanged(idx.sibling(idx.row(), column), idx.sibling(idx.row(), column));
     }
 }
 

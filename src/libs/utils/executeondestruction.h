@@ -28,29 +28,23 @@
 **
 ****************************************************************************/
 
-#include "variablemanager.h"
+#ifndef EXECUTEONDESTRUCTION_H
+#define EXECUTEONDESTRUCTION_H
 
+#include <functional>
 
-#include <QCoreApplication>
+namespace Utils {
 
-using namespace Utils;
-
-namespace Core {
-
-class GlobalMacroExpander : public MacroExpander
+class ExecuteOnDestruction
 {
 public:
-    GlobalMacroExpander()
-    {
-        registerPrefix("Env", QCoreApplication::translate("Core::VariableManager", "Access environment variables."),
-                       [](const QString &value) { return QString::fromLocal8Bit(qgetenv(value.toLocal8Bit())); });
-    }
+    ExecuteOnDestruction(std::function<void()> code) : destructionCode(code) {}
+    ~ExecuteOnDestruction() { if (destructionCode) destructionCode(); }
+
+private:
+    const std::function<void()> destructionCode;
 };
 
-MacroExpander *globalMacroExpander()
-{
-    static MacroExpander theGlobalExpander;
-    return &theGlobalExpander;
-}
+} // Utils
 
-} // namespace Core
+#endif // EXECUTEONDESTRUCTION_H

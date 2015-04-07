@@ -917,7 +917,8 @@ QList<ProjectAction> QmakePriFileNode::supportedActions(Node *node) const
 
     switch (proFileNode->projectType()) {
     case ApplicationTemplate:
-    case LibraryTemplate:
+    case StaticLibraryTemplate:
+    case SharedLibraryTemplate:
     case AuxTemplate: {
         // TODO: Some of the file types don't make much sense for aux
         // projects (e.g. cpp). It'd be nice if the "add" action could
@@ -1495,8 +1496,10 @@ static QmakeProjectType proFileTemplateTypeToProjectType(ProFileEvaluator::Templ
     case ProFileEvaluator::TT_Unknown:
     case ProFileEvaluator::TT_Application:
         return ApplicationTemplate;
-    case ProFileEvaluator::TT_Library:
-        return LibraryTemplate;
+    case ProFileEvaluator::TT_StaticLibrary:
+        return StaticLibraryTemplate;
+    case ProFileEvaluator::TT_SharedLibrary:
+        return SharedLibraryTemplate;
     case ProFileEvaluator::TT_Script:
         return ScriptTemplate;
     case ProFileEvaluator::TT_Aux:
@@ -1527,13 +1530,13 @@ namespace {
     };
 }
 
-const QmakeProFileNode *QmakeProFileNode::findProFileFor(const FileName &fileName) const
+QmakeProFileNode *QmakeProFileNode::findProFileFor(const FileName &fileName) const
 {
     if (fileName == path())
-        return this;
+        return const_cast<QmakeProFileNode *>(this);
     foreach (ProjectNode *pn, subProjectNodes())
         if (QmakeProFileNode *qmakeProFileNode = dynamic_cast<QmakeProFileNode *>(pn))
-            if (const QmakeProFileNode *result = qmakeProFileNode->findProFileFor(fileName))
+            if (QmakeProFileNode *result = qmakeProFileNode->findProFileFor(fileName))
                 return result;
     return 0;
 }
@@ -1639,7 +1642,7 @@ FolderNode::AddNewInformation QmakeProFileNode::addNewInformation(const QStringL
 
 bool QmakeProFileNode::showInSimpleTree(QmakeProjectType projectType) const
 {
-    return (projectType == ApplicationTemplate || projectType == LibraryTemplate);
+    return (projectType == ApplicationTemplate || projectType == SharedLibraryTemplate  || projectType == StaticLibraryTemplate);
 }
 
 bool QmakeProFileNode::isDebugAndRelease() const
@@ -2105,6 +2108,7 @@ void QmakeProFileNode::applyEvaluate(EvalResult *evalResult)
 
     QList<ProjectNode*> toAdd;
     QList<ProjectNode*> toRemove;
+    QList<QmakePriFileNode *> toUpdate;
 
     QList<ProjectNode*>::const_iterator existingIt = existingProjectNodes.constBegin();
     FileNameList::const_iterator newExactIt = result->newProjectFilesExact.constBegin();
@@ -2208,8 +2212,8 @@ void QmakeProFileNode::applyEvaluate(EvalResult *evalResult)
                     QmakePriFileNode *qmakePriFileNode = new QmakePriFileNode(m_project, this, nodeToAdd);
                     qmakePriFileNode->setParentFolderNode(this); // Needed for loop detection
                     qmakePriFileNode->setIncludedInExactParse(fileExact != 0 && includedInExactParse());
-                    qmakePriFileNode->update(result->priFileResults[nodeToAdd]);
                     toAdd << qmakePriFileNode;
+                    toUpdate << qmakePriFileNode;
                 } else {
                     QmakeProFileNode *qmakeProFileNode = new QmakeProFileNode(m_project, nodeToAdd);
                     qmakeProFileNode->setParentFolderNode(this); // Needed for loop detection
@@ -2234,6 +2238,9 @@ void QmakeProFileNode::applyEvaluate(EvalResult *evalResult)
         removeProjectNodes(toRemove);
     if (!toAdd.isEmpty())
         addProjectNodes(toAdd);
+
+    foreach (QmakePriFileNode *qmakePriFileNode, toUpdate)
+        qmakePriFileNode->update(result->priFileResults[qmakePriFileNode->path()]);
 
     QmakePriFileNode::update(result->priFileResults[m_projectFilePath]);
 
@@ -2379,7 +2386,7 @@ FileNameList QmakeProFileNode::subDirsPaths(QtSupport::ProFileReader *reader,
             }
         } else {
             if (errors)
-                errors->append(QCoreApplication::translate("QmakeProFileNode", "Could not find .pro file for sub dir \"%1\" in \"%2\"")
+                errors->append(QCoreApplication::translate("QmakeProFileNode", "Could not find .pro file for subdirectory \"%1\" in \"%2\".")
                                .arg(subDirVar).arg(realDir));
         }
     }
@@ -2508,7 +2515,9 @@ void QmakeProFileNode::updateUiFiles(const QString &buildDir)
     m_uiFiles.clear();
 
     // Only those two project types can have ui files for us
-    if (m_projectType == ApplicationTemplate || m_projectType == LibraryTemplate) {
+    if (m_projectType == ApplicationTemplate ||
+            m_projectType == SharedLibraryTemplate ||
+            m_projectType == StaticLibraryTemplate) {
         // Find all ui files
         FindUiFileNodesVisitor uiFilesVisitor;
         this->accept(&uiFilesVisitor);

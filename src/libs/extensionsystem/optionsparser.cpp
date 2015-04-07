@@ -30,6 +30,10 @@
 
 #include "optionsparser.h"
 
+#include "pluginmanager.h"
+#include "pluginmanager_p.h"
+#include "pluginspec_p.h"
+
 #include <QCoreApplication>
 
 using namespace ExtensionSystem;
@@ -91,6 +95,7 @@ bool OptionsParser::parse()
     }
     if (m_isDependencyRefreshNeeded)
         m_pmPrivate->resolveDependencies();
+    m_pmPrivate->enableOnlyTestedSpecs();
     return !m_hasError;
 }
 
@@ -142,16 +147,22 @@ bool OptionsParser::checkForLoadOption()
     if (m_currentArg != QLatin1String(LOAD_OPTION))
         return false;
     if (nextToken(RequiredToken)) {
-        PluginSpec *spec = m_pmPrivate->pluginByName(m_currentArg);
-        if (!spec) {
-            if (m_errorString)
-                *m_errorString = QCoreApplication::translate("PluginManager",
-                                                             "The plugin \"%1\" does not exist.")
-                    .arg(m_currentArg);
-            m_hasError = true;
-        } else {
-            spec->setForceEnabled(true);
+        if (m_currentArg == QLatin1String("all")) {
+            foreach (PluginSpec *spec, m_pmPrivate->pluginSpecs)
+                spec->d->setForceEnabled(true);
             m_isDependencyRefreshNeeded = true;
+        } else {
+            PluginSpec *spec = m_pmPrivate->pluginByName(m_currentArg);
+            if (!spec) {
+                if (m_errorString)
+                    *m_errorString = QCoreApplication::translate("PluginManager",
+                                                                 "The plugin \"%1\" does not exist.")
+                        .arg(m_currentArg);
+                m_hasError = true;
+            } else {
+                spec->d->setForceEnabled(true);
+                m_isDependencyRefreshNeeded = true;
+            }
         }
     }
     return true;
@@ -162,15 +173,24 @@ bool OptionsParser::checkForNoLoadOption()
     if (m_currentArg != QLatin1String(NO_LOAD_OPTION))
         return false;
     if (nextToken(RequiredToken)) {
-        PluginSpec *spec = m_pmPrivate->pluginByName(m_currentArg);
-        if (!spec) {
-            if (m_errorString)
-                *m_errorString = QCoreApplication::translate("PluginManager",
-                                                             "The plugin \"%1\" does not exist.").arg(m_currentArg);
-            m_hasError = true;
-        } else {
-            spec->setForceDisabled(true);
+        if (m_currentArg == QLatin1String("all")) {
+            foreach (PluginSpec *spec, m_pmPrivate->pluginSpecs)
+                spec->d->setForceDisabled(true);
             m_isDependencyRefreshNeeded = true;
+        } else {
+            PluginSpec *spec = m_pmPrivate->pluginByName(m_currentArg);
+            if (!spec) {
+                if (m_errorString)
+                    *m_errorString = QCoreApplication::translate("PluginManager",
+                                                                 "The plugin \"%1\" does not exist.").arg(m_currentArg);
+                m_hasError = true;
+            } else {
+                spec->d->setForceDisabled(true);
+                // recursively disable all plugins that require this plugin
+                foreach (PluginSpec *dependantSpec, PluginManager::pluginsRequiringPlugin(spec))
+                    dependantSpec->d->setForceDisabled(true);
+                m_isDependencyRefreshNeeded = true;
+            }
         }
     }
     return true;

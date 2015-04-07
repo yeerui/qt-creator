@@ -42,6 +42,7 @@
 #include <texteditor/texteditorsettings.h>
 #include <texteditor/fontsettings.h>
 #include <utils/ansiescapecodehandler.h>
+#include <utils/theme/theme.h>
 
 #include <QIcon>
 #include <QTextCharFormat>
@@ -87,6 +88,13 @@ private slots:
     }
 
 protected:
+    void wheelEvent(QWheelEvent *ev)
+    {
+        // from QPlainTextEdit, but without scroll wheel zooming
+        QAbstractScrollArea::wheelEvent(ev);
+        updateMicroFocus();
+    }
+
     void mouseDoubleClickEvent(QMouseEvent *ev)
     {
         int line = cursorForPosition(ev->pos()).block().blockNumber();
@@ -177,30 +185,26 @@ QList<QWidget *> CompileOutputWindow::toolBarWidgets() const
      return QList<QWidget *>() << m_cancelBuildButton;
 }
 
-static QColor mix_colors(const QColor &a, const QColor &b)
-{
-    return QColor((a.red() + 2 * b.red()) / 3, (a.green() + 2 * b.green()) / 3,
-                  (a.blue() + 2* b.blue()) / 3, (a.alpha() + 2 * b.alpha()) / 3);
-}
-
 void CompileOutputWindow::appendText(const QString &text, BuildStep::OutputFormat format)
 {
+    using Utils::Theme;
     QPalette p = m_outputWindow->palette();
+    Theme *theme = Utils::creatorTheme();
     QTextCharFormat textFormat;
     switch (format) {
     case BuildStep::NormalOutput:
-        textFormat.setForeground(p.color(QPalette::Text));
+        textFormat.setForeground(theme->color(Theme::TextColorNormal));
         textFormat.setFontWeight(QFont::Normal);
         break;
     case BuildStep::ErrorOutput:
-        textFormat.setForeground(mix_colors(p.color(QPalette::Text), QColor(Qt::red)));
+        textFormat.setForeground(theme->color(Theme::OutputPanes_ErrorMessageTextColor));
         textFormat.setFontWeight(QFont::Normal);
         break;
     case BuildStep::MessageOutput:
-        textFormat.setForeground(mix_colors(p.color(QPalette::Text), QColor(Qt::blue)));
+        textFormat.setForeground(theme->color(Theme::OutputPanes_MessageOutput));
         break;
     case BuildStep::ErrorMessageOutput:
-        textFormat.setForeground(mix_colors(p.color(QPalette::Text), QColor(Qt::red)));
+        textFormat.setForeground(theme->color(Theme::OutputPanes_ErrorMessageTextColor));
         textFormat.setFontWeight(QFont::Bold);
         break;
 

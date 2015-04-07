@@ -133,18 +133,14 @@ public:
         }
     }
 
-    int suggestedColumnSize(int column) const
-    {
-        QHeaderView *h = q->header();
-        QTC_ASSERT(h, return -1);
-        QAbstractItemModel *m = q->model();
-        QTC_ASSERT(m, return -1);
 
-        QModelIndex a = q->indexAt(QPoint(1, 1));
+    void considerItems(int column, QModelIndex start, int *minimum, bool single) const
+    {
+        QModelIndex a = start;
         a = a.sibling(a.row(), column);
         QFontMetrics fm = q->fontMetrics();
-        int minimum = fm.width(m->headerData(column, Qt::Horizontal).toString());
         const int ind = q->indentation();
+        QAbstractItemModel *m = q->model();
         for (int i = 0; i < 100 && a.isValid(); ++i) {
             const QString s = m->data(a).toString();
             int w = fm.width(s) + 10;
@@ -152,10 +148,29 @@ public:
                 for (QModelIndex b = a.parent(); b.isValid(); b = b.parent())
                     w += ind;
             }
-            if (w > minimum)
-                minimum = w;
+            if (w > *minimum)
+                *minimum = w;
+            if (single)
+                break;
             a = q->indexBelow(a);
         }
+    }
+
+    int suggestedColumnSize(int column) const
+    {
+        QHeaderView *h = q->header();
+        QTC_ASSERT(h, return -1);
+        QAbstractItemModel *m = q->model();
+        QTC_ASSERT(m, return -1);
+
+        QFontMetrics fm = q->fontMetrics();
+        int minimum = fm.width(m->headerData(column, Qt::Horizontal).toString()) + 2 * fm.width(QLatin1Char('m'));
+        considerItems(column, q->indexAt(QPoint(1, 1)), &minimum, false);
+
+        QVariant extraIndices = m->data(QModelIndex(), BaseTreeView::ExtraIndicesForColumnWidth);
+        foreach (const QModelIndex &a, extraIndices.value<QModelIndexList>())
+            considerItems(column, a, &minimum, true);
+
         return minimum;
     }
 
@@ -326,8 +341,8 @@ void BaseTreeView::showProgressIndicator()
  */
 void BaseTreeView::hideProgressIndicator()
 {
-    QTC_ASSERT(d->m_progressIndicator, return);
-    d->m_progressIndicator->hide();
+    if (d->m_progressIndicator)
+        d->m_progressIndicator->hide();
 }
 
 void BaseTreeView::setSettings(QSettings *settings, const QByteArray &key)

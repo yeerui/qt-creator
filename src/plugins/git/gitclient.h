@@ -35,6 +35,7 @@
 #include "commitdata.h"
 
 #include <coreplugin/editormanager/ieditor.h>
+#include <vcsbase/vcsbaseclient.h>
 
 #include <utils/fileutils.h>
 
@@ -61,7 +62,10 @@ namespace VcsBase {
     class VcsBaseEditorParameterWidget;
 }
 
-namespace Utils { struct SynchronousProcessResponse; }
+namespace Utils {
+class ExitCodeInterpreter;
+struct SynchronousProcessResponse;
+} // namespace Utils
 
 namespace DiffEditor {
 class DiffEditorDocument;
@@ -98,7 +102,7 @@ public:
 
 typedef QMap<QString, SubmoduleData> SubmoduleDataMap;
 
-class GitClient : public QObject
+class GitClient : public VcsBase::VcsBaseClientImpl
 {
     Q_OBJECT
 
@@ -136,7 +140,8 @@ public:
 
     explicit GitClient(GitSettings *settings);
 
-    Utils::FileName gitExecutable(bool *ok = 0, QString *errorMessage = 0) const;
+    Utils::FileName vcsBinary(bool *ok = 0, QString *errorMessage = 0) const;
+    int vcsTimeout() const;
     unsigned gitVersion(QString *errorMessage = 0) const;
 
     QString findRepositoryForDirectory(const QString &dir) const;
@@ -359,7 +364,6 @@ private slots:
 
 private:
     void stage(const QString &patch, bool revert);
-    QByteArray readConfigBytes(const QString &workingDirectory, const QString &configVar) const;
     QTextCodec *getSourceCodec(const QString &file) const;
     VcsBase::VcsBaseEditorWidget *findExistingVCSEditor(const char *registerDynamicProperty,
                                                         const QString &dynamicPropertyValue) const;
@@ -367,20 +371,25 @@ private:
     enum CodecType { CodecSource, CodecLogOutput, CodecNone };
 
     VcsBase::VcsBaseEditorWidget *createVcsEditor(Core::Id kind,
-                                            QString title,
-                                            const QString &source,
-                                            CodecType codecType,
-                                            const char *registerDynamicProperty,
-                                            const QString &dynamicPropertyValue,
-                                            VcsBase::VcsBaseEditorParameterWidget *configWidget) const;
+                                                  QString title,
+                                                  const QString &source,
+                                                  CodecType codecType,
+                                                  const char *registerDynamicProperty,
+                                                  const QString &dynamicPropertyValue) const;
 
     void requestReload(const QString &documentId, const QString &source, const QString &title,
                        std::function<DiffEditor::DiffEditorController *(Core::IDocument *)> factory) const;
 
+    enum JobOutputBindMode {
+        NoOutputBind,
+        VcsWindowOutputBind
+    };
+
     VcsBase::VcsCommand *createCommand(const QString &workingDirectory,
-                             VcsBase::VcsBaseEditorWidget* editor = 0,
-                             bool useOutputToWindow = false,
-                             int editorLineNumber = -1);
+                                       VcsBase::VcsBaseEditorWidget *editor = 0,
+                                       JobOutputBindMode mode = NoOutputBind);
+    void enqueueJob(VcsBase::VcsCommand *cmd, const QStringList &args,
+                    Utils::ExitCodeInterpreter *interpreter = 0);
 
     VcsBase::VcsCommand *executeGit(const QString &workingDirectory,
                                  const QStringList &arguments,

@@ -76,9 +76,10 @@ DiffEditorDocument::~DiffEditorDocument()
  */
 void DiffEditorDocument::setController(DiffEditorController *controller)
 {
-    QTC_ASSERT(isTemporary(), return);
     if (m_controller == controller)
         return;
+
+    QTC_ASSERT(isTemporary(), return);
 
     if (m_controller)
         m_controller->deleteLater();
@@ -160,6 +161,7 @@ QString DiffEditorDocument::description() const
 
 void DiffEditorDocument::setContextLineCount(int lines)
 {
+    QTC_ASSERT(!m_isContextLineCountForced, return);
     m_contextLineCount = lines;
 }
 
@@ -181,8 +183,6 @@ bool DiffEditorDocument::isContextLineCountForced() const
 
 void DiffEditorDocument::setIgnoreWhitespace(bool ignore)
 {
-    if (m_isContextLineCountForced)
-        return;
     m_ignoreWhitespace = ignore;
 }
 

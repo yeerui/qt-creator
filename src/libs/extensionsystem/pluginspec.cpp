@@ -86,6 +86,8 @@
            Dependency is not necessarily needed. You need to make sure that
            the plugin is able to load without this dependency installed, so
            for example you may not link to the dependency's library.
+    \value Test
+           Dependency needs to be force-loaded for running tests of the plugin.
 */
 
 /*!
@@ -269,48 +271,49 @@ bool PluginSpec::isExperimental() const
 }
 
 /*!
-    Returns whether the plugin is disabled by default.
-    This might be because the plugin is experimental, or because
-    the plugin manager's settings define it as disabled by default.
+    Returns whether the plugin is enabled by default.
+    A plugin might be disabled because the plugin is experimental, or because
+    the install settings define it as disabled by default.
 */
-bool PluginSpec::isDisabledByDefault() const
+bool PluginSpec::isEnabledByDefault() const
 {
-    return d->disabledByDefault;
+    return d->enabledByDefault;
 }
 
 /*!
-    Returns whether the plugin should be loaded at startup. True by default.
+    Returns whether the plugin should be loaded at startup,
+    taking into account the default enabled state, and the user's settings.
 
-    The user can change it from the Plugin settings.
-
-    \note This function returns true even if a plugin is disabled because its
-    dependencies were not loaded, or an error occurred during loading it.
+    \note This function might return false even if the plugin is loaded as a requirement of another
+    enabled plugin.
+    \sa PluginSpec::isEffectivelyEnabled
 */
-bool PluginSpec::isEnabledInSettings() const
+bool PluginSpec::isEnabledBySettings() const
 {
-    return d->enabledInSettings;
+    return d->enabledBySettings;
 }
 
 /*!
     Returns whether the plugin is loaded at startup.
-    \see PluginSpec::isEnabled
+    \see PluginSpec::isEnabledBySettings
 */
 bool PluginSpec::isEffectivelyEnabled() const
 {
-    if (d->disabledIndirectly
-        || (!d->enabledInSettings && !d->forceEnabled)
-        || d->forceDisabled) {
+    if (!isAvailableForHostPlatform())
         return false;
-    }
-    return isAvailableForHostPlatform();
+    if (isForceEnabled() || isEnabledIndirectly())
+        return true;
+    if (isForceDisabled())
+        return false;
+    return isEnabledBySettings();
 }
 
 /*!
     Returns true if loading was not done due to user unselecting this plugin or its dependencies.
 */
-bool PluginSpec::isDisabledIndirectly() const
+bool PluginSpec::isEnabledIndirectly() const
 {
-    return d->disabledIndirectly;
+    return d->enabledIndirectly;
 }
 
 /*!
@@ -471,6 +474,7 @@ namespace {
     const char DEPENDENCY_TYPE[] = "Type";
     const char DEPENDENCY_TYPE_SOFT[] = "optional";
     const char DEPENDENCY_TYPE_HARD[] = "required";
+    const char DEPENDENCY_TYPE_TEST[] = "test";
     const char ARGUMENTS[] = "Arguments";
     const char ARGUMENT_NAME[] = "Name";
     const char ARGUMENT_PARAMETER[] = "Parameter";
@@ -482,9 +486,9 @@ namespace {
 PluginSpecPrivate::PluginSpecPrivate(PluginSpec *spec)
     : required(false),
       experimental(false),
-      disabledByDefault(false),
-      enabledInSettings(true),
-      disabledIndirectly(false),
+      enabledByDefault(true),
+      enabledBySettings(true),
+      enabledIndirectly(false),
       forceEnabled(false),
       forceDisabled(false),
       plugin(0),
@@ -532,28 +536,28 @@ bool PluginSpecPrivate::read(const QString &fileName)
     return true;
 }
 
-void PluginSpec::setEnabled(bool value)
+void PluginSpecPrivate::setEnabledBySettings(bool value)
 {
-    d->enabledInSettings = value;
+    enabledBySettings = value;
 }
 
-void PluginSpec::setDisabledByDefault(bool value)
+void PluginSpecPrivate::setEnabledByDefault(bool value)
 {
-    d->disabledByDefault = value;
+    enabledByDefault = value;
 }
 
-void PluginSpec::setForceEnabled(bool value)
+void PluginSpecPrivate::setForceEnabled(bool value)
 {
-    d->forceEnabled = value;
+    forceEnabled = value;
     if (value)
-        d->forceDisabled = false;
+        forceDisabled = false;
 }
 
-void PluginSpec::setForceDisabled(bool value)
+void PluginSpecPrivate::setForceDisabled(bool value)
 {
     if (value)
-        d->forceEnabled = false;
-    d->forceDisabled = value;
+        forceEnabled = false;
+    forceDisabled = value;
 }
 
 /*!
@@ -684,12 +688,12 @@ bool PluginSpecPrivate::readMetaData(const QJsonObject &metaData)
     value = pluginInfo.value(QLatin1String(PLUGIN_DISABLED_BY_DEFAULT));
     if (!value.isUndefined() && !value.isBool())
         return reportError(msgValueIsNotABool(PLUGIN_DISABLED_BY_DEFAULT));
-    disabledByDefault = value.toBool(false);
-    qCDebug(pluginLog) << "disabledByDefault =" << disabledByDefault;
+    enabledByDefault = !value.toBool(false);
+    qCDebug(pluginLog) << "enabledByDefault =" << enabledByDefault;
 
     if (experimental)
-        disabledByDefault = true;
-    enabledInSettings = !disabledByDefault;
+        enabledByDefault = false;
+    enabledBySettings = enabledByDefault;
 
     value = pluginInfo.value(QLatin1String(VENDOR));
     if (!value.isUndefined() && !value.isString())
@@ -763,6 +767,8 @@ bool PluginSpecPrivate::readMetaData(const QJsonObject &metaData)
                     dep.type = PluginDependency::Required;
                 } else if (typeValue.toLower() == QLatin1String(DEPENDENCY_TYPE_SOFT)) {
                     dep.type = PluginDependency::Optional;
+                } else if (typeValue.toLower() == QLatin1String(DEPENDENCY_TYPE_TEST)) {
+                    dep.type = PluginDependency::Test;
                 } else {
                     return reportError(tr("Dependency: \"%1\" must be \"%2\" or \"%3\" (is \"%4\")")
                                        .arg(QLatin1String(DEPENDENCY_TYPE),
@@ -906,24 +912,18 @@ bool PluginSpecPrivate::resolveDependencies(const QList<PluginSpec *> &specs)
     return true;
 }
 
-void PluginSpecPrivate::disableIndirectlyIfDependencyDisabled()
+void PluginSpecPrivate::enableDependenciesIndirectly()
 {
-    if (!enabledInSettings)
+    if (!q->isEffectivelyEnabled()) // plugin not enabled, nothing to do
         return;
-
-    if (disabledIndirectly)
-        return;
-
     QHashIterator<PluginDependency, PluginSpec *> it(dependencySpecs);
     while (it.hasNext()) {
         it.next();
-        if (it.key().type == PluginDependency::Optional)
+        if (it.key().type != PluginDependency::Required)
             continue;
         PluginSpec *dependencySpec = it.value();
-        if (!dependencySpec->isEffectivelyEnabled()) {
-            disabledIndirectly = true;
-            break;
-        }
+        if (!dependencySpec->isEffectivelyEnabled())
+            dependencySpec->d->enabledIndirectly = true;
     }
 }
 

@@ -73,8 +73,27 @@ QuickFixTestDocument::QuickFixTestDocument(const QByteArray &fileName,
     : TestDocument(fileName, source)
     , m_expectedSource(QString::fromUtf8(expectedSource))
 {
-    if (m_cursorPosition > -1)
+    removeMarkers();
+}
+
+void QuickFixTestDocument::removeMarkers()
+{
+    // Remove selection markers
+    if (m_anchorPosition != -1) {
+        if (m_anchorPosition < m_cursorPosition) {
+            m_source.remove(m_anchorPosition, m_selectionStartMarker.size());
+            m_cursorPosition -= m_selectionStartMarker.size();
+            m_source.remove(m_cursorPosition, m_selectionEndMarker.size());
+        } else {
+            m_source.remove(m_cursorPosition, m_selectionEndMarker.size());
+            m_anchorPosition -= m_selectionEndMarker.size();
+            m_source.remove(m_anchorPosition, m_selectionStartMarker.size());
+        }
+
+    // Remove simple cursor marker
+    } else if (m_cursorPosition != -1) {
         m_source.remove(m_cursorPosition, 1);
+    }
 
     const int cursorPositionInExpectedSource
         = m_expectedSource.indexOf(QLatin1Char(m_cursorMarker));
@@ -135,9 +154,16 @@ BaseQuickFixTestCase::BaseQuickFixTestCase(const QList<QuickFixTestDocument::Ptr
         closeEditorAtEndOfTestCase(document->m_editor);
 
         // Set cursor position
-        const int cursorPosition = document->hasCursorMarker()
-                ? document->m_cursorPosition : 0;
-        document->m_editor->setCursorPosition(cursorPosition);
+        if (document->hasCursorMarker()) {
+            if (document->hasAnchorMarker()) {
+                document->m_editor->setCursorPosition(document->m_anchorPosition);
+                document->m_editor->select(document->m_cursorPosition);
+            } else {
+                document->m_editor->setCursorPosition(document->m_cursorPosition);
+            }
+        } else {
+            document->m_editor->setCursorPosition(0);
+        }
 
         // Rehighlight
         waitForRehighlightedSemanticDocument(document->m_editorWidget);
@@ -586,6 +612,38 @@ void CppEditorPlugin::test_quickfix_data()
         "}\n"
     );
 
+    // Checks if getter uses 'get' prefix if member function with such a prefix is found
+    QTest::newRow("GenerateGetterSetter_getterWithGetPrefix")
+        << CppQuickFixFactoryPtr(new GenerateGetterSetter) << _(
+        "\n"
+        "class Something\n"
+        "{\n"
+        "    int getFoo();\n"
+        "    int @m_it;\n"
+        "};\n"
+        ) << _(
+        "\n"
+        "class Something\n"
+        "{\n"
+        "    int getFoo();\n"
+        "    int m_it;\n"
+        "\n"
+        "public:\n"
+        "    int getIt() const;\n"
+        "    void setIt(int it);\n"
+        "};\n"
+        "\n"
+        "int Something::getIt() const\n"
+        "{\n"
+        "    return m_it;\n"
+        "}\n"
+        "\n"
+        "void Something::setIt(int it)\n"
+        "{\n"
+        "    m_it = it;\n"
+        "}\n"
+    );
+
     // Check: Setter: Use pass by reference for parameters which
     // are not integer, float or pointers.
     QTest::newRow("GenerateGetterSetter_customType")
@@ -885,6 +943,36 @@ void CppEditorPlugin::test_quickfix_data()
         "void Something::setFoo(int foo)\n"
         "{\n"
         "    mFoo = foo;\n"
+        "}\n"
+    );
+
+    // Checks if the declaration inside Q_PROPERTY macro is ignored and a getter created
+    QTest::newRow("GenerateGetterSetter_ignoreQPropertiesMacro")
+        << CppQuickFixFactoryPtr(new GenerateGetterSetter) << _(
+        "class Something\n"
+        "{\n"
+        "    Q_PROPERTY(int foo)\n"
+        "    int @m_foo;\n"
+        "};\n"
+        ) << _(
+        "class Something\n"
+        "{\n"
+        "    Q_PROPERTY(int foo)\n"
+        "    int m_foo;\n"
+        "\n"
+        "public:\n"
+        "    int foo() const;\n"
+        "    void setFoo(int foo);\n"
+        "};\n"
+        "\n"
+        "int Something::foo() const\n"
+        "{\n"
+        "    return m_foo;\n"
+        "}\n"
+        "\n"
+        "void Something::setFoo(int foo)\n"
+        "{\n"
+        "    m_foo = foo;\n"
         "}\n"
     );
 
@@ -4346,6 +4434,39 @@ void CppEditorPlugin::test_quickfix_AssignToLocalVariable_templates()
     testDocuments << QuickFixTestDocument::create("file.cpp", original, expected);
 
     AssignToLocalVariable factory;
+    QuickFixOperationTest(testDocuments, &factory);
+}
+
+void CppEditorPlugin::test_quickfix_ExtractFunction_data()
+{
+    QTest::addColumn<QByteArray>("original");
+    QTest::addColumn<QByteArray>("expected");
+
+    QTest::newRow("basic")
+        << _("void f()\n"
+             "{\n"
+             "    @{start}g();@{end}\n"
+             "}\n")
+        << _("void extracted()\n"
+             "{\n"
+             "    g();\n"
+             "}\n"
+             "\n"
+             "void f()\n"
+             "{\n"
+             "    extracted();\n"
+             "}\n");
+}
+
+void CppEditorPlugin::test_quickfix_ExtractFunction()
+{
+    QFETCH(QByteArray, original);
+    QFETCH(QByteArray, expected);
+
+    QList<QuickFixTestDocument::Ptr> testDocuments;
+    testDocuments << QuickFixTestDocument::create("file.h", original, expected);
+
+    ExtractFunction factory([]() { return QLatin1String("extracted"); });
     QuickFixOperationTest(testDocuments, &factory);
 }
 

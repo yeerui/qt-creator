@@ -196,8 +196,10 @@ void AbstractSymbolGroupNode::dumpBasicData(std::ostream &str, const std::string
     str << "iname=\"" << aFullIname << "\",name=\"" << aName << '"';
     if (!type.empty())
         str << ",type=\"" << type << '"';
-    if (!expression.empty())
-        str << ",exp=\"" << expression  << '"';
+    if (WatchesSymbolGroup::isWatchIname(aFullIname))
+        str << ",exp=\"" << aName << '"';
+    else if (!expression.empty())
+        str << ",exp=\"" << expression << '"';
 }
 
 void AbstractSymbolGroupNode::setParent(AbstractSymbolGroupNode *n)
@@ -362,20 +364,6 @@ enum PointerFormats
     FormatUtf8String = 102,
     FormatUtf16String = 104,
     FormatUcs4String = 105
-};
-
-enum DumpEncoding // WatchData encoding of GDBMI values
-{
-    DumpEncodingAscii = 0,
-    DumpEncodingBase64_Utf16_WithQuotes = 2,
-    DumpEncodingHex_Ucs4_LittleEndian_WithQuotes = 3,
-    DumpEncodingBase64_Utf16 = 4,
-    DumpEncodingHex_Latin1_WithQuotes = 6,
-    DumpEncodingHex_Utf8_LittleEndian_WithQuotes = 9,
-    DumpEncodingJulianDate = 14,
-    DumpEncodingMillisecondsSinceMidnight = 15,
-    DumpEncodingJulianDateAndMillisecondsSinceMidnight = 16,
-    DumpEncodingMillisecondsSinceEpoch = 29
 };
 
 /* Recode arrays/pointers of char*, wchar_t according to users
@@ -620,6 +608,7 @@ SymbolGroupNode::SymbolGroupNode(SymbolGroup *symbolGroup,
     , m_symbolGroup(symbolGroup)
     , m_module(module)
     , m_index(index)
+    , m_dumperValueEncoding(0)
     , m_dumperType(-1)
     , m_dumperContainerSize(-1)
     , m_dumperSpecialInfo(0)
@@ -1057,7 +1046,7 @@ bool SymbolGroupNode::runSimpleDumpers(const SymbolGroupValueContext &ctx)
         return true;
     if (testFlags(SimpleDumperMask))
         return false;
-    addFlags(dumpSimpleType(this , ctx, &m_dumperValue,
+    addFlags(dumpSimpleType(this , ctx, &m_dumperValue, &m_dumperValueEncoding,
                             &m_dumperType, &m_dumperContainerSize,
                             &m_dumperSpecialInfo, &m_memory));
     if (symbolGroupDebug)
@@ -1067,12 +1056,14 @@ bool SymbolGroupNode::runSimpleDumpers(const SymbolGroupValueContext &ctx)
     return testFlags(SimpleDumperOk);
 }
 
-std::wstring SymbolGroupNode::simpleDumpValue(const SymbolGroupValueContext &ctx)
+std::wstring SymbolGroupNode::simpleDumpValue(const SymbolGroupValueContext &ctx, int *encoding)
 {
     if (testFlags(Uninitialized))
         return L"<not in scope>";
-    if (runSimpleDumpers(ctx))
+    if (runSimpleDumpers(ctx)) {
+        *encoding = m_dumperValueEncoding;
         return m_dumperValue;
+    }
     return symbolGroupFixedValue();
 }
 
@@ -1120,7 +1111,8 @@ int SymbolGroupNode::dumpNode(std::ostream &str,
     const std::string watchExp = t.empty() ? aName : watchExpression(addr, t, m_dumperType, m_module);
     SymbolGroupNode::dumpBasicData(str, aName, aFullIName, t, watchExp);
 
-    std::wstring value = simpleDumpValue(ctx);
+    int encoding = 0;
+    std::wstring value = simpleDumpValue(ctx, &encoding);
 
     if (addr) {
         str << std::hex << std::showbase << ",addr=\"" << addr << '"';
@@ -1143,21 +1135,6 @@ int SymbolGroupNode::dumpNode(std::ostream &str,
     bool valueEditable = !uninitialized;
     bool valueEnabled = !uninitialized;
 
-    // Shall it be recoded?
-    int encoding = 0;
-    switch (knownType(t, 0)) {
-    case KT_QDate:
-        encoding = DumpEncodingJulianDate;
-        break;
-    case KT_QTime:
-        encoding = DumpEncodingMillisecondsSinceMidnight;
-        break;
-    case KT_QDateTime:
-        encoding = QtInfo::get(ctx).version < 5
-                ? DumpEncodingJulianDateAndMillisecondsSinceMidnight
-                : DumpEncodingMillisecondsSinceEpoch;
-        break;
-    }
     if (encoding) {
         str << ",valueencoded=\"" << encoding << "\",value=\"" << gdbmiWStringFormat(value) <<'"';
     } else if (dumpParameters.recode(t, aFullIName, ctx, addr, &value, &encoding)) {

@@ -288,7 +288,6 @@ public:
 
     void updateWelcomePage();
 
-    void handleRunControlFinished();
     void runConfigurationConfigurationFinished();
 
 public:
@@ -566,7 +565,9 @@ bool ProjectExplorerPlugin::initialize(const QStringList &arguments, QString *er
     connect(dd->m_outputPane, &AppOutputPane::runControlStarted,
             this, &ProjectExplorerPlugin::runControlStarted);
     connect(dd->m_outputPane, &AppOutputPane::runControlFinished,
-            dd, &ProjectExplorerPluginPrivate::handleRunControlFinished);
+            this, &ProjectExplorerPlugin::runControlFinished);
+    connect(dd->m_outputPane, &AppOutputPane::runControlFinished,
+            this, &ProjectExplorerPlugin::updateRunActions);
 
     addAutoReleasedObject(new AllProjectsFilter);
     addAutoReleasedObject(new CurrentProjectFilter);
@@ -1247,7 +1248,7 @@ bool ProjectExplorerPlugin::initialize(const QStringList &arguments, QString *er
     // not be used in the Run/Build configuration pages.
     Utils::MacroExpander *expander = Utils::globalMacroExpander();
     expander->registerFileVariables(Constants::VAR_CURRENTPROJECT_PREFIX,
-        tr("Current project's main file"),
+        tr("Current project's main file."),
         [this]() -> QString {
             Utils::FileName projectFilePath;
             if (Project *project = ProjectTree::currentProject())
@@ -1470,7 +1471,7 @@ void ProjectExplorerPlugin::extensionsInitialized()
         ProjectExplorerPlugin::openProject(fileName, &errorMessage);
         if (!errorMessage.isEmpty())
             QMessageBox::critical(ICore::mainWindow(),
-                tr("Failed to open project"), errorMessage);
+                tr("Failed to open project."), errorMessage);
         return 0;
     });
 
@@ -1964,11 +1965,6 @@ void ProjectExplorerPlugin::startRunControl(RunControl *runControl, RunMode runM
     dd->startRunControl(runControl, runMode);
 }
 
-void ProjectExplorerPluginPrivate::handleRunControlFinished()
-{
-    emit m_instance->updateRunActions();
-}
-
 void ProjectExplorerPluginPrivate::startRunControl(RunControl *runControl, RunMode runMode)
 {
     m_outputPane->createNewOutputWindow(runControl);
@@ -1978,8 +1974,6 @@ void ProjectExplorerPluginPrivate::startRunControl(RunControl *runControl, RunMo
             || ((runMode == DebugRunMode || runMode == DebugRunModeWithBreakOnMain)
                 && m_projectExplorerSettings.showDebugOutput);
     m_outputPane->setBehaviorOnOutput(runControl, popup ? AppOutputPane::Popup : AppOutputPane::Flash);
-    QObject::connect(runControl, &RunControl::finished,
-                     this, &ProjectExplorerPluginPrivate::handleRunControlFinished);
     runControl->start();
     emit m_instance->updateRunActions();
 }
@@ -2460,13 +2454,13 @@ QPair<bool, QString> ProjectExplorerPluginPrivate::buildSettingsEnabledForSessio
     result.first = true;
     if (!SessionManager::hasProjects()) {
         result.first = false;
-        result.second = tr("No project loaded");
+        result.second = tr("No project loaded.");
     } else if (BuildManager::isBuilding()) {
         result.first = false;
-        result.second = tr("A build is in progress");
+        result.second = tr("A build is in progress.");
     } else if (!hasBuildSettings(0)) {
         result.first = false;
-        result.second = tr("Project has no build settings");
+        result.second = tr("Project has no build settings.");
     } else {
         foreach (Project *project, SessionManager::projectOrder(0)) {
             if (project

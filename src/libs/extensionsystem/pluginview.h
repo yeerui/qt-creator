@@ -37,6 +37,10 @@
 #include <QSet>
 #include <QHash>
 
+QT_BEGIN_NAMESPACE
+class QSortFilterProxyModel;
+QT_END_NAMESPACE
+
 namespace Utils {
 class TreeItem;
 class TreeModel;
@@ -68,13 +72,14 @@ signals:
 private:
     PluginSpec *pluginForIndex(const QModelIndex &index) const;
     void updatePlugins();
+    bool setPluginsEnabled(const QSet<PluginSpec *> &plugins, bool enable);
 
     Utils::TreeView *m_categoryView;
     Utils::TreeModel *m_model;
+    QSortFilterProxyModel *m_sortModel;
 
     friend class CollectionItem;
     friend class PluginItem;
-    QHash<PluginSpec *, QSet<PluginSpec *>> m_pluginDependencies;
 };
 
 } // namespae ExtensionSystem

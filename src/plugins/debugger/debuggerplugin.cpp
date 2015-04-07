@@ -727,14 +727,6 @@ public:
     void enableReverseDebuggingTriggered(const QVariant &value);
     void showStatusMessage(const QString &msg, int timeout = -1);
 
-    DebuggerMainWindow *mainWindow() const { return m_mainWindow; }
-
-    bool isDockVisible(const QString &objectName) const
-    {
-        QDockWidget *dock = mainWindow()->findChild<QDockWidget *>(objectName);
-        return dock && dock->toggleViewAction()->isChecked();
-    }
-
     void runControlStarted(DebuggerEngine *engine);
     void runControlFinished(DebuggerEngine *engine);
     void remoteCommand(const QStringList &options);
@@ -748,7 +740,6 @@ public:
     void fontSettingsChanged(const FontSettings &settings);
 
     void updateState(DebuggerEngine *engine);
-    void updateWatchersWindow(bool showWatch, bool showReturn);
     void onCurrentProjectChanged(Project *project);
 
     void sessionLoaded();
@@ -920,6 +911,7 @@ public slots:
             exp = removeObviousSideEffects(exp);
         else
             exp = fixCppExpression(exp);
+        exp = exp.trimmed();
         if (exp.isEmpty())
             return;
         currentEngine()->watchHandler()->watchVariable(exp);
@@ -959,9 +951,6 @@ public slots:
     bool parseArguments(const QStringList &args, QString *errorMessage);
     void parseCommandLineArguments();
 
-    void updateQmlActions() {
-        action(QmlUpdateOnSave)->setEnabled(boolSetting(ShowQmlObjectTree));
-    }
 
 public:
     DebuggerMainWindow *m_mainWindow;
@@ -1824,7 +1813,9 @@ void DebuggerPluginPrivate::connectEngine(DebuggerEngine *engine)
     m_watchersView->setModel(engine->watchModel());
     m_inspectorView->setModel(engine->watchModel());
 
-    mainWindow()->setEngineDebugLanguages(engine->startParameters().languages);
+    engine->watchHandler()->resetWatchers();
+
+    m_mainWindow->setEngineDebugLanguages(engine->startParameters().languages);
 }
 
 static void changeFontSize(QWidget *widget, qreal size)
@@ -1948,12 +1939,6 @@ void DebuggerPluginPrivate::setInitialState()
     action(ExpandStack)->setEnabled(false);
 }
 
-void DebuggerPluginPrivate::updateWatchersWindow(bool showWatch, bool showReturn)
-{
-    m_watchersWindow->setVisible(showWatch);
-    m_returnWindow->setVisible(showReturn);
-}
-
 void DebuggerPluginPrivate::updateState(DebuggerEngine *engine)
 {
     QTC_ASSERT(engine, return);
@@ -1962,7 +1947,6 @@ void DebuggerPluginPrivate::updateState(DebuggerEngine *engine)
     QTC_ASSERT(!engine->isSlaveEngine(), return);
 
     m_threadBox->setCurrentIndex(engine->threadsHandler()->currentThreadIndex());
-    engine->watchHandler()->updateWatchersWindow();
 
     const DebuggerState state = engine->state();
     //showMessage(QString::fromLatin1("PLUGIN SET STATE: ")
@@ -2056,7 +2040,7 @@ void DebuggerPluginPrivate::updateState(DebuggerEngine *engine)
     m_detachAction->setEnabled(detachable);
 
     if (stopped)
-        QApplication::alert(mainWindow(), 3000);
+        QApplication::alert(m_mainWindow, 3000);
 
     const bool canReverse = engine->hasCapability(ReverseSteppingCapability)
                 && boolSetting(EnableReverseDebugging);
@@ -2964,11 +2948,6 @@ void DebuggerPluginPrivate::extensionsInitialized()
     connect(action(SettingsDialog), &QAction::triggered,
             [] { ICore::showOptionsDialog(DEBUGGER_COMMON_SETTINGS_ID); });
 
-    // QML Actions
-    connect(action(ShowQmlObjectTree), &SavedAction::valueChanged,
-            this,  &DebuggerPluginPrivate::updateQmlActions);
-    updateQmlActions();
-
     // Toolbar
     QWidget *toolbarContainer = new QWidget;
 
@@ -3140,7 +3119,8 @@ void updateState(DebuggerEngine *engine)
 
 void updateWatchersWindow(bool showWatch, bool showReturn)
 {
-    dd->updateWatchersWindow(showWatch, showReturn);
+    dd->m_watchersWindow->setVisible(showWatch);
+    dd->m_returnWindow->setVisible(showReturn);
 }
 
 QIcon locationMarkIcon()
@@ -3208,12 +3188,13 @@ void synchronizeBreakpoints()
 
 QWidget *mainWindow()
 {
-    return dd->mainWindow();
+    return dd->m_mainWindow;
 }
 
 bool isDockVisible(const QString &objectName)
 {
-    return dd->isDockVisible(objectName);
+    QDockWidget *dock = dd->m_mainWindow->findChild<QDockWidget *>(objectName);
+    return dock && dock->toggleViewAction()->isChecked();
 }
 
 void openMemoryEditor()

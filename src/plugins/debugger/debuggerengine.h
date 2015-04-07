@@ -60,8 +60,10 @@ namespace Internal {
 class DebuggerEnginePrivate;
 class DebuggerPluginPrivate;
 class DisassemblerAgent;
+class GdbMi;
 class MemoryAgent;
 class WatchData;
+class WatchItem;
 class BreakHandler;
 class ModulesHandler;
 class RegisterHandler;
@@ -139,7 +141,7 @@ public:
 
     virtual bool setToolTipExpression(const Internal::DebuggerToolTipContext &);
 
-    virtual void updateWatchData(const Internal::WatchData &data);
+    virtual void updateWatchItem(WatchItem *) {}
     virtual void watchDataSelected(const QByteArray &iname);
 
     virtual void startDebugger(DebuggerRunControl *runControl);
@@ -184,6 +186,7 @@ public:
 
     virtual bool isSynchronous() const;
     virtual QByteArray qtNamespace() const;
+    void setQtNamespace(const QByteArray &ns);
 
     virtual void createSnapshot();
     virtual void updateAll();
@@ -198,7 +201,7 @@ public:
     virtual bool acceptsDebuggerCommands() const { return true; }
     virtual void executeDebuggerCommand(const QString &command, DebuggerLanguages languages);
 
-    virtual void assignValueInDebugger(const Internal::WatchData *data,
+    virtual void assignValueInDebugger(WatchItem *item,
         const QString &expr, const QVariant &value);
     virtual void selectThread(Internal::ThreadId threadId) = 0;
 
@@ -372,6 +375,8 @@ protected:
 
     virtual void slaveEngineStateChanged(DebuggerEngine *engine,
         DebuggerState state);
+
+    void updateLocalsView(const GdbMi &all);
 
 private:
     // Wrapper engine needs access to state of its subengines.

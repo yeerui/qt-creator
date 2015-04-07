@@ -246,7 +246,6 @@ class Dumper(DumperBase):
         # dumpers causing loading of shared objects etc).
         self.currentQtNamespaceGuess = None
 
-        self.varList = args.get("vars", [])
         self.resultVarName = args.get("resultvarname", "")
         self.expandedINames = set(args.get("expanded", []))
         self.stringCutOff = int(args.get("stringcutoff", 10000))
@@ -264,17 +263,8 @@ class Dumper(DumperBase):
         self.partialUpdate = int(args.get("partial", "0"))
         self.fallbackQtVersion = 0x50200
         #warn("NAMESPACE: '%s'" % self.qtNamespace())
-        #warn("VARIABLES: %s" % self.varList)
         #warn("EXPANDED INAMES: %s" % self.expandedINames)
         #warn("WATCHERS: %s" % self.watchers)
-        #warn("PARTIAL: %s" % self.partialUpdate)
-
-    def handleWatches(self):
-        with OutputSafer(self):
-            for watcher in self.watchers:
-                iname = watcher['iname']
-                exp = self.hexdecode(watcher['exp'])
-                self.handleWatch(exp, exp, iname)
 
     def listOfLocals(self):
         frame = gdb.selected_frame()
@@ -360,6 +350,9 @@ class Dumper(DumperBase):
     def showData(self, args):
         self.prepare(args)
 
+        partialVariable = args.get("partialVariable", "")
+        isPartial = len(partialVariable) > 0
+
         #
         # Locals
         #
@@ -368,12 +361,9 @@ class Dumper(DumperBase):
         if self.qmlcontext:
             locals = self.extractQmlVariables(self.qmlcontext)
 
-        elif self.partialUpdate and len(self.varList) == 1:
-            #warn("PARTIAL: %s" % self.varList)
-            parts = self.varList[0].split('.')
-            #warn("PARTIAL PARTS: %s" % parts)
+        elif isPartial:
+            parts = partialVariable.split('.')
             name = parts[1]
-            #warn("PARTIAL VAR: %s" % name)
             item = self.LocalItem()
             item.iname = parts[0] + '.' + name
             item.name = name
@@ -389,7 +379,6 @@ class Dumper(DumperBase):
             except:
                 item.value = "<no value>"
             locals = [item]
-            #warn("PARTIAL LOCALS: %s" % locals)
         else:
             locals = self.listOfLocals()
 
@@ -419,9 +408,8 @@ class Dumper(DumperBase):
                         self.put('name="%s",' % item.name)
                         self.putItem(value)
 
-        self.handleWatches()
-
-        #print('data=[' + locals + sep + self.watchers + ']\n')
+        with OutputSafer(self):
+            self.handleWatches(args)
 
         self.output.append('],typeinfo=[')
         for name in self.typesToReport.keys():
@@ -439,6 +427,9 @@ class Dumper(DumperBase):
         if self.qtNamespaceToReport:
             self.output.append(',qtnamespace="%s"' % self.qtNamespaceToReport)
             self.qtNamespaceToReport = None
+
+        self.output.append(',partial="%d"' % isPartial)
+
         print(''.join(self.output))
 
     def enterSubItem(self, item):
@@ -823,11 +814,6 @@ class Dumper(DumperBase):
             except:
                 pass
 
-    def putNumChild(self, numchild):
-        #warn("NUM CHILD: '%s' '%s'" % (numchild, self.currentChildNumChild))
-        if numchild != self.currentChildNumChild:
-            self.put('numchild="%s",' % numchild)
-
     def putSimpleValue(self, value, encoding = None, priority = 0):
         self.putValue(value, encoding, priority)
 
@@ -1075,35 +1061,8 @@ class Dumper(DumperBase):
             self.putItem(self.expensiveDowncast(value), False)
             return
 
-        format = self.currentItemFormat(typeName)
-
-        if self.useFancy and (format is None or format >= 1):
-            self.putType(typeName)
-
-            nsStrippedType = self.stripNamespaceFromType(typeName)\
-                .replace("::", "__")
-
-            # The following block is only needed for D.
-            if nsStrippedType.startswith("_A"):
-                # DMD v2.058 encodes string[] as _Array_uns long long.
-                # With spaces.
-                if nsStrippedType.startswith("_Array_"):
-                    qdump_Array(self, value)
-                    return
-                if nsStrippedType.startswith("_AArray_"):
-                    qdump_AArray(self, value)
-                    return
-
-            #warn(" STRIPPED: %s" % nsStrippedType)
-            #warn(" DUMPERS: %s" % self.qqDumpers)
-            #warn(" DUMPERS: %s" % (nsStrippedType in self.qqDumpers))
-            dumper = self.qqDumpers.get(nsStrippedType, None)
-            if not dumper is None:
-                if tryDynamic:
-                    dumper(self, self.expensiveDowncast(value))
-                else:
-                    dumper(self, value)
-                return
+        if self.tryPutPrettyItem(typeName, value):
+            return
 
         # D arrays, gdc compiled.
         if typeName.endswith("[]"):
@@ -1599,7 +1558,11 @@ class Dumper(DumperBase):
                     if not symtab is None:
                         objfile = fromNativePath(symtab.objfile.filename)
                         fileName = fromNativePath(symtab.filename)
-                        fullName = fromNativePath(symtab.fullname())
+                        fullName = symtab.fullname()
+                        if fullName is None:
+                            fullName = ""
+                        else:
+                            fullName = fromNativePath(fullName)
 
                 if self.nativeMixed:
                     if self.isReportableQmlFrame(functionName):
@@ -1655,6 +1618,12 @@ class Dumper(DumperBase):
         if hasPlot:
             matplotQuit()
         gdb.execute("quit")
+
+    def loadDumpers(self, args):
+        self.setupDumpers()
+
+    def reportDumpers(self, msg):
+        print(msg)
 
     def profile1(self, args):
         """Internal profiling"""

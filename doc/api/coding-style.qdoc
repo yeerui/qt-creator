@@ -238,8 +238,8 @@
         \li Class names begin with a capital letter.
         \li Function names begin with a lower case letter.
         \li Variable names begin with a lower case letter.
-        \li Enum names and values begin with a capital letter. Enum values
-            contain some part of the name of the enum type.
+        \li Enum names and values begin with a capital letter. Unscoped Enum
+            values contain some part of the name of the enum type.
     \endlist
 
     \section2 Whitespace
@@ -756,25 +756,19 @@
     \note As an exception, imported third party code as well as code
     interfacing the native APIs (src/support/os_*) can use NULL.
 
-    \section2 C++11 Features
+    \section2 C++11 and C++14 Features
 
-    Code should compile with Microsoft Visual Studio 2010, g++ 4.5, and Clang 3.1.
+    Code should compile with Microsoft Visual Studio 2013, g++ 4.7, and Clang 3.1.
 
     \section3 Lambdas
 
-    You can use lambdas with the following restrictions:
+    When using lambdas, note the following:
 
     \list
-        \li You have to explicitly specify the return type, if the lambda contains more than a
-            single expression. Otherwise it does not compile with VS2010.
+        \li You do not have to explicitly specify the return type. If you are not using one
+            of the previously mentioned compilers, do note that this is a C++14 feature and you
+            might need to enable C++14 support in your compiler.
             \code
-            []() -> QString {
-                Foo *foo = activeFoo();
-                return foo ? foo->displayName() : QString();
-            });
-
-            -NOT-
-
             []() {
                 Foo *foo = activeFoo();
                 return foo ? foo->displayName() : QString();
@@ -878,6 +872,23 @@
             \endcode
 
     \endlist
+
+    \section3 Scoped enums
+
+    You can use scoped enums in places where the implicit conversion to int of unscoped enums is
+    undesired or the additional scope is useful.
+
+    \section3 Delegating constructors
+
+    Use delegating constructors if multiple constructors use essentially the same code.
+
+    \section3 Initializer list
+
+    Use initializer lists to initialize containers, for example:
+
+    \code
+    const QVector<int> values = {1, 2, 3, 4, 5};
+    \endcode
 
     \section2 Using QObject
 
@@ -1058,7 +1069,7 @@
     \section2 Esthetics
 
     \list
-        \li Prefer enums to define const over static const int or defines.
+        \li Prefer unscoped enums to define const over static const int or defines.
             Enumeration values will be replaced by the compiler at compile time,
             resulting in faster code. Defines are not namespace safe.
         \li Prefer verbose argument names in headers.

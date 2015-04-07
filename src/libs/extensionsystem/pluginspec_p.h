@@ -66,6 +66,11 @@ public:
     IPlugin::ShutdownFlag stop();
     void kill();
 
+    void setEnabledBySettings(bool value);
+    void setEnabledByDefault(bool value);
+    void setForceEnabled(bool value);
+    void setForceDisabled(bool value);
+
     QPluginLoader loader;
 
     QString name;
@@ -73,7 +78,7 @@ public:
     QString compatVersion;
     bool required;
     bool experimental;
-    bool disabledByDefault;
+    bool enabledByDefault;
     QString vendor;
     QString copyright;
     QString license;
@@ -82,8 +87,8 @@ public:
     QString category;
     QRegExp platformSpecification;
     QVector<PluginDependency> dependencies;
-    bool enabledInSettings;
-    bool disabledIndirectly;
+    bool enabledBySettings;
+    bool enabledIndirectly;
     bool forceEnabled;
     bool forceDisabled;
 
@@ -102,7 +107,7 @@ public:
     static bool isValidVersion(const QString &version);
     static int versionCompare(const QString &version1, const QString &version2);
 
-    void disableIndirectlyIfDependencyDisabled();
+    void enableDependenciesIndirectly();
 
     bool readMetaData(const QJsonObject &metaData);
 

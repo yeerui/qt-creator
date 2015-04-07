@@ -52,6 +52,7 @@
 #include <QSysInfo>
 
 #include <utils/algorithm.h>
+#include <utils/executeondestruction.h>
 #include <utils/qtcassert.h>
 
 #ifdef WITH_TESTS
@@ -375,10 +376,60 @@ bool PluginManager::hasError()
 {
     foreach (PluginSpec *spec, plugins()) {
         // only show errors on startup if plugin is enabled.
-        if (spec->hasError() && spec->isEnabledInSettings() && !spec->isDisabledIndirectly())
+        if (spec->hasError() && spec->isEffectivelyEnabled())
             return true;
     }
     return false;
+}
+
+/*!
+    Returns all plugins that require \a spec to be loaded. Recurses into dependencies.
+ */
+QSet<PluginSpec *> PluginManager::pluginsRequiringPlugin(PluginSpec *spec)
+{
+    QSet<PluginSpec *> dependingPlugins;
+    dependingPlugins.insert(spec);
+    foreach (PluginSpec *checkSpec, d->loadQueue()) {
+        QHashIterator<PluginDependency, PluginSpec *> depIt(checkSpec->dependencySpecs());
+        while (depIt.hasNext()) {
+            depIt.next();
+            if (depIt.key().type != PluginDependency::Required)
+                continue;
+            if (dependingPlugins.contains(depIt.value())) {
+                dependingPlugins.insert(checkSpec);
+                break; // no use to check other dependencies, continue with load queue
+            }
+        }
+    }
+    dependingPlugins.remove(spec);
+    return dependingPlugins;
+}
+
+/*!
+    Returns all plugins that \a spec requires to be loaded. Recurses into dependencies.
+ */
+QSet<PluginSpec *> PluginManager::pluginsRequiredByPlugin(PluginSpec *spec)
+{
+    QSet<PluginSpec *> recursiveDependencies;
+    recursiveDependencies.insert(spec);
+    QList<PluginSpec *> queue;
+    queue.append(spec);
+    while (!queue.isEmpty()) {
+        PluginSpec *checkSpec = queue.takeFirst();
+        QHashIterator<PluginDependency, PluginSpec *> depIt(checkSpec->dependencySpecs());
+        while (depIt.hasNext()) {
+            depIt.next();
+            if (depIt.key().type != PluginDependency::Required)
+                continue;
+            PluginSpec *depSpec = depIt.value();
+            if (!recursiveDependencies.contains(depSpec)) {
+                recursiveDependencies.insert(depSpec);
+                queue.append(depSpec);
+            }
+        }
+    }
+    recursiveDependencies.remove(spec);
+    return recursiveDependencies;
 }
 
 /*!
@@ -646,10 +697,18 @@ static inline void formatOption(QTextStream &str,
 void PluginManager::formatOptions(QTextStream &str, int optionIndentation, int descriptionIndentation)
 {
     formatOption(str, QLatin1String(OptionsParser::LOAD_OPTION),
-                 QLatin1String("plugin"), QLatin1String("Load <plugin>"),
+                 QLatin1String("plugin"), QLatin1String("Load <plugin> and all plugins that it requires"),
+                 optionIndentation, descriptionIndentation);
+    formatOption(str, QLatin1String(OptionsParser::LOAD_OPTION) + QLatin1String(" all"),
+                 QString(), QLatin1String("Load all available plugins"),
                  optionIndentation, descriptionIndentation);
     formatOption(str, QLatin1String(OptionsParser::NO_LOAD_OPTION),
-                 QLatin1String("plugin"), QLatin1String("Do not load <plugin>"),
+                 QLatin1String("plugin"), QLatin1String("Do not load <plugin> and all plugins that require it"),
+                 optionIndentation, descriptionIndentation);
+    formatOption(str, QLatin1String(OptionsParser::NO_LOAD_OPTION) + QLatin1String(" all"),
+                 QString(), QString::fromLatin1("Do not load any plugin (useful when "
+                                                "followed by one or more \"%1\" arguments)")
+                 .arg(QLatin1String(OptionsParser::LOAD_OPTION)),
                  optionIndentation, descriptionIndentation);
     formatOption(str, QLatin1String(OptionsParser::PROFILE_OPTION),
                  QString(), QLatin1String("Profile plugin loading"),
@@ -819,9 +878,9 @@ void PluginManagerPrivate::writeSettings()
     QStringList tempDisabledPlugins;
     QStringList tempForceEnabledPlugins;
     foreach (PluginSpec *spec, pluginSpecs) {
-        if (!spec->isDisabledByDefault() && !spec->isEnabledInSettings())
+        if (spec->isEnabledByDefault() && !spec->isEnabledBySettings())
             tempDisabledPlugins.append(spec->name());
-        if (spec->isDisabledByDefault() && spec->isEnabledInSettings())
+        if (!spec->isEnabledByDefault() && spec->isEnabledBySettings())
             tempForceEnabledPlugins.append(spec->name());
     }
 
@@ -1059,16 +1118,6 @@ static TestPlan generateCustomTestPlan(IPlugin *plugin, const QList<QObject *> &
     return testPlan;
 }
 
-class ExecuteOnDestruction
-{
-public:
-    ExecuteOnDestruction(std::function<void()> code) : destructionCode(code) {}
-    ~ExecuteOnDestruction() { if (destructionCode) destructionCode(); }
-
-private:
-    const std::function<void()> destructionCode;
-};
-
 void PluginManagerPrivate::startTests()
 {
     if (PluginManager::hasError()) {
@@ -1084,7 +1133,8 @@ void PluginManagerPrivate::startTests()
             continue; // plugin not loaded
 
         const QList<QObject *> testObjects = plugin->createTestObjects();
-        ExecuteOnDestruction deleteTestObjects([&]() { qDeleteAll(testObjects); });
+        Utils::ExecuteOnDestruction deleteTestObjects([&]() { qDeleteAll(testObjects); });
+        Q_UNUSED(deleteTestObjects)
 
         const bool hasDuplicateTestObjects = testObjects.size() != testObjects.toSet().size();
         QTC_ASSERT(!hasDuplicateTestObjects, continue);
@@ -1263,7 +1313,14 @@ bool PluginManagerPrivate::loadQueue(PluginSpec *spec, QList<PluginSpec *> &queu
     }
 
     // add dependencies
-    foreach (PluginSpec *depSpec, spec->dependencySpecs()) {
+    QHashIterator<PluginDependency, PluginSpec *> it(spec->dependencySpecs());
+    while (it.hasNext()) {
+        it.next();
+        // Skip test dependencies since they are not real dependencies but just force-loaded
+        // plugins when running tests
+        if (it.key().type == PluginDependency::Test)
+            continue;
+        PluginSpec *depSpec = it.value();
         if (!loadQueue(depSpec, queue, circularityCheckQueue)) {
             spec->d->hasError = true;
             spec->d->errorString =
@@ -1307,7 +1364,7 @@ void PluginManagerPrivate::loadPlugin(PluginSpec *spec, PluginSpec::State destSt
     QHashIterator<PluginDependency, PluginSpec *> it(spec->dependencySpecs());
     while (it.hasNext()) {
         it.next();
-        if (it.key().type == PluginDependency::Optional)
+        if (it.key().type != PluginDependency::Required)
             continue;
         PluginSpec *depSpec = it.value();
         if (depSpec->state() != destState) {
@@ -1399,17 +1456,17 @@ void PluginManagerPrivate::readPluginPaths()
         }
         // defaultDisabledPlugins and defaultEnabledPlugins from install settings
         // is used to override the defaults read from the plugin spec
-        if (!spec->isDisabledByDefault() && defaultDisabledPlugins.contains(spec->name())) {
-            spec->setDisabledByDefault(true);
-            spec->setEnabled(false);
-        } else if (spec->isDisabledByDefault() && defaultEnabledPlugins.contains(spec->name())) {
-            spec->setDisabledByDefault(false);
-            spec->setEnabled(true);
+        if (spec->isEnabledByDefault() && defaultDisabledPlugins.contains(spec->name())) {
+            spec->d->setEnabledByDefault(false);
+            spec->d->setEnabledBySettings(false);
+        } else if (!spec->isEnabledByDefault() && defaultEnabledPlugins.contains(spec->name())) {
+            spec->d->setEnabledByDefault(true);
+            spec->d->setEnabledBySettings(true);
         }
-        if (spec->isDisabledByDefault() && forceEnabledPlugins.contains(spec->name()))
-            spec->setEnabled(true);
-        if (!spec->isDisabledByDefault() && disabledPlugins.contains(spec->name()))
-            spec->setEnabled(false);
+        if (!spec->isEnabledByDefault() && forceEnabledPlugins.contains(spec->name()))
+            spec->d->setEnabledBySettings(true);
+        if (spec->isEnabledByDefault() && disabledPlugins.contains(spec->name()))
+            spec->d->setEnabledBySettings(false);
 
         collection->addPlugin(spec);
         pluginSpecs.append(spec);
@@ -1423,11 +1480,44 @@ void PluginManagerPrivate::readPluginPaths()
 void PluginManagerPrivate::resolveDependencies()
 {
     foreach (PluginSpec *spec, pluginSpecs) {
+        spec->d->enabledIndirectly = false; // reset, is recalculated below
         spec->d->resolveDependencies(pluginSpecs);
     }
 
-    foreach (PluginSpec *spec, loadQueue()) {
-        spec->d->disableIndirectlyIfDependencyDisabled();
+    QListIterator<PluginSpec *> it(loadQueue());
+    it.toBack();
+    while (it.hasPrevious()) {
+        PluginSpec *spec = it.previous();
+        spec->d->enableDependenciesIndirectly();
+    }
+}
+
+void PluginManagerPrivate::enableOnlyTestedSpecs()
+{
+    if (testSpecs.isEmpty())
+        return;
+
+    QList<PluginSpec *> specsForTests;
+    foreach (const TestSpec &testSpec, testSpecs) {
+        QList<PluginSpec *> circularityCheckQueue;
+        loadQueue(testSpec.pluginSpec, specsForTests, circularityCheckQueue);
+        // add plugins that must be force loaded when running tests for the plugin
+        // (aka "test dependencies")
+        QHashIterator<PluginDependency, PluginSpec *> it(testSpec.pluginSpec->dependencySpecs());
+        while (it.hasNext()) {
+            it.next();
+            if (it.key().type != PluginDependency::Test)
+                continue;
+            PluginSpec *depSpec = it.value();
+            circularityCheckQueue.clear();
+            loadQueue(depSpec, specsForTests, circularityCheckQueue);
+        }
+    }
+    foreach (PluginSpec *spec, pluginSpecs)
+        spec->d->setForceDisabled(true);
+    foreach (PluginSpec *spec, specsForTests) {
+        spec->d->setForceDisabled(false);
+        spec->d->setForceEnabled(true);
     }
 }
 
@@ -1499,8 +1589,8 @@ void PluginManagerPrivate::profilingSummary() const
             total += it1.value();
         }
 
-        Sorter::ConstIterator it2 = sorter.begin();
-        Sorter::ConstIterator et2 = sorter.end();
+        Sorter::ConstIterator it2 = sorter.constBegin();
+        Sorter::ConstIterator et2 = sorter.constEnd();
         for (; it2 != et2; ++it2)
             qDebug("%-22s %8dms   ( %5.2f%% )", qPrintable(it2.value()->name()),
                 it2.key(), 100.0 * it2.key() / total);
