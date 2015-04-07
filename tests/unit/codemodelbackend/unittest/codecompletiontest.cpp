@@ -44,14 +44,30 @@ TEST(CodeCompletion, CompleteFunc)
 {
     using CodeModelBackEnd::CodeCompletion;
     CodeModelBackEnd::CodeCompleter completer;
-    completer.setFilePath(Utf8StringLiteral("/home/nik/dev/creator/creator-com-3.4/qtcreator/tests/unit/codemodelbackend/unittest/data/complete_testfile_1.cpp"));
+    completer.setFilePath(Utf8StringLiteral("data/complete_testfile_1.cpp"));
     completer.setLine(49);
 
     ASSERT_THAT(completer.complete(),
-                AllOf(Contains(CodeCompletion(Utf8StringLiteral("functionWithArguments"), Utf8String(), Utf8String(), 0, CodeCompletion::FunctionCompletionKind)),
-                      Contains(CodeCompletion(Utf8StringLiteral("function"), Utf8String(), Utf8String(), 0, CodeCompletion::FunctionCompletionKind)),
-                      Contains(CodeCompletion(Utf8StringLiteral("otherFunction"), Utf8String(), Utf8String(), 0, CodeCompletion::FunctionCompletionKind)),
-                      Contains(CodeCompletion(Utf8StringLiteral("f"), Utf8String(), Utf8String(), 0, CodeCompletion::FunctionCompletionKind))));
+                AllOf(Contains(CodeCompletion(Utf8StringLiteral("functionWithArguments"),
+                                              Utf8String(),
+                                              Utf8String(),
+                                              0,
+                                              CodeCompletion::FunctionCompletionKind)),
+                      Contains(CodeCompletion(Utf8StringLiteral("function"),
+                                              Utf8String(),
+                                              Utf8String(),
+                                              0,
+                                              CodeCompletion::FunctionCompletionKind)),
+                      Contains(CodeCompletion(Utf8StringLiteral("otherFunction"),
+                                              Utf8String(),
+                                              Utf8String(),
+                                              0,
+                                              CodeCompletion::FunctionCompletionKind)),
+                      Contains(CodeCompletion(Utf8StringLiteral("f"),
+                                              Utf8String(),
+                                              Utf8String(),
+                                              0,
+                                              CodeCompletion::FunctionCompletionKind))));
 }
 
 
