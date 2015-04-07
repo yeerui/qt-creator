@@ -29,6 +29,7 @@ include(../../../../src/tools/codemodelbackend/clang_installation.pri)
 
 LIBS += $$LLVM_LIBS
 INCLUDEPATH += $$LLVM_INCLUDEPATH
+INCLUDEPATH += ../../../../src/libs/utils
 
 SOURCES += main.cpp \
     $$GTEST_DIR/src/gtest-all.cc \
@@ -47,11 +48,17 @@ SOURCES += main.cpp \
     clientserveroutsideprocess.cpp \
     gtest-qt-printing.cpp \
     clanginprocesstest.cpp \
-    codecompletiontest.cpp
+    codecompletiontest.cpp \
+    ../../../../src/libs/utils/qtcassert.cpp \
+    clangstringtest.cpp \
+    translationunittest.cpp
 
 HEADERS += \
     gtest-qt-printing.h \
-    spydummy.h
+    spydummy.h \
+    ../../../../src/libs/utils/qtcassert.h
+
+OTHER_FILES += data/complete_testfile_1.cpp
 
 DEFINES += QT_NO_CAST_FROM_ASCII
 DEFINES += CODEMODELBACKENDIPC_TESTS

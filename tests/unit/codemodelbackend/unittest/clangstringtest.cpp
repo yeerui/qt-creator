@@ -28,23 +28,42 @@
 **
 ****************************************************************************/
 
-void function()
-{
+#include "gtest/gtest.h"
+#include "gmock/gmock-matchers.h"
+#include "gmock/gmock.h"
 
+#include <clang-c/CXString.h>
+#include <clang-c/Index.h>
+
+#include <clangstring.h>
+#include <utf8string.h>
+
+namespace {
+
+using CodeModelBackEnd::ClangString;
+
+TEST(ClangString, ConvertToUtf8String)
+{
+    const CXString cxString = { "text", 0};
+
+    ASSERT_THAT(Utf8String(ClangString(cxString)), Utf8StringLiteral("text"));
 }
 
-class Foo;
-void functionWithArguments(int i, char *c, const Foo &ref)
+TEST(ClangString, ConvertNullStringToUtf8String)
 {
+    const CXString cxString = { 0, 0};
 
+    ASSERT_THAT(Utf8String(ClangString(cxString)), Utf8String());
 }
 
-void otherFunction()
+TEST(ClangString, MoveClangString)
 {
+    ClangString text(CXString{ "text", 0});
 
+    const ClangString text2 = std::move(text);
+
+    ASSERT_TRUE(text.isNull());
+    ASSERT_FALSE(text2.isNull());
 }
-
-void f()
-{
 
 }

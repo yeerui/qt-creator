@@ -30,8 +30,65 @@
 
 #include "codecompleter.h"
 
+#include "clangstring.h"
+
+#include <clang-c/Index.h>
+
+#include <QDebug>
+
+#include <qtcassert.h>
 
 namespace CodeModelBackEnd {
+
+QString toString(CXCompletionChunkKind kind)
+{
+    switch (kind) {
+    case CXCompletionChunk_Optional:
+        return QLatin1String("Optional");
+    case CXCompletionChunk_TypedText:
+        return QLatin1String("TypedText");
+    case CXCompletionChunk_Text:
+        return QLatin1String("Text");
+    case CXCompletionChunk_Placeholder:
+        return QLatin1String("Placeholder");
+    case CXCompletionChunk_Informative:
+        return QLatin1String("Informative");
+    case CXCompletionChunk_CurrentParameter:
+        return QLatin1String("CurrentParameter");
+    case CXCompletionChunk_LeftParen:
+        return QLatin1String("LeftParen");
+    case CXCompletionChunk_RightParen:
+        return QLatin1String("RightParen");
+    case CXCompletionChunk_LeftBracket:
+        return QLatin1String("LeftBracket");
+    case CXCompletionChunk_RightBracket:
+        return QLatin1String("RightBracket");
+    case CXCompletionChunk_LeftBrace:
+        return QLatin1String("LeftBrace");
+    case CXCompletionChunk_RightBrace:
+        return QLatin1String("RightBrace");
+    case CXCompletionChunk_LeftAngle:
+        return QLatin1String("LeftAngle");
+    case CXCompletionChunk_RightAngle:
+        return QLatin1String("RightAngle");
+    case CXCompletionChunk_Comma:
+        return QLatin1String("Comma");
+    case CXCompletionChunk_ResultType:
+        return QLatin1String("ResultType");
+    case CXCompletionChunk_Colon:
+        return QLatin1String("Colon");
+    case CXCompletionChunk_SemiColon:
+        return QLatin1String("SemiColon");
+    case CXCompletionChunk_Equal:
+        return QLatin1String("Equal");
+    case CXCompletionChunk_HorizontalSpace:
+        return QLatin1String("HorizontalSpace");
+    case CXCompletionChunk_VerticalSpace:
+        return QLatin1String("VerticalSpace");
+    default:
+        return QLatin1String("<UNKNOWN>");
+    }
+}
 
 void CodeCompleter::setFilePath(const Utf8String &filePath)
 {
@@ -48,14 +105,79 @@ void CodeCompleter::setColumn(uint column)
     this->column = column;
 }
 
-const Utf8StringVector CodeCompleter::complete() const
+//void printCompletionString(CXCompletionString completionString, QDebug &deb)
+//{
+//    uint completionChunkCount = clang_getNumCompletionChunks(completionString);
+//    for (uint j = 0; j < completionChunkCount; ++j) {
+//        CXString text = clang_getCompletionChunkText(completionString, j);
+//        CXCompletionChunkKind chunkKind = clang_getCompletionChunkKind(completionString, j);
+//        deb.nospace() << toString(chunkKind) << ":" << clang_getCString(text) << "  ";
+
+//        CXCompletionString subCompletionString = clang_getCompletionChunkCompletionString(completionString, j);
+//        if (subCompletionString) {
+//            deb << "\tSUBCOMPLETIONSTRING";
+//            printCompletionString(subCompletionString, deb);
+//        }
+//    }
+//}
+
+static Utf8String extractTypedText(CXCompletionString completionString)
 {
-    if (line == 45)
-        return Utf8StringVector({Utf8StringLiteral("function()"), Utf8StringLiteral("function2()"), Utf8StringLiteral("otherFunction()"), Utf8StringLiteral("keywords")});
-    if (line == 46)
-        return  Utf8StringVector({Utf8StringLiteral("function()"), Utf8StringLiteral("function2()")});
+    Utf8String typedText;
+    const uint completionChunkCount = clang_getNumCompletionChunks(completionString);
+    for (uint chunkIndex = 0; chunkIndex < completionChunkCount; ++chunkIndex) {
+        const CXCompletionChunkKind chunkKind = clang_getCompletionChunkKind(completionString, chunkIndex);
+        if (chunkKind == CXCompletionChunk_TypedText) {
+            const ClangString text(clang_getCompletionChunkText(completionString, chunkIndex));
+            typedText.append(text);
+        }
+    }
+
+    return typedText;
+}
+
+static CodeCompletion::Kind convertToCompletionKind(CXCursorKind cursorKind)
+{
+    if (cursorKind == CXCursor_FunctionDecl)
+        return CodeCompletion::FunctionCompletionKind;
     else
-        return  Utf8StringVector({Utf8StringLiteral("otherFunction()")});
+        return CodeCompletion::Other;
+}
+
+static QVector<CodeCompletion> extractCodeCompletions(CXCodeCompleteResults *completeResults)
+{
+    QVector<CodeCompletion> completions;
+    QTC_ASSERT(completeResults, return completions);
+
+    const uint resultsCount = completeResults->NumResults;
+    for (uint i = 0; i < resultsCount; ++i) {
+        const CXCompletionResult completionResult = completeResults->Results[i];
+        const CXCompletionString completionString = completionResult.CompletionString;
+
+        const CodeCompletion::Kind completionKind = convertToCompletionKind(completionResult.CursorKind);
+        const Utf8String typedText = extractTypedText(completionString);
+
+        completions.append(CodeCompletion(typedText,
+                                          Utf8String(),
+                                          Utf8String(),
+                                          0,
+                                          completionKind));
+    }
+
+    return completions;
+}
+
+const QVector<CodeCompletion> CodeCompleter::complete() const
+{
+    QVector<CodeCompletion> completions;
+
+    CXIndex index = clang_createIndex(1, 1);
+    CXTranslationUnit translationUnit = clang_createTranslationUnitFromSourceFile(index, filePath.constData(), 0, 0, 0, 0);
+    QTC_ASSERT(translationUnit, return completions);
+
+    CXCodeCompleteResults *completeResults = clang_codeCompleteAt(translationUnit, filePath.constData(), line, 1, 0, 0, 0);
+    QTC_ASSERT(completeResults, return completions);
+    return extractCodeCompletions(completeResults);
 }
 
 } // namespace CodeModelBackEnd

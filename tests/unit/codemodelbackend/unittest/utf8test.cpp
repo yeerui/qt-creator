@@ -52,6 +52,11 @@ TEST(Utf8, QStringConversionFunction)
     ASSERT_THAT(Utf8String::fromString(QStringLiteral("text")), Utf8StringLiteral("text"));
 }
 
+TEST(Utf8, Utf8ConversationFunction)
+{
+    ASSERT_THAT(Utf8String::fromUtf8("text"), Utf8StringLiteral("text"));
+}
+
 TEST(Utf8, Mid)
 {
     Utf8String text(Utf8StringLiteral("some text"));

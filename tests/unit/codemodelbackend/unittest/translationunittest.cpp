@@ -28,23 +28,31 @@
 **
 ****************************************************************************/
 
-void function()
-{
+#include "gtest/gtest.h"
+#include "gmock/gmock-matchers.h"
+#include "gmock/gmock.h"
 
+#include <clang-c/Index.h>
+
+#include <translationunit.h>
+#include <utf8string.h>
+
+using CodeModelBackEnd::TranslationUnit;
+
+namespace {
+
+TEST(TranslationUnit, DefaultTranslationUnitIsInvalid)
+{
+    TranslationUnit translationUnit;
+
+    ASSERT_TRUE(translationUnit.isNull());
 }
 
-class Foo;
-void functionWithArguments(int i, char *c, const Foo &ref)
+TEST(TranslationUnit, TranslationUnitIsValid)
 {
+    TranslationUnit translationUnit(Utf8StringLiteral("file.cpp"));
 
+    ASSERT_FALSE(translationUnit.isNull());
 }
-
-void otherFunction()
-{
-
-}
-
-void f()
-{
 
 }

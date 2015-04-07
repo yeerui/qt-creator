@@ -59,6 +59,11 @@ int Utf8String::byteSize() const
     return byteArray.size();
 }
 
+const Utf8String Utf8String::fromUtf8(const char *utf8Text)
+{
+    return Utf8String(utf8Text, -1);
+}
+
 Utf8String::Utf8String(const QByteArray &utf8ByteArray)
     : byteArray(utf8ByteArray)
 {

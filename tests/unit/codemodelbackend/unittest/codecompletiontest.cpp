@@ -40,40 +40,41 @@ using ::testing::ElementsAreArray;
 using ::testing::Contains;
 using ::testing::AllOf;
 
-TEST(CodeCompletion, CompleteEmptySentence)
-{
-    CodeModelBackEnd::CodeCompleter completer;
-    completer.setFilePath(Utf8StringLiteral("testfile.cpp"));
-    completer.setLine(45);
-    completer.setColumn(0);
-
-    ASSERT_THAT(completer.complete(),
-                AllOf(Contains(Utf8StringLiteral("function()")),
-                      Contains(Utf8StringLiteral("function2()")),
-                      Contains(Utf8StringLiteral("otherFunction()"))));
-}
-
-
 TEST(CodeCompletion, CompleteFunc)
 {
+    using CodeModelBackEnd::CodeCompletion;
     CodeModelBackEnd::CodeCompleter completer;
-    completer.setFilePath(Utf8StringLiteral("testfile.cpp"));
-    completer.setLine(46);
-    completer.setColumn(4);
+    completer.setFilePath(Utf8StringLiteral("/home/nik/dev/creator/creator-com-3.4/qtcreator/tests/unit/codemodelbackend/unittest/data/complete_testfile_1.cpp"));
+    completer.setLine(49);
 
     ASSERT_THAT(completer.complete(),
-                ElementsAreArray({Utf8StringLiteral("function()"),
-                                  Utf8StringLiteral("function2()")}));
+                AllOf(Contains(CodeCompletion(Utf8StringLiteral("functionWithArguments"), Utf8String(), Utf8String(), 0, CodeCompletion::FunctionCompletionKind)),
+                      Contains(CodeCompletion(Utf8StringLiteral("function"), Utf8String(), Utf8String(), 0, CodeCompletion::FunctionCompletionKind)),
+                      Contains(CodeCompletion(Utf8StringLiteral("otherFunction"), Utf8String(), Utf8String(), 0, CodeCompletion::FunctionCompletionKind)),
+                      Contains(CodeCompletion(Utf8StringLiteral("f"), Utf8String(), Utf8String(), 0, CodeCompletion::FunctionCompletionKind))));
 }
 
-TEST(CodeCompletion, CompleteOther)
-{
-    CodeModelBackEnd::CodeCompleter completer;
-    completer.setFilePath(Utf8StringLiteral("testfile.cpp"));
-    completer.setLine(47);
-    completer.setColumn(5);
 
-    ASSERT_THAT(completer.complete(),
-                ElementsAreArray({Utf8StringLiteral("otherFunction()")}));
-}
+//TEST(CodeCompletion, CompleteFunc)
+//{
+//    CodeModelBackEnd::CodeCompleter completer;
+//    completer.setFilePath(Utf8StringLiteral("testfile.cpp"));
+//    completer.setLine(46);
+//    completer.setColumn(4);
+
+//    ASSERT_THAT(completer.complete(),
+//                ElementsAreArray({Utf8StringLiteral("function()"),
+//                                  Utf8StringLiteral("function2()")}));
+//}
+
+//TEST(CodeCompletion, CompleteOther)
+//{
+//    CodeModelBackEnd::CodeCompleter completer;
+//    completer.setFilePath(Utf8StringLiteral("testfile.cpp"));
+//    completer.setLine(47);
+//    completer.setColumn(5);
+
+//    ASSERT_THAT(completer.complete(),
+//                ElementsAreArray({Utf8StringLiteral("otherFunction()")}));
+//}
 }

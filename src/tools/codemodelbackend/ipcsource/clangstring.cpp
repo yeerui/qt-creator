@@ -28,23 +28,43 @@
 **
 ****************************************************************************/
 
-void function()
-{
+#include "clangstring.h"
 
+#include <memory>
+
+namespace CodeModelBackEnd {
+
+ClangString::ClangString(CXString cxString)
+    : cxString(cxString)
+{
 }
 
-class Foo;
-void functionWithArguments(int i, char *c, const Foo &ref)
+ClangString::~ClangString()
 {
-
+    clang_disposeString(cxString);
 }
 
-void otherFunction()
+bool ClangString::isNull() const
 {
-
+    return cxString.data == nullptr;
 }
 
-void f()
+ClangString &ClangString::operator =(ClangString &&clangString)
 {
+    std::swap(cxString, clangString.cxString);
 
+    return *this;
 }
+
+ClangString::ClangString(ClangString &&clangString)
+{
+    std::swap(cxString, clangString.cxString);
+}
+
+ClangString::operator Utf8String() const
+{
+    return Utf8String(clang_getCString(cxString), -1);
+}
+
+} // namespace CodeModelBackEnd
+

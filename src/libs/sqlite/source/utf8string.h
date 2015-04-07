@@ -61,6 +61,7 @@ public:
 
     int byteSize() const;
 
+    static const Utf8String fromUtf8(const char *utf8Text);
     static const Utf8String fromByteArray(const QByteArray &utf8ByteArray);
     const QByteArray &toByteArray() const;
 

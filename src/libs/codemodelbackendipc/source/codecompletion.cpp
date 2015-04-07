@@ -116,7 +116,8 @@ QDataStream &operator>>(QDataStream &in, CodeCompletion &command)
 
 bool operator == (const CodeCompletion &first, const CodeCompletion &second)
 {
-    return first.text_ == second.text_;
+    return first.text_ == second.text_
+            && first.completionKind_ == second.completionKind_;
 }
 
 bool operator < (const CodeCompletion &first, const CodeCompletion &second)

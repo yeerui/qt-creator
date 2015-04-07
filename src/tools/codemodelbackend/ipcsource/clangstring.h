@@ -28,23 +28,35 @@
 **
 ****************************************************************************/
 
-void function()
+#ifndef CODEMODELBACKEND_CLANGSTRING_H
+#define CODEMODELBACKEND_CLANGSTRING_H
+
+#include <clang-c/CXString.h>
+
+#include <utf8string.h>
+
+namespace CodeModelBackEnd {
+
+class ClangString
 {
+public:
+    ClangString(CXString cxString);
+    ~ClangString();
 
-}
+    ClangString(const ClangString &clangString) = delete;
+    const ClangString &operator =(const ClangString &clangString) = delete;
 
-class Foo;
-void functionWithArguments(int i, char *c, const Foo &ref)
-{
+    ClangString(ClangString &&clangString);
+    ClangString &operator =(ClangString &&clangString);
 
-}
+    operator Utf8String() const;
 
-void otherFunction()
-{
+    bool isNull() const;
 
-}
+private:
+    CXString cxString = { nullptr, 0 };
+};
 
-void f()
-{
+} // namespace CodeModelBackEnd
 
-}
+#endif // CODEMODELBACKEND_CLANGSTRING_H

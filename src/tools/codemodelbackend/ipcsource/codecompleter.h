@@ -31,6 +31,7 @@
 #ifndef CODEMODELBACKEND_CODECOMPLETER_H
 #define CODEMODELBACKEND_CODECOMPLETER_H
 
+#include <codecompletion.h>
 #include <utf8stringvector.h>
 
 namespace CodeModelBackEnd {
@@ -42,12 +43,12 @@ public:
     void setLine(uint line);
     void setColumn(uint column);
 
-    const Utf8StringVector complete() const;
+    const QVector<CodeCompletion> complete() const;
 
 private:
     Utf8String filePath;
-    uint line;
-    uint column;
+    uint line = 0;
+    uint column = 0;
 };
 
 } // namespace CodeModelBackEnd
