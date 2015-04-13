@@ -43,8 +43,6 @@
 
 #include <QDebug>
 
-#include <qtcassert.h>
-
 namespace CodeModelBackEnd {
 
 QString toString(CXCompletionChunkKind kind)

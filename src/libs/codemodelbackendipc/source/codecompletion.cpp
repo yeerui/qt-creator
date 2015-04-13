@@ -167,7 +167,7 @@ void PrintTo(const CodeCompletion &command, ::std::ostream* os)
     *os << ")";
 }
 
-void PrintTo(const CodeCompletion::Kind &kind, std::ostream *os)
+void PrintTo(const CodeCompletion::Kind &kind, ::std::ostream *os)
 {
     switch (kind) {
         case CodeCompletion::Other: *os << "Other"; break;

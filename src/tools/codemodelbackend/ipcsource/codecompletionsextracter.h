@@ -68,8 +68,9 @@ private:
     mutable uint cxCodeCompleteResultIndex = -1;
 };
 
-
+#ifdef CODEMODELBACKEND_TESTS
 void PrintTo(const CodeCompletionsExtracter &extracter, ::std::ostream* os);
+#endif
 } // namespace CodeModelBackEnd
 
 #endif // CODEMODELBACKEND_CODECOMPLETIONSEXTRACTER_H

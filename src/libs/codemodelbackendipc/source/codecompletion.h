@@ -121,7 +121,7 @@ bool operator < (const CodeCompletion &first, const CodeCompletion &second);
 
 QDebug operator <<(QDebug debug, const CodeCompletion &command);
 void PrintTo(const CodeCompletion &command, ::std::ostream* os);
-void PrintTo(const CodeCompletion::Kind &kind, std::ostream *os);
+void PrintTo(const CodeCompletion::Kind &kind, ::std::ostream *os);
 } // namespace CodeModelBackEnd
 
 Q_DECLARE_METATYPE(CodeModelBackEnd::CodeCompletion)

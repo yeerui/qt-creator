@@ -32,7 +32,9 @@
 
 #include "clangstring.h"
 
+#ifdef CODEMODELBACKEND_TESTS
 #include <gtest/gtest.h>
+#endif
 
 #include <QDebug>
 
@@ -216,12 +218,13 @@ const CodeCompletion CodeCompletionsExtracter::currentCodeCompletion() const
     return currentCodeCompletion_;
 }
 
+#ifdef CODEMODELBACKEND_TESTS
 void PrintTo(const CodeCompletionsExtracter &extracter, std::ostream *os)
 {
     *os << "name: " << ::testing::PrintToString(extracter.currentCodeCompletion().text())
         << ", kind: " <<  ::testing::PrintToString(extracter.currentCodeCompletion().completionKind());
 }
-
+#endif
 
 } // namespace CodeModelBackEnd
 
