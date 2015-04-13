@@ -233,5 +233,5 @@ QDebug operator<<(QDebug debug, const Utf8String &text)
 
 void PrintTo(const Utf8String &text, ::std::ostream* os)
 {
-    *os << "u8\"" << text.toByteArray().data() << "\"";
+    *os << "\"" << text.toByteArray().data() << "\"";
 }

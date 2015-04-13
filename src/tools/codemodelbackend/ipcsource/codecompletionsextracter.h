@@ -28,23 +28,48 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKENDIPC_GLOBAL_H
-#define CODEMODELBACKENDIPC_GLOBAL_H
+#ifndef CODEMODELBACKEND_CODECOMPLETIONSEXTRACTER_H
+#define CODEMODELBACKEND_CODECOMPLETIONSEXTRACTER_H
 
-#include <QtCore/qglobal.h>
+#include <clang-c/Index.h>
 
-#if defined(CODEMODELBACKENDIPC_LIBRARY)
-#  define CMBIPC_EXPORT Q_DECL_EXPORT
-#else
-#  define CMBIPC_EXPORT Q_DECL_IMPORT
-#endif
+#include <QVector>
 
-#ifndef CODEMODELBACKENDPROCESSPATH
-# define CODEMODELBACKENDPROCESSPATH ""
-#endif
+#include <codecompletion.h>
 
 namespace CodeModelBackEnd {
-CMBIPC_EXPORT void registerTypes();
-}
 
-#endif // CODEMODELBACKENDIPC_GLOBAL_H
+class CodeCompletionsExtracter
+{
+public:
+    CodeCompletionsExtracter(CXCodeCompleteResults *cxCodeCompleteResults);
+
+    bool next() const;
+    bool peek(const Utf8String &name) const;
+
+    const QVector<CodeCompletion> extractAll();
+
+
+
+    const CodeCompletion currentCodeCompletion() const;
+
+private:
+    void extractCompletionKind() const;
+    void extractText() const;
+    void extractMethodCompletionKind() const;
+    void extractMacroCompletionKind() const;
+
+    bool hasText(const Utf8String &text, CXCompletionString cxCompletionString) const;
+
+private:
+    mutable CodeCompletion currentCodeCompletion_;
+    mutable CXCompletionResult currentCxCodeCompleteResult;
+    CXCodeCompleteResults *cxCodeCompleteResults;
+    mutable uint cxCodeCompleteResultIndex = -1;
+};
+
+
+void PrintTo(const CodeCompletionsExtracter &extracter, ::std::ostream* os);
+} // namespace CodeModelBackEnd
+
+#endif // CODEMODELBACKEND_CODECOMPLETIONSEXTRACTER_H

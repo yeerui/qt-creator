@@ -51,11 +51,13 @@ public:
     enum Kind {
         Other = 0,
         FunctionCompletionKind,
+        TemplateFunctionCompletionKind,
         ConstructorCompletionKind,
         DestructorCompletionKind,
         VariableCompletionKind,
         ClassCompletionKind,
-        EnumCompletionKind,
+        TemplateClassCompletionKind,
+        EnumerationCompletionKind,
         EnumeratorCompletionKind,
         NamespaceCompletionKind,
         PreProcessorCompletionKind,
@@ -83,10 +85,15 @@ public:
                    Availability availability = Available,
                    bool hasParameters = false);
 
+    void setText(const Utf8String &text);
     const Utf8String &text() const;
+
     const Utf8String &hint() const;
     const Utf8String &snippet() const;
+
+    void setCompletionKind(Kind completionKind);
     Kind completionKind() const;
+
     Availability availability() const;
     bool hasParameters() const;
     quint32 priority() const;
@@ -95,7 +102,7 @@ private:
     Utf8String text_;
     Utf8String hint_;
     Utf8String snippet_;
-    quint32 priority_;
+    quint32 priority_ = 0;
     union {
         Kind completionKind_;
         qint32 completionKindAsInt;
@@ -104,7 +111,7 @@ private:
         Availability availability_;
         qint32 availabilityAsInt;
     };
-    bool hasParameters_;
+    bool hasParameters_ = false;
 };
 
 QDataStream &operator<<(QDataStream &out, const CodeCompletion &command);
@@ -114,7 +121,7 @@ bool operator < (const CodeCompletion &first, const CodeCompletion &second);
 
 QDebug operator <<(QDebug debug, const CodeCompletion &command);
 void PrintTo(const CodeCompletion &command, ::std::ostream* os);
-
+void PrintTo(const CodeCompletion::Kind &kind, std::ostream *os);
 } // namespace CodeModelBackEnd
 
 Q_DECLARE_METATYPE(CodeModelBackEnd::CodeCompletion)

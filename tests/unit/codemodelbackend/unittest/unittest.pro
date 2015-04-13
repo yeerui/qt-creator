@@ -52,14 +52,21 @@ SOURCES += main.cpp \
     ../../../../src/libs/utils/qtcassert.cpp \
     clangstringtest.cpp \
     translationunittest.cpp \
-    clangcodecompleteresultstest.cpp
+    clangcodecompleteresultstest.cpp \
+    codecompletionsextractertest.cpp
 
 HEADERS += \
     gtest-qt-printing.h \
     spydummy.h \
     ../../../../src/libs/utils/qtcassert.h
 
-OTHER_FILES += data/complete_testfile_1.cpp
+OTHER_FILES += data/complete_testfile_1.cpp \
+               data/complete_extracter_function.cpp \
+               data/complete_extracter_variable.cpp \
+               data/complete_extracter_class.cpp \
+               data/complete_extracter_namespace.cpp \
+               data/complete_extracter_enumeration.cpp \
+               data/complete_extracter_constructor.cpp
 
 DEFINES += QT_NO_CAST_FROM_ASCII
 DEFINES += CODEMODELBACKENDIPC_TESTS

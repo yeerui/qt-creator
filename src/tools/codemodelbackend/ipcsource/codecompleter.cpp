@@ -35,6 +35,10 @@
 #include "translationunit.h"
 #include "codecompletefailedexception.h"
 
+#include "codecompletionsextracter.h"
+
+#include "codecompletionsextracter.h"
+
 #include <clang-c/Index.h>
 
 #include <QDebug>
@@ -59,9 +63,9 @@ QString toString(CXCompletionChunkKind kind)
     case CXCompletionChunk_CurrentParameter:
         return QLatin1String("CurrentParameter");
     case CXCompletionChunk_LeftParen:
-        return QLatin1String("LeftParen");
+        return QLatin1String("LeftParent");
     case CXCompletionChunk_RightParen:
-        return QLatin1String("RightParen");
+        return QLatin1String("RightParent");
     case CXCompletionChunk_LeftBracket:
         return QLatin1String("LeftBracket");
     case CXCompletionChunk_RightBracket:
@@ -114,51 +118,6 @@ CodeCompleter::CodeCompleter(TranslationUnit translationUnit)
 //    }
 //}
 
-static Utf8String extractTypedText(CXCompletionString completionString)
-{
-    Utf8String typedText;
-    const uint completionChunkCount = clang_getNumCompletionChunks(completionString);
-    for (uint chunkIndex = 0; chunkIndex < completionChunkCount; ++chunkIndex) {
-        const CXCompletionChunkKind chunkKind = clang_getCompletionChunkKind(completionString, chunkIndex);
-        if (chunkKind == CXCompletionChunk_TypedText) {
-            const ClangString text(clang_getCompletionChunkText(completionString, chunkIndex));
-            typedText.append(text);
-        }
-    }
-
-    return typedText;
-}
-
-static CodeCompletion::Kind convertToCompletionKind(CXCursorKind cursorKind)
-{
-    if (cursorKind == CXCursor_FunctionDecl)
-        return CodeCompletion::FunctionCompletionKind;
-    else
-        return CodeCompletion::Other;
-}
-
-static QVector<CodeCompletion> extractCodeCompletions(CXCodeCompleteResults *completeResults)
-{
-    QVector<CodeCompletion> completions;
-    QTC_ASSERT(completeResults, return completions);
-
-    const uint resultsCount = completeResults->NumResults;
-    for (uint i = 0; i < resultsCount; ++i) {
-        const CXCompletionResult completionResult = completeResults->Results[i];
-        const CXCompletionString completionString = completionResult.CompletionString;
-
-        const CodeCompletion::Kind completionKind = convertToCompletionKind(completionResult.CursorKind);
-        const Utf8String typedText = extractTypedText(completionString);
-
-        completions.append(CodeCompletion(typedText,
-                                          Utf8String(),
-                                          Utf8String(),
-                                          0,
-                                          completionKind));
-    }
-
-    return completions;
-}
 
 const QVector<CodeCompletion> CodeCompleter::complete(uint line, uint column) const
 {
@@ -172,9 +131,9 @@ const QVector<CodeCompletion> CodeCompleter::complete(uint line, uint column) co
                                                                   0,
                                                                   0));
 
-    checkCodeCompleteResult(completeResults.data());
+    CodeCompletionsExtracter extracter(completeResults.data());
 
-    return extractCodeCompletions(completeResults.data());
+    return extracter.extractAll();
 }
 
 const Utf8String CodeCompleter::filePath() const

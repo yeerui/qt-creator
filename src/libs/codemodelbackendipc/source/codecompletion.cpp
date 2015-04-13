@@ -51,6 +51,11 @@ CodeCompletion::CodeCompletion(const Utf8String &text,
 {
 }
 
+void CodeCompletion::setText(const Utf8String &text)
+{
+    text_ = text;
+}
+
 const Utf8String &CodeCompletion::text() const
 {
     return text_;
@@ -63,6 +68,11 @@ const Utf8String &CodeCompletion::hint() const
 const Utf8String &CodeCompletion::snippet() const
 {
     return snippet_;
+}
+
+void CodeCompletion::setCompletionKind(CodeCompletion::Kind completionKind)
+{
+    completionKind_ = completionKind;
 }
 
 CodeCompletion::Kind CodeCompletion::completionKind() const
@@ -155,6 +165,29 @@ void PrintTo(const CodeCompletion &command, ::std::ostream* os)
     *os << command.hasParameters_;
 
     *os << ")";
+}
+
+void PrintTo(const CodeCompletion::Kind &kind, std::ostream *os)
+{
+    switch (kind) {
+        case CodeCompletion::Other: *os << "Other"; break;
+        case CodeCompletion::FunctionCompletionKind: *os << "Function"; break;
+        case CodeCompletion::TemplateFunctionCompletionKind: *os << "TemplateFunction"; break;
+        case CodeCompletion::ConstructorCompletionKind: *os << "Constructor"; break;
+        case CodeCompletion::DestructorCompletionKind: *os << "Destructor"; break;
+        case CodeCompletion::VariableCompletionKind: *os << "Variable"; break;
+        case CodeCompletion::ClassCompletionKind: *os << "Class"; break;
+        case CodeCompletion::TemplateClassCompletionKind: *os << "TemplateClass"; break;
+        case CodeCompletion::EnumerationCompletionKind: *os << "Enumeration"; break;
+        case CodeCompletion::EnumeratorCompletionKind: *os << "Enumerator"; break;
+        case CodeCompletion::NamespaceCompletionKind: *os << "Namespace"; break;
+        case CodeCompletion::PreProcessorCompletionKind: *os << "PreProcessor"; break;
+        case CodeCompletion::SignalCompletionKind: *os << "Signal"; break;
+        case CodeCompletion::SlotCompletionKind: *os << "Slot"; break;
+        case CodeCompletion::ObjCMessageCompletionKind: *os << "ObjCMessage"; break;
+        case CodeCompletion::KeywordCompletionKind: *os << "Keyword"; break;
+        case CodeCompletion::ClangSnippetKind: *os << "ClangSnippet"; break;
+    }
 }
 
 } // namespace CodeModelBackEnd
