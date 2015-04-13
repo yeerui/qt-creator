@@ -77,7 +77,7 @@ ClangCodeCompleteResults getResults(const char*filePath, uint line)
                                                                   1,
                                                                   0,
                                                                   0,
-                                                                  CXCodeComplete_IncludeMacros));
+                                                                  CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
 }
 
 TEST(CodeCompletionExtracter, Function)
@@ -305,5 +305,32 @@ TEST(CodeCompletionExtracter, FunctionMacro)
     CodeCompletionsExtracter extracter(completeResults.data());
 
     ASSERT_THAT(extracter, IsCompletion(Utf8StringLiteral("FunctionMacro"), CodeCompletion::FunctionCompletionKind));
+}
+
+TEST(CodeCompletionExtracter, IntKeyword)
+{
+    ClangCodeCompleteResults completeResults(getResults("data/complete_extracter_function.cpp", 20));
+
+    CodeCompletionsExtracter extracter(completeResults.data());
+
+    ASSERT_THAT(extracter, IsCompletion(Utf8StringLiteral("int"), CodeCompletion::KeywordCompletionKind));
+}
+
+TEST(CodeCompletionExtracter, SwitchKeyword)
+{
+    ClangCodeCompleteResults completeResults(getResults("data/complete_extracter_function.cpp", 20));
+
+    CodeCompletionsExtracter extracter(completeResults.data());
+
+    ASSERT_THAT(extracter, IsCompletion(Utf8StringLiteral("switch"), CodeCompletion::KeywordCompletionKind));
+}
+
+TEST(CodeCompletionExtracter, ClassKeyword)
+{
+    ClangCodeCompleteResults completeResults(getResults("data/complete_extracter_function.cpp", 20));
+
+    CodeCompletionsExtracter extracter(completeResults.data());
+
+    ASSERT_THAT(extracter, IsCompletion(Utf8StringLiteral("class"), CodeCompletion::KeywordCompletionKind));
 }
 }

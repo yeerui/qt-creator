@@ -141,6 +141,9 @@ void CodeCompletionsExtracter::extractCompletionKind() const
         case CXCursor_MacroDefinition:
             extractMacroCompletionKind();
             break;
+        case CXCursor_NotImplemented:
+            currentCodeCompletion_.setCompletionKind(CodeCompletion::KeywordCompletionKind);
+            break;
         default:
             currentCodeCompletion_.setCompletionKind(CodeCompletion::Other);
     }
