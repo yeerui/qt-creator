@@ -59,6 +59,8 @@ bool CodeCompletionsExtracter::next() const
 
         extractCompletionKind();
         extractText();
+        extractPriority();
+        extractAvailability();
 
         return true;
     }
@@ -201,6 +203,34 @@ void CodeCompletionsExtracter::extractMacroCompletionKind() const
     currentCodeCompletion_.setCompletionKind(CodeCompletion::PreProcessorCompletionKind);
 }
 
+void CodeCompletionsExtracter::extractPriority() const
+{
+    CXCompletionString cxCompletionString = cxCodeCompleteResults->Results[cxCodeCompleteResultIndex].CompletionString;
+    quint32 priority = clang_getCompletionPriority(cxCompletionString);
+    currentCodeCompletion_.setPriority(priority);
+}
+
+void CodeCompletionsExtracter::extractAvailability() const
+{
+    CXCompletionString cxCompletionString = cxCodeCompleteResults->Results[cxCodeCompleteResultIndex].CompletionString;
+    CXAvailabilityKind cxAvailabilityKind = clang_getCompletionAvailability(cxCompletionString);
+
+    switch (cxAvailabilityKind) {
+        case CXAvailability_Available:
+            currentCodeCompletion_.setAvailability(CodeCompletion::Available);
+            break;
+        case CXAvailability_Deprecated:
+            currentCodeCompletion_.setAvailability(CodeCompletion::Deprecated);
+            break;
+        case CXAvailability_NotAvailable:
+            currentCodeCompletion_.setAvailability(CodeCompletion::NotAvailable);
+            break;
+        case CXAvailability_NotAccessible:
+            currentCodeCompletion_.setAvailability(CodeCompletion::NotAccessible);
+            break;
+    }
+}
+
 bool CodeCompletionsExtracter::hasText(const Utf8String &text, CXCompletionString cxCompletionString) const
 {
     const uint completionChunkCount = clang_getNumCompletionChunks(cxCompletionString);
@@ -225,7 +255,9 @@ const CodeCompletion CodeCompletionsExtracter::currentCodeCompletion() const
 void PrintTo(const CodeCompletionsExtracter &extracter, std::ostream *os)
 {
     *os << "name: " << ::testing::PrintToString(extracter.currentCodeCompletion().text())
-        << ", kind: " <<  ::testing::PrintToString(extracter.currentCodeCompletion().completionKind());
+        << ", kind: " <<  ::testing::PrintToString(extracter.currentCodeCompletion().completionKind())
+        << ", priority: " <<  extracter.currentCodeCompletion().priority()
+        << ", kind: " <<  ::testing::PrintToString(extracter.currentCodeCompletion().availability());
 }
 #endif
 

@@ -58,6 +58,8 @@ private:
     void extractText() const;
     void extractMethodCompletionKind() const;
     void extractMacroCompletionKind() const;
+    void extractPriority() const;
+    void extractAvailability() const;
 
     bool hasText(const Utf8String &text, CXCompletionString cxCompletionString) const;
 

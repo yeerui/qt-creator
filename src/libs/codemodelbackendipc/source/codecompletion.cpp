@@ -80,6 +80,11 @@ CodeCompletion::Kind CodeCompletion::completionKind() const
     return completionKind_;
 }
 
+void CodeCompletion::setAvailability(CodeCompletion::Availability availability)
+{
+    availability_ = availability;
+}
+
 CodeCompletion::Availability CodeCompletion::availability() const
 {
     return availability_;
@@ -88,6 +93,11 @@ CodeCompletion::Availability CodeCompletion::availability() const
 bool CodeCompletion::hasParameters() const
 {
     return hasParameters_;
+}
+
+void CodeCompletion::setPriority(quint32 priority)
+{
+    priority_ = priority;
 }
 
 quint32 CodeCompletion::priority() const
@@ -187,6 +197,16 @@ void PrintTo(const CodeCompletion::Kind &kind, ::std::ostream *os)
         case CodeCompletion::ObjCMessageCompletionKind: *os << "ObjCMessage"; break;
         case CodeCompletion::KeywordCompletionKind: *os << "Keyword"; break;
         case CodeCompletion::ClangSnippetKind: *os << "ClangSnippet"; break;
+    }
+}
+
+void PrintTo(const CodeCompletion::Availability &availability, std::ostream *os)
+{
+    switch (availability) {
+        case CodeCompletion::Available: *os << "Available"; break;
+        case CodeCompletion::Deprecated: *os << "Deprecated"; break;
+        case CodeCompletion::NotAvailable: *os << "NotAvailable"; break;
+        case CodeCompletion::NotAccessible: *os << "NotAccessible"; break;
     }
 }
 
