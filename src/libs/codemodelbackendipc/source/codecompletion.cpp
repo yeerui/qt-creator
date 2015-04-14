@@ -90,6 +90,11 @@ CodeCompletion::Availability CodeCompletion::availability() const
     return availability_;
 }
 
+void CodeCompletion::setHasParameters(bool hasParameters)
+{
+    hasParameters_ = hasParameters;
+}
+
 bool CodeCompletion::hasParameters() const
 {
     return hasParameters_;

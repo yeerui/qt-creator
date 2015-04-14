@@ -61,6 +61,7 @@ bool CodeCompletionsExtracter::next() const
         extractText();
         extractPriority();
         extractAvailability();
+        extractHasParameters();
 
         return true;
     }
@@ -228,6 +229,19 @@ void CodeCompletionsExtracter::extractAvailability() const
         case CXAvailability_NotAccessible:
             currentCodeCompletion_.setAvailability(CodeCompletion::NotAccessible);
             break;
+    }
+}
+
+void CodeCompletionsExtracter::extractHasParameters() const
+{
+    const uint completionChunkCount = clang_getNumCompletionChunks(currentCxCodeCompleteResult.CompletionString);
+    for (uint chunkIndex = 0; chunkIndex < completionChunkCount; ++chunkIndex) {
+        const CXCompletionChunkKind chunkKind = clang_getCompletionChunkKind(currentCxCodeCompleteResult.CompletionString, chunkIndex);
+        if (chunkKind == CXCompletionChunk_LeftParen) {
+            const CXCompletionChunkKind nextChunkKind = clang_getCompletionChunkKind(currentCxCodeCompleteResult.CompletionString, chunkIndex + 1);
+            currentCodeCompletion_.setHasParameters(nextChunkKind != CXCompletionChunk_RightParen);
+            return;
+        }
     }
 }
 

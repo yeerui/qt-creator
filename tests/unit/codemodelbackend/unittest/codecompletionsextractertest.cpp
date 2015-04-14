@@ -343,6 +343,20 @@ TEST(CodeCompletionExtracter, Method)
                                         CodeCompletion::FunctionCompletionKind,
                                         34,
                                         CodeCompletion::Available));
+    ASSERT_FALSE(extracter.currentCodeCompletion().hasParameters());
+}
+
+TEST(CodeCompletionExtracter, MethodWithParameters)
+{
+    ClangCodeCompleteResults completeResults(getResults("data/complete_extracter_function.cpp", 20));
+
+    CodeCompletionsExtracter extracter(completeResults.data());
+
+    ASSERT_THAT(extracter, IsCompletion(Utf8StringLiteral("MethodWithParameters"),
+                                        CodeCompletion::FunctionCompletionKind,
+                                        34,
+                                        CodeCompletion::Available));
+    ASSERT_TRUE(extracter.currentCodeCompletion().hasParameters());
 }
 
 TEST(CodeCompletionExtracter, Slot)
@@ -464,5 +478,6 @@ TEST(CodeCompletionExtracter, NotAvailableFunction)
                                         34,
                                         CodeCompletion::NotAvailable));
 }
+
 
 }

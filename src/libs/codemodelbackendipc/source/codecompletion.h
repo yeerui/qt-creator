@@ -97,6 +97,7 @@ public:
     void setAvailability(Availability availability);
     Availability availability() const;
 
+    void setHasParameters(bool hasParameters);
     bool hasParameters() const;
 
     void setPriority(quint32 priority);

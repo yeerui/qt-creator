@@ -60,6 +60,7 @@ private:
     void extractMacroCompletionKind() const;
     void extractPriority() const;
     void extractAvailability() const;
+    void extractHasParameters() const;
 
     bool hasText(const Utf8String &text, CXCompletionString cxCompletionString) const;
 
