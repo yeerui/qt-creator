@@ -28,7 +28,7 @@
 **
 ****************************************************************************/
 
-#include "codecompletionsextracter.h"
+#include "codecompletionsextractor.h"
 
 #include "clangstring.h"
 
@@ -40,13 +40,13 @@
 
 namespace CodeModelBackEnd {
 
-CodeCompletionsExtracter::CodeCompletionsExtracter(CXCodeCompleteResults *cxCodeCompleteResults)
+CodeCompletionsExtractor::CodeCompletionsExtractor(CXCodeCompleteResults *cxCodeCompleteResults)
     : cxCodeCompleteResults(cxCodeCompleteResults)
 {
 
 }
 
-bool CodeCompletionsExtracter::next() const
+bool CodeCompletionsExtractor::next() const
 {
     const uint cxCodeCompleteResultCount = cxCodeCompleteResults->NumResults;
 
@@ -69,7 +69,7 @@ bool CodeCompletionsExtracter::next() const
     return false;
 }
 
-bool CodeCompletionsExtracter::peek(const Utf8String &name) const
+bool CodeCompletionsExtractor::peek(const Utf8String &name) const
 {
     const uint cxCodeCompleteResultCount = cxCodeCompleteResults->NumResults;
 
@@ -85,7 +85,7 @@ bool CodeCompletionsExtracter::peek(const Utf8String &name) const
     return false;
 }
 
-const QVector<CodeCompletion> CodeCompletionsExtracter::extractAll()
+const QVector<CodeCompletion> CodeCompletionsExtractor::extractAll()
 {
     QVector<CodeCompletion> codeCompletions;
 
@@ -95,7 +95,7 @@ const QVector<CodeCompletion> CodeCompletionsExtracter::extractAll()
     return codeCompletions;
 }
 
-void CodeCompletionsExtracter::extractCompletionKind() const
+void CodeCompletionsExtractor::extractCompletionKind() const
 {
     switch (currentCxCodeCompleteResult.CursorKind) {
         case CXCursor_FunctionTemplate:
@@ -152,7 +152,7 @@ void CodeCompletionsExtracter::extractCompletionKind() const
     }
 }
 
-void CodeCompletionsExtracter::extractText() const
+void CodeCompletionsExtractor::extractText() const
 {
     const uint completionChunkCount = clang_getNumCompletionChunks(currentCxCodeCompleteResult.CompletionString);
     for (uint chunkIndex = 0; chunkIndex < completionChunkCount; ++chunkIndex) {
@@ -165,7 +165,7 @@ void CodeCompletionsExtracter::extractText() const
     }
 }
 
-void CodeCompletionsExtracter::extractMethodCompletionKind() const
+void CodeCompletionsExtractor::extractMethodCompletionKind() const
 {
     CXCompletionString cxCompletionString = cxCodeCompleteResults->Results[cxCodeCompleteResultIndex].CompletionString;
     const unsigned annotationCount = clang_getCompletionNumAnnotations(cxCompletionString);
@@ -187,7 +187,7 @@ void CodeCompletionsExtracter::extractMethodCompletionKind() const
     currentCodeCompletion_.setCompletionKind(CodeCompletion::FunctionCompletionKind);
 }
 
-void CodeCompletionsExtracter::extractMacroCompletionKind() const
+void CodeCompletionsExtractor::extractMacroCompletionKind() const
 {
     CXCompletionString cxCompletionString = cxCodeCompleteResults->Results[cxCodeCompleteResultIndex].CompletionString;
 
@@ -204,14 +204,14 @@ void CodeCompletionsExtracter::extractMacroCompletionKind() const
     currentCodeCompletion_.setCompletionKind(CodeCompletion::PreProcessorCompletionKind);
 }
 
-void CodeCompletionsExtracter::extractPriority() const
+void CodeCompletionsExtractor::extractPriority() const
 {
     CXCompletionString cxCompletionString = cxCodeCompleteResults->Results[cxCodeCompleteResultIndex].CompletionString;
     quint32 priority = clang_getCompletionPriority(cxCompletionString);
     currentCodeCompletion_.setPriority(priority);
 }
 
-void CodeCompletionsExtracter::extractAvailability() const
+void CodeCompletionsExtractor::extractAvailability() const
 {
     CXCompletionString cxCompletionString = cxCodeCompleteResults->Results[cxCodeCompleteResultIndex].CompletionString;
     CXAvailabilityKind cxAvailabilityKind = clang_getCompletionAvailability(cxCompletionString);
@@ -232,7 +232,7 @@ void CodeCompletionsExtracter::extractAvailability() const
     }
 }
 
-void CodeCompletionsExtracter::extractHasParameters() const
+void CodeCompletionsExtractor::extractHasParameters() const
 {
     const uint completionChunkCount = clang_getNumCompletionChunks(currentCxCodeCompleteResult.CompletionString);
     for (uint chunkIndex = 0; chunkIndex < completionChunkCount; ++chunkIndex) {
@@ -245,7 +245,7 @@ void CodeCompletionsExtracter::extractHasParameters() const
     }
 }
 
-bool CodeCompletionsExtracter::hasText(const Utf8String &text, CXCompletionString cxCompletionString) const
+bool CodeCompletionsExtractor::hasText(const Utf8String &text, CXCompletionString cxCompletionString) const
 {
     const uint completionChunkCount = clang_getNumCompletionChunks(cxCompletionString);
 
@@ -260,18 +260,18 @@ bool CodeCompletionsExtracter::hasText(const Utf8String &text, CXCompletionStrin
     return false;
 }
 
-const CodeCompletion CodeCompletionsExtracter::currentCodeCompletion() const
+const CodeCompletion CodeCompletionsExtractor::currentCodeCompletion() const
 {
     return currentCodeCompletion_;
 }
 
 #ifdef CODEMODELBACKEND_TESTS
-void PrintTo(const CodeCompletionsExtracter &extracter, std::ostream *os)
+void PrintTo(const CodeCompletionsExtractor &extractor, std::ostream *os)
 {
-    *os << "name: " << ::testing::PrintToString(extracter.currentCodeCompletion().text())
-        << ", kind: " <<  ::testing::PrintToString(extracter.currentCodeCompletion().completionKind())
-        << ", priority: " <<  extracter.currentCodeCompletion().priority()
-        << ", kind: " <<  ::testing::PrintToString(extracter.currentCodeCompletion().availability());
+    *os << "name: " << ::testing::PrintToString(extractor.currentCodeCompletion().text())
+        << ", kind: " <<  ::testing::PrintToString(extractor.currentCodeCompletion().completionKind())
+        << ", priority: " <<  extractor.currentCodeCompletion().priority()
+        << ", kind: " <<  ::testing::PrintToString(extractor.currentCodeCompletion().availability());
 }
 #endif
 

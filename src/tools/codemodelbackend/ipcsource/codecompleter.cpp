@@ -35,9 +35,7 @@
 #include "translationunit.h"
 #include "codecompletefailedexception.h"
 
-#include "codecompletionsextracter.h"
-
-#include "codecompletionsextracter.h"
+#include "codecompletionsextractor.h"
 
 #include <clang-c/Index.h>
 
@@ -129,9 +127,9 @@ const QVector<CodeCompletion> CodeCompleter::complete(uint line, uint column) co
                                                                   0,
                                                                   0));
 
-    CodeCompletionsExtracter extracter(completeResults.data());
+    CodeCompletionsExtractor extractor(completeResults.data());
 
-    return extracter.extractAll();
+    return extractor.extractAll();
 }
 
 const Utf8String CodeCompleter::filePath() const

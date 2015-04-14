@@ -28,8 +28,8 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_CODECOMPLETIONSEXTRACTER_H
-#define CODEMODELBACKEND_CODECOMPLETIONSEXTRACTER_H
+#ifndef CODEMODELBACKEND_CODECOMPLETIONSEXTRACTOR_H
+#define CODEMODELBACKEND_CODECOMPLETIONSEXTRACTOR_H
 
 #include <clang-c/Index.h>
 
@@ -39,10 +39,10 @@
 
 namespace CodeModelBackEnd {
 
-class CodeCompletionsExtracter
+class CodeCompletionsExtractor
 {
 public:
-    CodeCompletionsExtracter(CXCodeCompleteResults *cxCodeCompleteResults);
+    CodeCompletionsExtractor(CXCodeCompleteResults *cxCodeCompleteResults);
 
     bool next() const;
     bool peek(const Utf8String &name) const;
@@ -72,8 +72,8 @@ private:
 };
 
 #ifdef CODEMODELBACKEND_TESTS
-void PrintTo(const CodeCompletionsExtracter &extracter, ::std::ostream* os);
+void PrintTo(const CodeCompletionsExtractor &extractor, ::std::ostream* os);
 #endif
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_CODECOMPLETIONSEXTRACTER_H
+#endif // CODEMODELBACKEND_CODECOMPLETIONSEXTRACTOR_H
