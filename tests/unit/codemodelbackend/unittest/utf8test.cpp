@@ -211,3 +211,11 @@ TEST(Utf8, PlusAssignmentOperator)
 
     ASSERT_THAT(text, Utf8StringLiteral("foobar"));
 }
+
+TEST(Utf8, CompareCharPointer)
+{
+    Utf8String text("foo", 3);
+
+    ASSERT_TRUE(text == "foo");
+    ASSERT_FALSE(text == "foo2");
+}

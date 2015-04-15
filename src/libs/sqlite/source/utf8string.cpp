@@ -198,6 +198,10 @@ bool operator ==(const Utf8String &first, const Utf8String &second)
     return first.byteArray == second.byteArray;
 }
 
+bool operator ==(const Utf8String &first, const char *second)
+{
+    return first.byteArray == second;
+}
 
 bool operator <(const Utf8String &first, const Utf8String &second)
 {

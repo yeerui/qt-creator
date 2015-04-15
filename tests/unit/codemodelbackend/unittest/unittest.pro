@@ -53,7 +53,8 @@ SOURCES += main.cpp \
     clangstringtest.cpp \
     translationunittest.cpp \
     clangcodecompleteresultstest.cpp \
-    codecompletionsextractortest.cpp
+    codecompletionsextractortest.cpp \
+    unsavedfilestest.cpp
 
 HEADERS += \
     gtest-qt-printing.h \

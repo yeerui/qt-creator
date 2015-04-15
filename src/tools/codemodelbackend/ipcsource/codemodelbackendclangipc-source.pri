@@ -9,7 +9,8 @@ HEADERS += clangipcserver.h \
     $$PWD/translationunitfilenotexits.h \
     $$PWD/codecompletefailedexception.h \
     $$PWD/clangcodecompleteresults.h \
-    $$PWD/codecompletionsextractor.h
+    $$PWD/codecompletionsextractor.h \
+    $$PWD/unsavedfiles.h
 
 SOURCES += clangipcserver.cpp \
            codecompleter.cpp \
@@ -19,4 +20,5 @@ SOURCES += clangipcserver.cpp \
     $$PWD/translationunitfilenotexits.cpp \
     $$PWD/codecompletefailedexception.cpp \
     $$PWD/clangcodecompleteresults.cpp \
-    $$PWD/codecompletionsextractor.cpp
+    $$PWD/codecompletionsextractor.cpp \
+    $$PWD/unsavedfiles.cpp
