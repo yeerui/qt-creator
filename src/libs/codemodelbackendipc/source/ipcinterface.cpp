@@ -32,6 +32,9 @@
 
 namespace CodeModelBackEnd {
 
+IpcInterface::~IpcInterface()
+{
+}
 
 } // namespace CodeModelBackEnd
 

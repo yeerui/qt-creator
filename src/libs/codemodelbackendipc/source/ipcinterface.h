@@ -44,8 +44,8 @@ namespace CodeModelBackEnd {
 class CMBIPC_EXPORT IpcInterface
 {
 public:
+    virtual ~IpcInterface();
     virtual void dispatch(const QVariant &command) = 0;
-
 };
 
 } // namespace CodeModelBackEnd
