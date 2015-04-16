@@ -53,7 +53,7 @@ namespace {
 using ::testing::PrintToString;
 
 MATCHER_P4(IsCompletion, name, kind, priority, availability,
-           std::string(negation ? "isn't" : "is") + " complition of name " + PrintToString(name) +
+           std::string(negation ? "isn't" : "is") + " completion of name " + PrintToString(name) +
            ", kind " + PrintToString(kind) + " and priority " + PrintToString(priority)
            )
 {

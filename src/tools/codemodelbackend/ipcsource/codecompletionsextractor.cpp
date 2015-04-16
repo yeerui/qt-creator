@@ -85,11 +85,11 @@ bool CodeCompletionsExtractor::peek(const Utf8String &name) const
     return false;
 }
 
-const QVector<CodeCompletion> CodeCompletionsExtractor::extractAll()
+const QVector<CodeCompletion> CodeCompletionsExtractor::extractAll() const
 {
     QVector<CodeCompletion> codeCompletions;
 
-    while(next())
+    while (next())
         codeCompletions.append(currentCodeCompletion_);
 
     return codeCompletions;
@@ -159,7 +159,7 @@ void CodeCompletionsExtractor::extractText() const
         const CXCompletionChunkKind chunkKind = clang_getCompletionChunkKind(currentCxCodeCompleteResult.CompletionString, chunkIndex);
         if (chunkKind == CXCompletionChunk_TypedText) {
             const ClangString text(clang_getCompletionChunkText(currentCxCodeCompleteResult.CompletionString, chunkIndex));
-             currentCodeCompletion_.setText(text);
+            currentCodeCompletion_.setText(text);
             break;
         }
     }

@@ -47,9 +47,7 @@ public:
     bool next() const;
     bool peek(const Utf8String &name) const;
 
-    const QVector<CodeCompletion> extractAll();
-
-
+    const QVector<CodeCompletion> extractAll() const;
 
     const CodeCompletion currentCodeCompletion() const;
 

@@ -77,7 +77,7 @@ TEST(TranslationUnit, ThrowExceptionForGettingIndexForInvalidUnit)
     ASSERT_THROW(translationUnit.index(), CodeModelBackEnd::TranslationUnitIsNullException);
 }
 
-TEST(TranslationUnit, GetIndexNonNullForValidUnit)
+TEST(TranslationUnit, IndexGetterIsNonNullForValidUnit)
 {
     TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), nullptr);
 
@@ -91,7 +91,7 @@ TEST(TranslationUnit, ThrowExceptionForGettingCxTranslationUnitForInvalidUnit)
     ASSERT_THROW(translationUnit.cxTranslationUnit(), CodeModelBackEnd::TranslationUnitIsNullException);
 }
 
-TEST(TranslationUnit, GetTranslationUnitNonNullForValidUnit)
+TEST(TranslationUnit, CxTranslationUnitGetterIsNonNullForValidUnit)
 {
     UnsavedFiles unsavedFiles;
     TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), &unsavedFiles);

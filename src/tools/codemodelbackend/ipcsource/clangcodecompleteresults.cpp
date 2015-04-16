@@ -34,6 +34,8 @@
 
 namespace CodeModelBackEnd {
 
+using std::swap;
+
 ClangCodeCompleteResults::ClangCodeCompleteResults(CXCodeCompleteResults *cxCodeCompleteResults)
     : cxCodeCompleteResults(cxCodeCompleteResults)
 {
@@ -54,16 +56,16 @@ CXCodeCompleteResults *ClangCodeCompleteResults::data() const
     return cxCodeCompleteResults;
 }
 
-ClangCodeCompleteResults &ClangCodeCompleteResults::operator =(ClangCodeCompleteResults &&ClangCodeCompleteResults)
+ClangCodeCompleteResults &ClangCodeCompleteResults::operator =(ClangCodeCompleteResults &&clangCodeCompleteResults)
 {
-    std::swap(cxCodeCompleteResults, ClangCodeCompleteResults.cxCodeCompleteResults);
+    swap(cxCodeCompleteResults, clangCodeCompleteResults.cxCodeCompleteResults);
 
     return *this;
 }
 
-ClangCodeCompleteResults::ClangCodeCompleteResults(ClangCodeCompleteResults &&ClangCodeCompleteResults)
+ClangCodeCompleteResults::ClangCodeCompleteResults(ClangCodeCompleteResults &&clangCodeCompleteResults)
 {
-    std::swap(cxCodeCompleteResults, ClangCodeCompleteResults.cxCodeCompleteResults);
+    swap(cxCodeCompleteResults, clangCodeCompleteResults.cxCodeCompleteResults);
 }
 
 } // namespace CodeModelBackEnd
