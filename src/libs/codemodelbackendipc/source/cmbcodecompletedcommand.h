@@ -56,12 +56,12 @@ private:
     QVector<CodeCompletion> codeCompletions_;
 };
 
-QDataStream &operator<<(QDataStream &out, const CodeCompletedCommand &command);
-QDataStream &operator>>(QDataStream &in, CodeCompletedCommand &command);
-bool operator == (const CodeCompletedCommand &first, const CodeCompletedCommand &second);
-bool operator < (const CodeCompletedCommand &first, const CodeCompletedCommand &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const CodeCompletedCommand &command);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, CodeCompletedCommand &command);
+CMBIPC_EXPORT bool operator == (const CodeCompletedCommand &first, const CodeCompletedCommand &second);
+CMBIPC_EXPORT bool operator < (const CodeCompletedCommand &first, const CodeCompletedCommand &second);
 
-QDebug operator <<(QDebug debug, const CodeCompletedCommand &command);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const CodeCompletedCommand &command);
 void PrintTo(const CodeCompletedCommand &command, ::std::ostream* os);
 
 } // namespace CodeModelBackEnd

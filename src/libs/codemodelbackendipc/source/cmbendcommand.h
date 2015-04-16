@@ -31,20 +31,22 @@
 #ifndef CMBENDCOMMAND_H
 #define CMBENDCOMMAND_H
 
-#include <qmetatype.h>
+#include "codemodelbackendipc_global.h"
+
+#include <QMetaType>
 
 namespace CodeModelBackEnd {
 
-class EndCommand
+class CMBIPC_EXPORT EndCommand
 {
 };
 
-QDataStream &operator<<(QDataStream &out, const EndCommand &command);
-QDataStream &operator>>(QDataStream &in, EndCommand &command);
-bool operator == (const EndCommand &first, const EndCommand &second);
-bool operator < (const EndCommand &first, const EndCommand &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const EndCommand &command);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, EndCommand &command);
+CMBIPC_EXPORT bool operator == (const EndCommand &first, const EndCommand &second);
+CMBIPC_EXPORT bool operator < (const EndCommand &first, const EndCommand &second);
 
-QDebug operator <<(QDebug debug, const EndCommand &command);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const EndCommand &command);
 void PrintTo(const EndCommand &command, ::std::ostream* os);
 }
 

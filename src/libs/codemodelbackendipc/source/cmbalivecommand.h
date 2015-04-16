@@ -31,20 +31,22 @@
 #ifndef CMBALIVECOMMAND_H
 #define CMBALIVECOMMAND_H
 
+#include "codemodelbackendipc_global.h"
+
 #include <QMetaType>
 
 namespace CodeModelBackEnd {
 
-class AliveCommand
+class CMBIPC_EXPORT AliveCommand
 {
 };
 
-QDataStream &operator<<(QDataStream &out, const AliveCommand &command);
-QDataStream &operator>>(QDataStream &in, AliveCommand &command);
-bool operator == (const AliveCommand &first, const AliveCommand &second);
-bool operator < (const AliveCommand &first, const AliveCommand &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const AliveCommand &command);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, AliveCommand &command);
+CMBIPC_EXPORT bool operator  == (const AliveCommand &first, const AliveCommand &second);
+CMBIPC_EXPORT bool operator < (const AliveCommand &first, const AliveCommand &second);
 
-QDebug operator <<(QDebug debug, const AliveCommand &command);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const AliveCommand &command);
 
 }
 

@@ -1,11 +1,11 @@
 #ifndef CODEMODELBACKEND_UNRegisterFilesForCodeCompletionCommand_H
 #define CODEMODELBACKEND_UNRegisterFilesForCodeCompletionCommand_H
 
-#include <qmetatype.h>
+#include "codemodelbackendipc_global.h"
 
 #include <utf8stringvector.h>
 
-#include "codemodelbackendipc_global.h"
+#include <QMetaType>
 
 namespace CodeModelBackEnd {
 
@@ -27,12 +27,12 @@ private:
     Utf8StringVector filePaths_;
 };
 
-QDataStream &operator<<(QDataStream &out, const UnregisterFilesForCodeCompletionCommand &command);
-QDataStream &operator>>(QDataStream &in, UnregisterFilesForCodeCompletionCommand &command);
-bool operator == (const UnregisterFilesForCodeCompletionCommand &first, const UnregisterFilesForCodeCompletionCommand &second);
-bool operator < (const UnregisterFilesForCodeCompletionCommand &first, const UnregisterFilesForCodeCompletionCommand &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const UnregisterFilesForCodeCompletionCommand &command);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, UnregisterFilesForCodeCompletionCommand &command);
+CMBIPC_EXPORT bool operator == (const UnregisterFilesForCodeCompletionCommand &first, const UnregisterFilesForCodeCompletionCommand &second);
+CMBIPC_EXPORT bool operator < (const UnregisterFilesForCodeCompletionCommand &first, const UnregisterFilesForCodeCompletionCommand &second);
 
-QDebug operator <<(QDebug debug, const UnregisterFilesForCodeCompletionCommand &command);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const UnregisterFilesForCodeCompletionCommand &command);
 void PrintTo(const UnregisterFilesForCodeCompletionCommand &command, ::std::ostream* os);
 } // namespace CodeModelBackEnd
 

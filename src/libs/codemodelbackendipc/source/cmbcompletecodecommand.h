@@ -31,10 +31,10 @@
 #ifndef CODEMODELBACKEND_COMPLETECODECOMMAND_H
 #define CODEMODELBACKEND_COMPLETECODECOMMAND_H
 
+#include "codemodelbackendipc_global.h"
+
 #include <QMetaType>
 #include <utf8string.h>
-
-#include "codemodelbackendipc_global.h"
 
 namespace CodeModelBackEnd {
 
@@ -66,12 +66,12 @@ private:
     Utf8String commandLine_;
 };
 
-QDataStream &operator<<(QDataStream &out, const CompleteCodeCommand &command);
-QDataStream &operator>>(QDataStream &in, CompleteCodeCommand &command);
-bool operator == (const CompleteCodeCommand &first, const CompleteCodeCommand &second);
-bool operator < (const CompleteCodeCommand &first, const CompleteCodeCommand &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const CompleteCodeCommand &command);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, CompleteCodeCommand &command);
+CMBIPC_EXPORT bool operator == (const CompleteCodeCommand &first, const CompleteCodeCommand &second);
+CMBIPC_EXPORT bool operator < (const CompleteCodeCommand &first, const CompleteCodeCommand &second);
 
-QDebug operator <<(QDebug debug, const CompleteCodeCommand &command);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const CompleteCodeCommand &command);
 void PrintTo(const CompleteCodeCommand &command, ::std::ostream* os);
 
 } // namespace CodeModelBackEnd

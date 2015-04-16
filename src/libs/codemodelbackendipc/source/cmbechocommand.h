@@ -31,12 +31,14 @@
 #ifndef CODEMODELBACKEND_ECHOCOMMAND_H
 #define CODEMODELBACKEND_ECHOCOMMAND_H
 
-#include <qmetatype.h>
+#include "codemodelbackendipc_global.h"
+
+#include <QMetaType>
 #include <QVariant>
 
 namespace CodeModelBackEnd {
 
-class EchoCommand
+class CMBIPC_EXPORT EchoCommand
 {
     friend QDataStream &operator>>(QDataStream &in, EchoCommand &command);
     friend bool operator == (const EchoCommand &first, const EchoCommand &second);
@@ -51,12 +53,12 @@ private:
     QVariant command_;
 };
 
-QDataStream &operator<<(QDataStream &out, const EchoCommand &command);
-QDataStream &operator>>(QDataStream &in, EchoCommand &command);
-bool operator == (const EchoCommand &first, const EchoCommand &second);
-bool operator < (const EchoCommand &first, const EchoCommand &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const EchoCommand &command);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, EchoCommand &command);
+CMBIPC_EXPORT bool operator == (const EchoCommand &first, const EchoCommand &second);
+CMBIPC_EXPORT bool operator < (const EchoCommand &first, const EchoCommand &second);
 
-QDebug operator <<(QDebug debug, const EchoCommand &command);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const EchoCommand &command);
 void PrintTo(const EchoCommand &command, ::std::ostream* os);
 
 } // namespace CodeModelBackEnd
