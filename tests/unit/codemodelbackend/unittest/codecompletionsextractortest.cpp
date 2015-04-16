@@ -37,7 +37,11 @@
 
 #include <codecompletionsextractor.h>
 #include <clangcodecompleteresults.h>
+#include <filecontainer.h>
 #include <translationunit.h>
+#include <unsavedfiles.h>
+
+#include <QFile>
 
 using CodeModelBackEnd::CodeCompletionsExtractor;
 using CodeModelBackEnd::ClangCodeCompleteResults;
@@ -80,16 +84,40 @@ MATCHER_P4(IsCompletion, name, kind, priority, availability,
 
 ClangCodeCompleteResults getResults(const char*filePath, uint line)
 {
-    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath));
+    CodeModelBackEnd::UnsavedFiles unsavedFiles;
+    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath), &unsavedFiles);
 
-    return ClangCodeCompleteResults(clang_codeCompleteAt(translationUnit.translationUnit(),
-                                                                  translationUnit.filePath().constData(),
-                                                                  line,
-                                                                  1,
-                                                                  0,
-                                                                  0,
-                                                                  CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
+    return ClangCodeCompleteResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
+                                                         translationUnit.filePath().constData(),
+                                                         line,
+                                                         1,
+                                                         translationUnit.cxUnsavedFiles(),
+                                                         translationUnit.unsavedFilesCount(),
+                                                         CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
 }
+
+ClangCodeCompleteResults getResultsWithUnsavedFile(const char*filePath, const char*unsavedFilePath, uint line)
+{
+    QFile unsavedFileContentFile(QString::fromUtf8(unsavedFilePath));
+    unsavedFileContentFile.open(QIODevice::ReadOnly);
+
+    const Utf8String unsavedFileContent = Utf8String::fromByteArray(unsavedFileContentFile.readAll());
+    const CodeModelBackEnd::FileContainer unsavedDataFileContainer(Utf8String::fromUtf8(filePath), unsavedFileContent, true);
+
+    CodeModelBackEnd::UnsavedFiles unsavedFiles;
+    unsavedFiles.update({unsavedDataFileContainer});
+
+    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath), &unsavedFiles);
+
+    return ClangCodeCompleteResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
+                                                         translationUnit.filePath().constData(),
+                                                         line,
+                                                         1,
+                                                         translationUnit.cxUnsavedFiles(),
+                                                         translationUnit.unsavedFilesCount(),
+                                                         CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
+}
+
 
 TEST(CodeCompletionExtractor, Function)
 {
@@ -479,5 +507,17 @@ TEST(CodeCompletionExtractor, NotAvailableFunction)
                                         CodeCompletion::NotAvailable));
 }
 
+TEST(CodeCompletionExtractor, UnsavedFile)
+{
+    ClangCodeCompleteResults completeResults(getResultsWithUnsavedFile("data/complete_extractor_function.cpp",
+                                                                       "data/complete_extractor_function_unsaved.cpp",
+                                                                       20));
 
+    CodeCompletionsExtractor extractor(completeResults.data());
+
+    ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Method2"),
+                                        CodeCompletion::FunctionCompletionKind,
+                                        34,
+                                        CodeCompletion::Available));
+}
 }

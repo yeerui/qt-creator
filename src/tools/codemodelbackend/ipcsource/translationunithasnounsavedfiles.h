@@ -38,7 +38,6 @@ class TranslationUnitHasNoUnsavedFiles
 {
 public:
     TranslationUnitHasNoUnsavedFiles();
-    ~TranslationUnitHasNoUnsavedFiles();
 };
 
 } // namespace CodeModelBackEnd

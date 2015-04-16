@@ -37,10 +37,5 @@ TranslationUnitHasNoUnsavedFiles::TranslationUnitHasNoUnsavedFiles()
 
 }
 
-TranslationUnitHasNoUnsavedFiles::~TranslationUnitHasNoUnsavedFiles()
-{
-
-}
-
 } // namespace CodeModelBackEnd
 

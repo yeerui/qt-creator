@@ -36,17 +36,20 @@
 
 #include <clangcodecompleteresults.h>
 #include <translationunit.h>
+#include <unsavedfiles.h>
 #include <utf8string.h>
 
 namespace {
 
 using CodeModelBackEnd::ClangCodeCompleteResults;
 using CodeModelBackEnd::TranslationUnit;
+using CodeModelBackEnd::UnsavedFiles;
 
 TEST(ClangCodeCompleteResults, GetData)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
-    CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(translationUnit.translationUnit(), translationUnit.filePath().constData(), 49, 1, 0, 0, 0);
+    UnsavedFiles unsavedFiles;
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), &unsavedFiles);
+    CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(translationUnit.cxTranslationUnit(), translationUnit.filePath().constData(), 49, 1, 0, 0, 0);
 
     ClangCodeCompleteResults codeCompleteResults(cxCodeCompleteResults);
 
@@ -55,7 +58,6 @@ TEST(ClangCodeCompleteResults, GetData)
 
 TEST(ClangCodeCompleteResults, GetInvalidData)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
     CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(nullptr, "file.cpp", 49, 1, 0, 0, 0);
 
     ClangCodeCompleteResults codeCompleteResults(cxCodeCompleteResults);
@@ -65,8 +67,9 @@ TEST(ClangCodeCompleteResults, GetInvalidData)
 
 TEST(ClangCodeCompleteResults, MoveClangCodeCompleteResults)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
-    CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(translationUnit.translationUnit(), translationUnit.filePath().constData(), 49, 1, 0, 0, 0);
+    UnsavedFiles unsavedFiles;
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), &unsavedFiles);
+    CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(translationUnit.cxTranslationUnit(), translationUnit.filePath().constData(), 49, 1, 0, 0, 0);
 
     ClangCodeCompleteResults codeCompleteResults(cxCodeCompleteResults);
 

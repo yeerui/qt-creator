@@ -35,12 +35,15 @@
 #include <clang-c/Index.h>
 
 #include <translationunit.h>
+#include <unsavedfiles.h>
 #include <utf8string.h>
 
 #include "translationunitisnullexception.h"
 #include "translationunitfilenotexits.h"
+#include "translationunithasnounsavedfiles.h"
 
 using CodeModelBackEnd::TranslationUnit;
+using CodeModelBackEnd::UnsavedFiles;
 
 using testing::IsNull;
 using testing::NotNull;
@@ -56,12 +59,12 @@ TEST(TranslationUnit, DefaultTranslationUnitIsInvalid)
 
 TEST(TranslationUnit, ThrowExceptionForNonExistingFilePath)
 {
-    ASSERT_THROW(TranslationUnit(Utf8StringLiteral("file.cpp")), CodeModelBackEnd::TranslationUnitFileNotExits);
+    ASSERT_THROW(TranslationUnit(Utf8StringLiteral("file.cpp"), nullptr), CodeModelBackEnd::TranslationUnitFileNotExits);
 }
 
 TEST(TranslationUnit, TranslationUnitIsValid)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), nullptr);
 
     ASSERT_FALSE(translationUnit.isNull());
 }
@@ -76,23 +79,24 @@ TEST(TranslationUnit, ThrowExceptionForGettingIndexForInvalidUnit)
 
 TEST(TranslationUnit, GetIndexNonNullForValidUnit)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), nullptr);
 
     ASSERT_THAT(translationUnit.index(), NotNull());
 }
 
-TEST(TranslationUnit, ThrowExceptionForGettingTranslationUnitForInvalidUnit)
+TEST(TranslationUnit, ThrowExceptionForGettingCxTranslationUnitForInvalidUnit)
 {
     TranslationUnit translationUnit;
 
-    ASSERT_THROW(translationUnit.translationUnit(), CodeModelBackEnd::TranslationUnitIsNullException);
+    ASSERT_THROW(translationUnit.cxTranslationUnit(), CodeModelBackEnd::TranslationUnitIsNullException);
 }
 
 TEST(TranslationUnit, GetTranslationUnitNonNullForValidUnit)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
+    UnsavedFiles unsavedFiles;
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), &unsavedFiles);
 
-    ASSERT_THAT(translationUnit.translationUnit(), NotNull());
+    ASSERT_THAT(translationUnit.cxTranslationUnit(), NotNull());
 }
 
 TEST(TranslationUnit, ThrowExceptionIfGettingFilePathForNullUnit)
@@ -102,4 +106,33 @@ TEST(TranslationUnit, ThrowExceptionIfGettingFilePathForNullUnit)
     ASSERT_THROW(translationUnit.filePath(), CodeModelBackEnd::TranslationUnitIsNullException);
 }
 
+TEST(TranslationUnit, ThrowExceptionForGettingCxTranslationUnitWithoutUnsavedFiles)
+{
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), nullptr);
+
+    ASSERT_THROW(translationUnit.cxTranslationUnit(), CodeModelBackEnd::TranslationUnitHasNoUnsavedFiles);
+}
+
+TEST(TranslationUnit, ThrowExceptionForGettingCxUnsavedFilesWithoutUnsavedFiles)
+{
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), nullptr);
+
+    ASSERT_THROW(translationUnit.cxUnsavedFiles(), CodeModelBackEnd::TranslationUnitHasNoUnsavedFiles);
+}
+
+TEST(TranslationUnit, ThrowExceptionForGettingCxUnsavedFilesCountWithoutUnsavedFiles)
+{
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), nullptr);
+
+    ASSERT_THROW(translationUnit.unsavedFilesCount(), CodeModelBackEnd::TranslationUnitHasNoUnsavedFiles);
+}
+
+TEST(TranslationUnit, ResetedTranslationUnitIsNull)
+{
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), nullptr);
+
+    translationUnit.reset();
+
+    ASSERT_TRUE(translationUnit.isNull());
+}
 }

@@ -32,27 +32,70 @@
 #include "gmock/gmock-matchers.h"
 
 #include <codecompleter.h>
+#include <filecontainer.h>
 #include <translationunit.h>
 #include <codecompleter.h>
-
+#include <unsavedfiles.h>
 #include <utf8stringvector.h>
 
-namespace {
+#include <QFile>
+
 
 using ::testing::ElementsAreArray;
 using ::testing::Contains;
 using ::testing::AllOf;
+using ::testing::Not;
 
 using CodeModelBackEnd::CodeCompletion;
 using CodeModelBackEnd::CodeCompleter;
-using CodeModelBackEnd::TranslationUnit;
 
-TEST(CodeCompletion, CompleteFunc)
+namespace {
+
+class CodeCompleter : public ::testing::Test
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"));
-    CodeCompleter completer = translationUnit.completer();
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
 
-    ASSERT_THAT(completer.complete(49, 1),
+protected:
+    CodeCompleter();
+
+
+protected:
+    static CodeModelBackEnd::UnsavedFiles unsavedFiles;
+    static CodeModelBackEnd::TranslationUnit translationUnit;
+    static CodeModelBackEnd::CodeCompleter completer;
+};
+
+CodeModelBackEnd::UnsavedFiles CodeCompleter::unsavedFiles;
+CodeModelBackEnd::TranslationUnit CodeCompleter::translationUnit(Utf8StringLiteral("data/complete_completer.cpp"), &unsavedFiles);
+CodeModelBackEnd::CodeCompleter CodeCompleter::completer = translationUnit.completer();
+
+CodeCompleter::CodeCompleter()
+{
+}
+
+void CodeCompleter::SetUpTestCase()
+{
+    QFile unsavedFileContentFile(QStringLiteral("data/complete_completer_unsaved.cpp"));
+    unsavedFileContentFile.open(QIODevice::ReadOnly);
+
+    const Utf8String unsavedFileContent = Utf8String::fromByteArray(unsavedFileContentFile.readAll());
+    const CodeModelBackEnd::FileContainer unsavedDataFileContainer(translationUnit.filePath(), unsavedFileContent, true);
+
+    unsavedFiles.update({unsavedDataFileContainer});
+}
+
+void CodeCompleter::TearDownTestCase()
+{
+    translationUnit.reset();
+    completer = CodeModelBackEnd::CodeCompleter();
+}
+
+
+TEST_F(CodeCompleter, FunctionInUnsavedFile)
+{
+    ASSERT_THAT(completer.complete(100, 1),
                 AllOf(Contains(CodeCompletion(Utf8StringLiteral("functionWithArguments"),
                                               Utf8String(),
                                               Utf8String(),
@@ -63,7 +106,7 @@ TEST(CodeCompletion, CompleteFunc)
                                               Utf8String(),
                                               0,
                                               CodeCompletion::FunctionCompletionKind)),
-                      Contains(CodeCompletion(Utf8StringLiteral("otherFunction"),
+                      Contains(CodeCompletion(Utf8StringLiteral("newFunction"),
                                               Utf8String(),
                                               Utf8String(),
                                               0,
@@ -72,30 +115,36 @@ TEST(CodeCompletion, CompleteFunc)
                                               Utf8String(),
                                               Utf8String(),
                                               0,
-                                              CodeCompletion::FunctionCompletionKind))));
+                                              CodeCompletion::FunctionCompletionKind)),
+                      Not(Contains(CodeCompletion(Utf8StringLiteral("otherFunction"),
+                                                  Utf8String(),
+                                                  Utf8String(),
+                                                  0,
+                                                  CodeCompletion::FunctionCompletionKind)))));
 }
 
 
-//TEST(CodeCompletion, CompleteFunc)
-//{
-//    CodeModelBackEnd::CodeCompleter completer;
-//    completer.setFilePath(Utf8StringLiteral("testfile.cpp"));
-//    completer.setLine(46);
-//    completer.setColumn(4);
-
-//    ASSERT_THAT(completer.complete(),
-//                ElementsAreArray({Utf8StringLiteral("function()"),
-//                                  Utf8StringLiteral("function2()")}));
-//}
-
-//TEST(CodeCompletion, CompleteOther)
-//{
-//    CodeModelBackEnd::CodeCompleter completer;
-//    completer.setFilePath(Utf8StringLiteral("testfile.cpp"));
-//    completer.setLine(47);
-//    completer.setColumn(5);
-
-//    ASSERT_THAT(completer.complete(),
-//                ElementsAreArray({Utf8StringLiteral("otherFunction()")}));
-//}
+TEST_F(CodeCompleter, Macro)
+{
+    ASSERT_THAT(completer.complete(100, 1),
+                Contains(CodeCompletion(Utf8StringLiteral("Macro"),
+                                              Utf8String(),
+                                              Utf8String(),
+                                              0,
+                                              CodeCompletion::PreProcessorCompletionKind)));
 }
+
+TEST_F(CodeCompleter, Keyword)
+{
+    ASSERT_THAT(completer.complete(100, 1),
+                Contains(CodeCompletion(Utf8StringLiteral("switch"),
+                                              Utf8String(),
+                                              Utf8String(),
+                                              0,
+                                              CodeCompletion::KeywordCompletionKind)));
+}
+
+
+}
+
+

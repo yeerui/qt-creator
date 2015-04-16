@@ -43,6 +43,7 @@ class TranslationUnit;
 class CodeCompleter
 {
 public:
+    CodeCompleter() = default;
     CodeCompleter(TranslationUnit translationUnit);
 
     const QVector<CodeCompletion> complete(uint line, uint column) const;

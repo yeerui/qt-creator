@@ -43,89 +43,22 @@
 
 namespace CodeModelBackEnd {
 
-QString toString(CXCompletionChunkKind kind)
-{
-    switch (kind) {
-    case CXCompletionChunk_Optional:
-        return QLatin1String("Optional");
-    case CXCompletionChunk_TypedText:
-        return QLatin1String("TypedText");
-    case CXCompletionChunk_Text:
-        return QLatin1String("Text");
-    case CXCompletionChunk_Placeholder:
-        return QLatin1String("Placeholder");
-    case CXCompletionChunk_Informative:
-        return QLatin1String("Informative");
-    case CXCompletionChunk_CurrentParameter:
-        return QLatin1String("CurrentParameter");
-    case CXCompletionChunk_LeftParen:
-        return QLatin1String("LeftParent");
-    case CXCompletionChunk_RightParen:
-        return QLatin1String("RightParent");
-    case CXCompletionChunk_LeftBracket:
-        return QLatin1String("LeftBracket");
-    case CXCompletionChunk_RightBracket:
-        return QLatin1String("RightBracket");
-    case CXCompletionChunk_LeftBrace:
-        return QLatin1String("LeftBrace");
-    case CXCompletionChunk_RightBrace:
-        return QLatin1String("RightBrace");
-    case CXCompletionChunk_LeftAngle:
-        return QLatin1String("LeftAngle");
-    case CXCompletionChunk_RightAngle:
-        return QLatin1String("RightAngle");
-    case CXCompletionChunk_Comma:
-        return QLatin1String("Comma");
-    case CXCompletionChunk_ResultType:
-        return QLatin1String("ResultType");
-    case CXCompletionChunk_Colon:
-        return QLatin1String("Colon");
-    case CXCompletionChunk_SemiColon:
-        return QLatin1String("SemiColon");
-    case CXCompletionChunk_Equal:
-        return QLatin1String("Equal");
-    case CXCompletionChunk_HorizontalSpace:
-        return QLatin1String("HorizontalSpace");
-    case CXCompletionChunk_VerticalSpace:
-        return QLatin1String("VerticalSpace");
-    default:
-        return QLatin1String("<UNKNOWN>");
-    }
-}
-
 CodeCompleter::CodeCompleter(TranslationUnit translationUnit)
     : translationUnit(std::move(translationUnit))
 {
 }
 
-//void printCompletionString(CXCompletionString completionString, QDebug &deb)
-//{
-//    uint completionChunkCount = clang_getNumCompletionChunks(completionString);
-//    for (uint j = 0; j < completionChunkCount; ++j) {
-//        CXString text = clang_getCompletionChunkText(completionString, j);
-//        CXCompletionChunkKind chunkKind = clang_getCompletionChunkKind(completionString, j);
-//        deb.nospace() << toString(chunkKind) << ":" << clang_getCString(text) << "  ";
-
-//        CXCompletionString subCompletionString = clang_getCompletionChunkCompletionString(completionString, j);
-//        if (subCompletionString) {
-//            deb << "\tSUBCOMPLETIONSTRING";
-//            printCompletionString(subCompletionString, deb);
-//        }
-//    }
-//}
-
-
 const QVector<CodeCompletion> CodeCompleter::complete(uint line, uint column) const
 {
     QVector<CodeCompletion> completions;
 
-    ClangCodeCompleteResults completeResults(clang_codeCompleteAt(translationUnit.translationUnit(),
+    ClangCodeCompleteResults completeResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
                                                                   translationUnit.filePath().constData(),
                                                                   line,
                                                                   column,
-                                                                  0,
-                                                                  0,
-                                                                  0));
+                                                                  translationUnit.cxUnsavedFiles(),
+                                                                  translationUnit.unsavedFilesCount(),
+                                                                  CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 

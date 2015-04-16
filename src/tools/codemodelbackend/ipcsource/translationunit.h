@@ -33,7 +33,7 @@
 
 #include <clang-c/Index.h>
 
-#include <QSharedPointer>
+#include <memory>
 
 class Utf8String;
 
@@ -41,24 +41,29 @@ namespace CodeModelBackEnd {
 
 class TranslationUnitData;
 class CodeCompleter;
+class UnsavedFiles;
 
 class TranslationUnit
 {
 public:
     TranslationUnit() = default;
-    TranslationUnit(const Utf8String &filePath);
+    TranslationUnit(const Utf8String &filePath, UnsavedFiles *unsavedFiles);
     ~TranslationUnit();
 
-    TranslationUnit(const TranslationUnit &translationUnit);
-    TranslationUnit &operator =(const TranslationUnit &translationUnit);
+    TranslationUnit(const TranslationUnit &cxTranslationUnit);
+    TranslationUnit &operator =(const TranslationUnit &cxTranslationUnit);
 
-    TranslationUnit(TranslationUnit &&translationUnit);
-    TranslationUnit &operator =(TranslationUnit &&translationUnit);
+    TranslationUnit(TranslationUnit &&cxTranslationUnit);
+    TranslationUnit &operator =(TranslationUnit &&cxTranslationUnit);
 
     bool isNull() const;
 
+    void reset();
+
     CXIndex index() const;
-    CXTranslationUnit translationUnit() const;
+    CXTranslationUnit cxTranslationUnit() const;
+    CXUnsavedFile * cxUnsavedFiles() const;
+    uint unsavedFilesCount() const;
 
     CodeCompleter completer() const;
 
@@ -67,9 +72,10 @@ public:
 private:
     void checkIfNull() const;
     void checkIfFileNotExists() const;
+    void checkIfUnsavedFilesExist() const;
 
 private:
-    mutable QSharedPointer<TranslationUnitData> d;
+    mutable std::shared_ptr<TranslationUnitData> d;
 };
 
 } // namespace CodeModelBackEnd
