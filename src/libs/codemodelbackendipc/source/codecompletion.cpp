@@ -150,6 +150,42 @@ bool operator < (const CodeCompletion &first, const CodeCompletion &second)
     return first.text_ < second.text_;
 }
 
+static const char *complitionKindToString(CodeCompletion::Kind kind)
+{
+    switch (kind) {
+    case CodeCompletion::Other: return "Other";
+    case CodeCompletion::FunctionCompletionKind: return "Function";
+    case CodeCompletion::TemplateFunctionCompletionKind: return "TemplateFunction";
+    case CodeCompletion::ConstructorCompletionKind: return "Constructor";
+    case CodeCompletion::DestructorCompletionKind: return "Destructor";
+    case CodeCompletion::VariableCompletionKind: return "Variable";
+    case CodeCompletion::ClassCompletionKind: return "Class";
+    case CodeCompletion::TemplateClassCompletionKind: return "TemplateClass";
+    case CodeCompletion::EnumerationCompletionKind: return "Enumeration";
+    case CodeCompletion::EnumeratorCompletionKind: return "Enumerator";
+    case CodeCompletion::NamespaceCompletionKind: return "Namespace";
+    case CodeCompletion::PreProcessorCompletionKind: return "PreProcessor";
+    case CodeCompletion::SignalCompletionKind: return "Signal";
+    case CodeCompletion::SlotCompletionKind: return "Slot";
+    case CodeCompletion::ObjCMessageCompletionKind: return "ObjCMessage";
+    case CodeCompletion::KeywordCompletionKind: return "Keyword";
+    case CodeCompletion::ClangSnippetKind: return "ClangSnippet";
+    }
+
+    return nullptr;
+}
+
+static const char *availabilityoString(CodeCompletion::Availability availability)
+{
+    switch (availability) {
+        case CodeCompletion::Available: return "Available";
+        case CodeCompletion::Deprecated: return "Deprecated";
+        case CodeCompletion::NotAvailable: return "NotAvailable";
+        case CodeCompletion::NotAccessible: return "NotAccessible";
+    }
+    return nullptr;
+}
+
 QDebug operator <<(QDebug debug, const CodeCompletion &command)
 {
     debug.nospace() << "CodeCompletion(";
@@ -158,8 +194,8 @@ QDebug operator <<(QDebug debug, const CodeCompletion &command)
     debug.nospace() << command.hint_ << ", ";
     debug.nospace() << command.snippet_ << ", ";
     debug.nospace() << command.priority_ << ", ";
-    debug.nospace() << command.completionKind_ << ", ";
-    debug.nospace() << command.availability_ << ", ";
+    debug.nospace() << complitionKindToString(command.completionKind_) << ", ";
+    debug.nospace() << availabilityoString(command.availability_) << ", ";
     debug.nospace() << command.hasParameters_;
 
     debug.nospace() << ")";
@@ -175,44 +211,21 @@ void PrintTo(const CodeCompletion &command, ::std::ostream* os)
     *os << command.hint_.constData() << ", ";
     *os << command.snippet_.constData() << ", ";
     *os << command.priority_ << ", ";
-    *os << command.completionKind_ << ", ";
-    *os << command.availability_ << ", ";
+    *os << complitionKindToString(command.completionKind_) << ", ";
+    *os << availabilityoString(command.availability_) << ", ";
     *os << command.hasParameters_;
 
     *os << ")";
 }
 
-void PrintTo(const CodeCompletion::Kind &kind, ::std::ostream *os)
+void PrintTo(CodeCompletion::Kind kind, ::std::ostream *os)
 {
-    switch (kind) {
-        case CodeCompletion::Other: *os << "Other"; break;
-        case CodeCompletion::FunctionCompletionKind: *os << "Function"; break;
-        case CodeCompletion::TemplateFunctionCompletionKind: *os << "TemplateFunction"; break;
-        case CodeCompletion::ConstructorCompletionKind: *os << "Constructor"; break;
-        case CodeCompletion::DestructorCompletionKind: *os << "Destructor"; break;
-        case CodeCompletion::VariableCompletionKind: *os << "Variable"; break;
-        case CodeCompletion::ClassCompletionKind: *os << "Class"; break;
-        case CodeCompletion::TemplateClassCompletionKind: *os << "TemplateClass"; break;
-        case CodeCompletion::EnumerationCompletionKind: *os << "Enumeration"; break;
-        case CodeCompletion::EnumeratorCompletionKind: *os << "Enumerator"; break;
-        case CodeCompletion::NamespaceCompletionKind: *os << "Namespace"; break;
-        case CodeCompletion::PreProcessorCompletionKind: *os << "PreProcessor"; break;
-        case CodeCompletion::SignalCompletionKind: *os << "Signal"; break;
-        case CodeCompletion::SlotCompletionKind: *os << "Slot"; break;
-        case CodeCompletion::ObjCMessageCompletionKind: *os << "ObjCMessage"; break;
-        case CodeCompletion::KeywordCompletionKind: *os << "Keyword"; break;
-        case CodeCompletion::ClangSnippetKind: *os << "ClangSnippet"; break;
-    }
+    *os << complitionKindToString(kind);
 }
 
-void PrintTo(const CodeCompletion::Availability &availability, std::ostream *os)
+void PrintTo(CodeCompletion::Availability availability, std::ostream *os)
 {
-    switch (availability) {
-        case CodeCompletion::Available: *os << "Available"; break;
-        case CodeCompletion::Deprecated: *os << "Deprecated"; break;
-        case CodeCompletion::NotAvailable: *os << "NotAvailable"; break;
-        case CodeCompletion::NotAccessible: *os << "NotAccessible"; break;
-    }
+    *os << availabilityoString(availability);
 }
 
 } // namespace CodeModelBackEnd

@@ -125,9 +125,11 @@ bool operator == (const CodeCompletion &first, const CodeCompletion &second);
 bool operator < (const CodeCompletion &first, const CodeCompletion &second);
 
 QDebug operator <<(QDebug debug, const CodeCompletion &command);
+QDebug operator <<(QDebug debug, CodeCompletion::Kind kind);
+
 void PrintTo(const CodeCompletion &command, ::std::ostream* os);
-void PrintTo(const CodeCompletion::Kind &kind, ::std::ostream *os);
-void PrintTo(const CodeCompletion::Availability &availability, ::std::ostream *os);
+void PrintTo(CodeCompletion::Kind kind, ::std::ostream *os);
+void PrintTo(CodeCompletion::Availability availability, ::std::ostream *os);
 } // namespace CodeModelBackEnd
 
 Q_DECLARE_METATYPE(CodeModelBackEnd::CodeCompletion)
