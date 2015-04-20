@@ -67,7 +67,7 @@ protected:
 };
 
 CodeModelBackEnd::UnsavedFiles CodeCompleter::unsavedFiles;
-CodeModelBackEnd::TranslationUnit CodeCompleter::translationUnit(Utf8StringLiteral("data/complete_completer.cpp"), &unsavedFiles);
+CodeModelBackEnd::TranslationUnit CodeCompleter::translationUnit(Utf8StringLiteral("data/complete_completer.cpp"), unsavedFiles);
 CodeModelBackEnd::CodeCompleter CodeCompleter::completer = translationUnit.completer();
 
 CodeCompleter::CodeCompleter()

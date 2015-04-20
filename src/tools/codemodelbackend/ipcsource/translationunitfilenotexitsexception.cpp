@@ -28,11 +28,11 @@
 **
 ****************************************************************************/
 
-#include "translationunitfilenotexits.h"
+#include "translationunitfilenotexitsexception.h"
 
 namespace CodeModelBackEnd {
 
-TranslationUnitFileNotExits::TranslationUnitFileNotExits()
+TranslationUnitFileNotExitsException::TranslationUnitFileNotExitsException()
 {
 
 }

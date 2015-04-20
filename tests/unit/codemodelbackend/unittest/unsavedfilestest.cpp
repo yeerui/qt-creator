@@ -51,7 +51,7 @@ bool operator ==(const CodeModelBackEnd::FileContainer &fileContainer, const CXU
             && fileContainer.unsavedFileContent() == Utf8String(cxUnsavedFile.Contents, cxUnsavedFile.Length);
 }
 
-bool fileContainersContainsCxUnsavedFile(const QVector<FileContainer> &fileContainers, const CXUnsavedFile &cxUnsavedFile)
+bool fileContainersContainsItemMatchingToCxUnsavedFile(const QVector<FileContainer> &fileContainers, const CXUnsavedFile &cxUnsavedFile)
 {
     for (const FileContainer &fileContainer : fileContainers)
         if (fileContainer == cxUnsavedFile)
@@ -62,13 +62,14 @@ bool fileContainersContainsCxUnsavedFile(const QVector<FileContainer> &fileConta
 
 MATCHER_P(HasUnsavedFiles, fileContainers, "")
 {
-    if (arg.unsavedFilesCount() != fileContainers.size()) {
-        *result_listener << "unsaved count is " << arg.unsavedFilesCount() << " and not " << fileContainers.size();
+    CodeModelBackEnd::UnsavedFiles unsavedFiles = arg;
+    if (unsavedFiles.count() != fileContainers.size()) {
+        *result_listener << "unsaved count is " << unsavedFiles.count() << " and not " << fileContainers.size();
         return false;
     }
 
-    for (const CXUnsavedFile &cxUnsavedFile : arg.cxUnsavedFileVector()) {
-        if (!fileContainersContainsCxUnsavedFile(fileContainers, cxUnsavedFile))
+    for (const CXUnsavedFile &cxUnsavedFile : unsavedFiles.cxUnsavedFileVector()) {
+        if (!fileContainersContainsItemMatchingToCxUnsavedFile(fileContainers, cxUnsavedFile))
             return false;
     }
 
@@ -89,7 +90,7 @@ void UnsavedFiles::TearDown()
     unsavedFiles.clear();
 }
 
-TEST_F(UnsavedFiles, DoNothingForUpdateWithNormalFile)
+TEST_F(UnsavedFiles, DoNothingForUpdateIfFileHasNoUnsavedContent)
 {
     QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"))});
 

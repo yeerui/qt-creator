@@ -150,7 +150,7 @@ bool operator < (const CodeCompletion &first, const CodeCompletion &second)
     return first.text_ < second.text_;
 }
 
-static const char *complitionKindToString(CodeCompletion::Kind kind)
+static const char *completionKindToString(CodeCompletion::Kind kind)
 {
     switch (kind) {
     case CodeCompletion::Other: return "Other";
@@ -175,7 +175,7 @@ static const char *complitionKindToString(CodeCompletion::Kind kind)
     return nullptr;
 }
 
-static const char *availabilityoString(CodeCompletion::Availability availability)
+static const char *availabilityToString(CodeCompletion::Availability availability)
 {
     switch (availability) {
         case CodeCompletion::Available: return "Available";
@@ -194,8 +194,8 @@ QDebug operator <<(QDebug debug, const CodeCompletion &command)
     debug.nospace() << command.hint_ << ", ";
     debug.nospace() << command.snippet_ << ", ";
     debug.nospace() << command.priority_ << ", ";
-    debug.nospace() << complitionKindToString(command.completionKind_) << ", ";
-    debug.nospace() << availabilityoString(command.availability_) << ", ";
+    debug.nospace() << completionKindToString(command.completionKind_) << ", ";
+    debug.nospace() << availabilityToString(command.availability_) << ", ";
     debug.nospace() << command.hasParameters_;
 
     debug.nospace() << ")";
@@ -211,8 +211,8 @@ void PrintTo(const CodeCompletion &command, ::std::ostream* os)
     *os << command.hint_.constData() << ", ";
     *os << command.snippet_.constData() << ", ";
     *os << command.priority_ << ", ";
-    *os << complitionKindToString(command.completionKind_) << ", ";
-    *os << availabilityoString(command.availability_) << ", ";
+    *os << completionKindToString(command.completionKind_) << ", ";
+    *os << availabilityToString(command.availability_) << ", ";
     *os << command.hasParameters_;
 
     *os << ")";
@@ -220,12 +220,12 @@ void PrintTo(const CodeCompletion &command, ::std::ostream* os)
 
 void PrintTo(CodeCompletion::Kind kind, ::std::ostream *os)
 {
-    *os << complitionKindToString(kind);
+    *os << completionKindToString(kind);
 }
 
 void PrintTo(CodeCompletion::Availability availability, std::ostream *os)
 {
-    *os << availabilityoString(availability);
+    *os << availabilityToString(availability);
 }
 
 } // namespace CodeModelBackEnd

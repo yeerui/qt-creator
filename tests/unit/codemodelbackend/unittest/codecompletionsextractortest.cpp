@@ -82,10 +82,10 @@ MATCHER_P4(IsCompletion, name, kind, priority, availability,
     return false;
 }
 
-ClangCodeCompleteResults getResults(const char*filePath, uint line)
+ClangCodeCompleteResults getResults(const char *filePath, uint line)
 {
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
-    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath), &unsavedFiles);
+    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath), unsavedFiles);
 
     return ClangCodeCompleteResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
                                                          translationUnit.filePath().constData(),
@@ -96,10 +96,12 @@ ClangCodeCompleteResults getResults(const char*filePath, uint line)
                                                          CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
 }
 
-ClangCodeCompleteResults getResultsWithUnsavedFile(const char*filePath, const char*unsavedFilePath, uint line)
+ClangCodeCompleteResults getResultsWithUnsavedFile(const char *filePath, const char *unsavedFilePath, uint line)
 {
     QFile unsavedFileContentFile(QString::fromUtf8(unsavedFilePath));
-    unsavedFileContentFile.open(QIODevice::ReadOnly);
+    bool isOpen = unsavedFileContentFile.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!isOpen)
+         ADD_FAILURE() << "File with the unsaved content cannot be opened!";
 
     const Utf8String unsavedFileContent = Utf8String::fromByteArray(unsavedFileContentFile.readAll());
     const CodeModelBackEnd::FileContainer unsavedDataFileContainer(Utf8String::fromUtf8(filePath), unsavedFileContent, true);
@@ -107,7 +109,7 @@ ClangCodeCompleteResults getResultsWithUnsavedFile(const char*filePath, const ch
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
     unsavedFiles.update({unsavedDataFileContainer});
 
-    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath), &unsavedFiles);
+    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath), unsavedFiles);
 
     return ClangCodeCompleteResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
                                                          translationUnit.filePath().constData(),

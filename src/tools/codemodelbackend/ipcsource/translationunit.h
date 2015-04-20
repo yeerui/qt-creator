@@ -47,7 +47,7 @@ class TranslationUnit
 {
 public:
     TranslationUnit() = default;
-    TranslationUnit(const Utf8String &filePath, UnsavedFiles *unsavedFiles);
+    TranslationUnit(const Utf8String &filePath, const UnsavedFiles &unsavedFiles);
     ~TranslationUnit();
 
     TranslationUnit(const TranslationUnit &cxTranslationUnit);
@@ -72,7 +72,6 @@ public:
 private:
     void checkIfNull() const;
     void checkIfFileNotExists() const;
-    void checkIfUnsavedFilesExist() const;
 
 private:
     mutable std::shared_ptr<TranslationUnitData> d;

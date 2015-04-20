@@ -28,18 +28,18 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_TRANSLATIONUNITHASNOUNSAVEDFILES_H
-#define CODEMODELBACKEND_TRANSLATIONUNITHASNOUNSAVEDFILES_H
+#ifndef CODEMODELBACKEND_TRANSLATIONUNITFILENOTEXITS_H
+#define CODEMODELBACKEND_TRANSLATIONUNITFILENOTEXITS_H
 
 
 namespace CodeModelBackEnd {
 
-class TranslationUnitHasNoUnsavedFiles
+class TranslationUnitFileNotExitsException
 {
 public:
-    TranslationUnitHasNoUnsavedFiles();
+    TranslationUnitFileNotExitsException();
 };
 
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_TRANSLATIONUNITHASNOUNSAVEDFILES_H
+#endif // CODEMODELBACKEND_TRANSLATIONUNITFILENOTEXITS_H

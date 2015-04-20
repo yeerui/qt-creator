@@ -34,6 +34,8 @@
 #include <filecontainer.h>
 
 #include <vector>
+#include <memory>
+
 #include <QVector>
 
 #include <clang-c/Index.h>
@@ -43,10 +45,13 @@ namespace CodeModelBackEnd {
 class UnsavedFiles
 {
 public:
+    UnsavedFiles();
+    ~UnsavedFiles();
+
     void update(const QVector<FileContainer> &fileContainers);
     void clear();
 
-    int unsavedFilesCount() const;
+    int count() const;
 
     CXUnsavedFile *cxUnsavedFiles() const;
     const std::vector<CXUnsavedFile> &cxUnsavedFileVector() const;
@@ -59,7 +64,7 @@ private:
     void addOrUpdateCXUnsavedFile(const FileContainer &fileContainer);
 
 private:
-    mutable std::vector<CXUnsavedFile> cxUnsavedFiles_;
+    mutable std::shared_ptr<std::vector<CXUnsavedFile>> cxUnsavedFiles_;
 };
 
 } // namespace CodeModelBackEnd

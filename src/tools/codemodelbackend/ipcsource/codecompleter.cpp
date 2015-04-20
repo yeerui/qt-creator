@@ -50,8 +50,6 @@ CodeCompleter::CodeCompleter(TranslationUnit translationUnit)
 
 const QVector<CodeCompletion> CodeCompleter::complete(uint line, uint column) const
 {
-    QVector<CodeCompletion> completions;
-
     ClangCodeCompleteResults completeResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
                                                                   translationUnit.filePath().constData(),
                                                                   line,

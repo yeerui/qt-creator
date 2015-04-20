@@ -35,6 +35,16 @@
 
 namespace CodeModelBackEnd {
 
+UnsavedFiles::UnsavedFiles()
+    :cxUnsavedFiles_(std::make_shared<std::vector<CXUnsavedFile>>())
+{
+}
+
+UnsavedFiles::~UnsavedFiles()
+{
+    clear();
+}
+
 void UnsavedFiles::update(const QVector<FileContainer> &fileContainers)
 {
     for (const FileContainer &fileContainer : fileContainers)
@@ -43,25 +53,25 @@ void UnsavedFiles::update(const QVector<FileContainer> &fileContainers)
 
 void UnsavedFiles::clear()
 {
-    for (const CXUnsavedFile &cxUnsavedFile : cxUnsavedFiles_)
+    for (const CXUnsavedFile &cxUnsavedFile : *cxUnsavedFiles_.get())
         deleteCXUnsavedFile(cxUnsavedFile);
 
-    cxUnsavedFiles_.clear();
+    cxUnsavedFiles_->clear();
 }
 
-int UnsavedFiles::unsavedFilesCount() const
+int UnsavedFiles::count() const
 {
-    return cxUnsavedFiles_.size();
+    return cxUnsavedFiles_->size();
 }
 
 CXUnsavedFile *UnsavedFiles::cxUnsavedFiles() const
 {
-    return cxUnsavedFiles_.data();
+    return cxUnsavedFiles_->data();
 }
 
 const std::vector<CXUnsavedFile> &UnsavedFiles::cxUnsavedFileVector() const
 {
-    return cxUnsavedFiles_;
+    return *cxUnsavedFiles_.get();
 }
 
 const CXUnsavedFile UnsavedFiles::createCxUnsavedFile(const Utf8String &filePath, const Utf8String &fileContent)
@@ -95,7 +105,7 @@ void UnsavedFiles::removeCXUnsavedFile(const FileContainer &fileContainer)
     const Utf8String filePath = fileContainer.filePath();
     auto isSameFile = [filePath] (const CXUnsavedFile &cxUnsavedFile) { return filePath == cxUnsavedFile.Filename; };
 
-    cxUnsavedFiles_.erase(std::remove_if(cxUnsavedFiles_.begin(), cxUnsavedFiles_.end(), isSameFile), cxUnsavedFiles_.end());
+    cxUnsavedFiles_->erase(std::remove_if(cxUnsavedFiles_->begin(), cxUnsavedFiles_->end(), isSameFile), cxUnsavedFiles_->end());
 }
 
 void UnsavedFiles::addOrUpdateCXUnsavedFile(const FileContainer &fileContainer)
@@ -104,9 +114,9 @@ void UnsavedFiles::addOrUpdateCXUnsavedFile(const FileContainer &fileContainer)
     const Utf8String fileContent = fileContainer.unsavedFileContent();
     auto isSameFile = [filePath] (const CXUnsavedFile &cxUnsavedFile) { return filePath == cxUnsavedFile.Filename; };
 
-    auto cxUnsavedFileIterator = std::find_if(cxUnsavedFiles_.begin(), cxUnsavedFiles_.end(), isSameFile);
-    if (cxUnsavedFileIterator == cxUnsavedFiles_.end())
-        cxUnsavedFiles_.push_back(createCxUnsavedFile(filePath, fileContent));
+    auto cxUnsavedFileIterator = std::find_if(cxUnsavedFiles_->begin(), cxUnsavedFiles_->end(), isSameFile);
+    if (cxUnsavedFileIterator == cxUnsavedFiles_->end())
+        cxUnsavedFiles_->push_back(createCxUnsavedFile(filePath, fileContent));
     else {
         deleteCXUnsavedFile(*cxUnsavedFileIterator);
         *cxUnsavedFileIterator = createCxUnsavedFile(filePath, fileContent);

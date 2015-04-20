@@ -48,7 +48,7 @@ using CodeModelBackEnd::UnsavedFiles;
 TEST(ClangCodeCompleteResults, GetData)
 {
     UnsavedFiles unsavedFiles;
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), &unsavedFiles);
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), unsavedFiles);
     CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(translationUnit.cxTranslationUnit(), translationUnit.filePath().constData(), 49, 1, 0, 0, 0);
 
     ClangCodeCompleteResults codeCompleteResults(cxCodeCompleteResults);
@@ -68,7 +68,7 @@ TEST(ClangCodeCompleteResults, GetInvalidData)
 TEST(ClangCodeCompleteResults, MoveClangCodeCompleteResults)
 {
     UnsavedFiles unsavedFiles;
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), &unsavedFiles);
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), unsavedFiles);
     CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(translationUnit.cxTranslationUnit(), translationUnit.filePath().constData(), 49, 1, 0, 0, 0);
 
     ClangCodeCompleteResults codeCompleteResults(cxCodeCompleteResults);

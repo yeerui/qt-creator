@@ -37,8 +37,7 @@
 #include "codecompleter.h"
 
 #include "translationunitisnullexception.h"
-#include "translationunitfilenotexits.h"
-#include "translationunithasnounsavedfiles.h"
+#include "translationunitfilenotexitsexception.h"
 #include "unsavedfiles.h"
 
 namespace CodeModelBackEnd {
@@ -46,16 +45,16 @@ namespace CodeModelBackEnd {
 class TranslationUnitData
 {
 public:
-    TranslationUnitData(const Utf8String &filePath, UnsavedFiles *unsavedFiles);
+    TranslationUnitData(const Utf8String &filePath, const UnsavedFiles &unsavedFiles);
     ~TranslationUnitData();
 
     Utf8String filePath;
     CXTranslationUnit translationUnit = nullptr;
     CXIndex index = nullptr;
-    UnsavedFiles *unsavedFiles;
+    UnsavedFiles unsavedFiles;
 };
 
-TranslationUnitData::TranslationUnitData(const Utf8String &filePath, UnsavedFiles *unsavedFiles)
+TranslationUnitData::TranslationUnitData(const Utf8String &filePath, const UnsavedFiles &unsavedFiles)
     : filePath(filePath),
       unsavedFiles(unsavedFiles)
 {
@@ -67,7 +66,7 @@ TranslationUnitData::~TranslationUnitData()
     clang_disposeIndex(index);
 }
 
-TranslationUnit::TranslationUnit(const Utf8String &filePath, UnsavedFiles *unsavedFiles)
+TranslationUnit::TranslationUnit(const Utf8String &filePath, const UnsavedFiles &unsavedFiles)
     : d(std::make_shared<TranslationUnitData>(filePath, unsavedFiles))
 {
     checkIfFileNotExists();
@@ -96,15 +95,14 @@ CXIndex TranslationUnit::index() const
 CXTranslationUnit TranslationUnit::cxTranslationUnit() const
 {
     checkIfNull();
-    checkIfUnsavedFilesExist();
 
     if (!d->translationUnit)
         d->translationUnit = clang_createTranslationUnitFromSourceFile(index(),
                                                                        d->filePath.constData(),
                                                                        0,
                                                                        0,
-                                                                       d->unsavedFiles->unsavedFilesCount(),
-                                                                       d->unsavedFiles->cxUnsavedFiles());
+                                                                       d->unsavedFiles.count(),
+                                                                       d->unsavedFiles.cxUnsavedFiles());
 
     return d->translationUnit;
 }
@@ -130,25 +128,17 @@ void TranslationUnit::checkIfNull() const
 void TranslationUnit::checkIfFileNotExists() const
 {
     if (!QFileInfo::exists(d->filePath.toString()))
-        throw TranslationUnitFileNotExits();
-}
-
-void TranslationUnit::checkIfUnsavedFilesExist() const
-{
-    if (!d->unsavedFiles)
-        throw TranslationUnitHasNoUnsavedFiles();
+        throw TranslationUnitFileNotExitsException();
 }
 
 uint TranslationUnit::unsavedFilesCount() const
 {
-    checkIfUnsavedFilesExist();
-    return d->unsavedFiles->unsavedFilesCount();
+    return d->unsavedFiles.count();
 }
 
 CXUnsavedFile *TranslationUnit::cxUnsavedFiles() const
 {
-    checkIfUnsavedFilesExist();
-    return d->unsavedFiles->cxUnsavedFiles();
+    return d->unsavedFiles.cxUnsavedFiles();
 }
 
 TranslationUnit::~TranslationUnit() = default;
