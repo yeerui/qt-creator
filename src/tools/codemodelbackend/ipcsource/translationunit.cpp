@@ -96,13 +96,19 @@ CXTranslationUnit TranslationUnit::cxTranslationUnit() const
 {
     checkIfNull();
 
+    const auto options = CXTranslationUnit_DetailedPreprocessingRecord
+            | CXTranslationUnit_CacheCompletionResults
+            | CXTranslationUnit_PrecompiledPreamble
+            | CXTranslationUnit_SkipFunctionBodies;
+
     if (!d->translationUnit)
-        d->translationUnit = clang_createTranslationUnitFromSourceFile(index(),
-                                                                       d->filePath.constData(),
-                                                                       0,
-                                                                       0,
-                                                                       d->unsavedFiles.count(),
-                                                                       d->unsavedFiles.cxUnsavedFiles());
+        d->translationUnit = clang_parseTranslationUnit(index(),
+                                                        d->filePath.constData(),
+                                                        0,
+                                                        0,
+                                                        d->unsavedFiles.cxUnsavedFiles(),
+                                                        d->unsavedFiles.count(),
+                                                        options);
 
     return d->translationUnit;
 }

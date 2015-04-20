@@ -47,6 +47,7 @@ using CodeModelBackEnd::CodeCompletionsExtractor;
 using CodeModelBackEnd::ClangCodeCompleteResults;
 using CodeModelBackEnd::TranslationUnit;
 using CodeModelBackEnd::CodeCompletion;
+using CodeModelBackEnd::UnsavedFiles;
 
 namespace {
 
@@ -82,20 +83,6 @@ MATCHER_P4(IsCompletion, name, kind, priority, availability,
     return false;
 }
 
-ClangCodeCompleteResults getResults(const char *filePath, uint line)
-{
-    CodeModelBackEnd::UnsavedFiles unsavedFiles;
-    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath), unsavedFiles);
-
-    return ClangCodeCompleteResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
-                                                         translationUnit.filePath().constData(),
-                                                         line,
-                                                         1,
-                                                         translationUnit.cxUnsavedFiles(),
-                                                         translationUnit.unsavedFilesCount(),
-                                                         CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
-}
-
 ClangCodeCompleteResults getResultsWithUnsavedFile(const char *filePath, const char *unsavedFilePath, uint line)
 {
     QFile unsavedFileContentFile(QString::fromUtf8(unsavedFilePath));
@@ -120,10 +107,33 @@ ClangCodeCompleteResults getResultsWithUnsavedFile(const char *filePath, const c
                                                          CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
 }
 
-
-TEST(CodeCompletionExtractor, Function)
+ClangCodeCompleteResults getResults(const TranslationUnit &translationUnit, uint line)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    return ClangCodeCompleteResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
+                                                         translationUnit.filePath().constData(),
+                                                         line,
+                                                         1,
+                                                         translationUnit.cxUnsavedFiles(),
+                                                         translationUnit.unsavedFilesCount(),
+                                                         CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
+}
+
+class CodeCompletionExtractor : public ::testing::Test
+{
+protected:
+    CodeModelBackEnd::UnsavedFiles unsavedFiles;
+    TranslationUnit functionTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_function.cpp"), unsavedFiles);
+    TranslationUnit variableTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_variable.cpp"), unsavedFiles);
+    TranslationUnit classTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_class.cpp"), unsavedFiles);
+    TranslationUnit namespaceTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_namespace.cpp"), unsavedFiles);
+    TranslationUnit enumerationTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_enumeration.cpp"), unsavedFiles);
+    TranslationUnit constructorTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_constructor.cpp"), unsavedFiles);
+};
+
+
+TEST_F(CodeCompletionExtractor, Function)
+{
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -133,9 +143,9 @@ TEST(CodeCompletionExtractor, Function)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, TemplateFunction)
+TEST_F(CodeCompletionExtractor, TemplateFunction)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -145,9 +155,9 @@ TEST(CodeCompletionExtractor, TemplateFunction)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Variable)
+TEST_F(CodeCompletionExtractor, Variable)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_variable.cpp", 4));
+    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 4));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -158,9 +168,9 @@ TEST(CodeCompletionExtractor, Variable)
 }
 
 
-TEST(CodeCompletionExtractor, NonTypeTemplateParameter)
+TEST_F(CodeCompletionExtractor, NonTypeTemplateParameter)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_variable.cpp", 27));
+    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 27));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -171,9 +181,9 @@ TEST(CodeCompletionExtractor, NonTypeTemplateParameter)
 }
 
 
-TEST(CodeCompletionExtractor, VariableReference)
+TEST_F(CodeCompletionExtractor, VariableReference)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_variable.cpp", 12));
+    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 12));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -183,9 +193,9 @@ TEST(CodeCompletionExtractor, VariableReference)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Parameter)
+TEST_F(CodeCompletionExtractor, Parameter)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_variable.cpp", 4));
+    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 4));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -195,9 +205,9 @@ TEST(CodeCompletionExtractor, Parameter)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Field)
+TEST_F(CodeCompletionExtractor, Field)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_variable.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -207,9 +217,9 @@ TEST(CodeCompletionExtractor, Field)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Class)
+TEST_F(CodeCompletionExtractor, Class)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_class.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(classTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -219,9 +229,9 @@ TEST(CodeCompletionExtractor, Class)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Struct)
+TEST_F(CodeCompletionExtractor, Struct)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_class.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(classTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -231,9 +241,9 @@ TEST(CodeCompletionExtractor, Struct)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Union)
+TEST_F(CodeCompletionExtractor, Union)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_class.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(classTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -243,9 +253,9 @@ TEST(CodeCompletionExtractor, Union)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, TemplateTypeParameter)
+TEST_F(CodeCompletionExtractor, TemplateTypeParameter)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_class.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(classTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -255,9 +265,9 @@ TEST(CodeCompletionExtractor, TemplateTypeParameter)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, TemplateClass)
+TEST_F(CodeCompletionExtractor, TemplateClass)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_class.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(classTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -267,9 +277,9 @@ TEST(CodeCompletionExtractor, TemplateClass)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, TemplateTemplateParameter)
+TEST_F(CodeCompletionExtractor, TemplateTemplateParameter)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_class.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(classTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -279,9 +289,9 @@ TEST(CodeCompletionExtractor, TemplateTemplateParameter)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, ClassTemplatePartialSpecialization)
+TEST_F(CodeCompletionExtractor, ClassTemplatePartialSpecialization)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_class.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(classTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -291,9 +301,9 @@ TEST(CodeCompletionExtractor, ClassTemplatePartialSpecialization)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Namespace)
+TEST_F(CodeCompletionExtractor, Namespace)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_namespace.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(namespaceTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -303,9 +313,9 @@ TEST(CodeCompletionExtractor, Namespace)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, NamespaceAlias)
+TEST_F(CodeCompletionExtractor, NamespaceAlias)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_namespace.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(namespaceTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -315,9 +325,9 @@ TEST(CodeCompletionExtractor, NamespaceAlias)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Enumeration)
+TEST_F(CodeCompletionExtractor, Enumeration)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_enumeration.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(enumerationTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -327,9 +337,9 @@ TEST(CodeCompletionExtractor, Enumeration)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Enumerator)
+TEST_F(CodeCompletionExtractor, Enumerator)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_enumeration.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(enumerationTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -339,9 +349,9 @@ TEST(CodeCompletionExtractor, Enumerator)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Constructor)
+TEST_F(CodeCompletionExtractor, Constructor)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_constructor.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(constructorTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -351,9 +361,9 @@ TEST(CodeCompletionExtractor, Constructor)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Destructor)
+TEST_F(CodeCompletionExtractor, Destructor)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_constructor.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(constructorTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -363,9 +373,9 @@ TEST(CodeCompletionExtractor, Destructor)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Method)
+TEST_F(CodeCompletionExtractor, Method)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -376,9 +386,9 @@ TEST(CodeCompletionExtractor, Method)
     ASSERT_FALSE(extractor.currentCodeCompletion().hasParameters());
 }
 
-TEST(CodeCompletionExtractor, MethodWithParameters)
+TEST_F(CodeCompletionExtractor, MethodWithParameters)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -389,9 +399,9 @@ TEST(CodeCompletionExtractor, MethodWithParameters)
     ASSERT_TRUE(extractor.currentCodeCompletion().hasParameters());
 }
 
-TEST(CodeCompletionExtractor, Slot)
+TEST_F(CodeCompletionExtractor, Slot)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -401,9 +411,9 @@ TEST(CodeCompletionExtractor, Slot)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, Signal)
+TEST_F(CodeCompletionExtractor, Signal)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -413,9 +423,9 @@ TEST(CodeCompletionExtractor, Signal)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, MacroDefinition)
+TEST_F(CodeCompletionExtractor, MacroDefinition)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_variable.cpp", 35));
+    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 35));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -425,9 +435,9 @@ TEST(CodeCompletionExtractor, MacroDefinition)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, FunctionMacro)
+TEST_F(CodeCompletionExtractor, FunctionMacro)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 35));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 35));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -437,9 +447,9 @@ TEST(CodeCompletionExtractor, FunctionMacro)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, IntKeyword)
+TEST_F(CodeCompletionExtractor, IntKeyword)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -449,9 +459,9 @@ TEST(CodeCompletionExtractor, IntKeyword)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, SwitchKeyword)
+TEST_F(CodeCompletionExtractor, SwitchKeyword)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -461,9 +471,9 @@ TEST(CodeCompletionExtractor, SwitchKeyword)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, ClassKeyword)
+TEST_F(CodeCompletionExtractor, ClassKeyword)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -473,9 +483,9 @@ TEST(CodeCompletionExtractor, ClassKeyword)
                                         CodeCompletion::Available));
 }
 
-TEST(CodeCompletionExtractor, DeprecatedFunction)
+TEST_F(CodeCompletionExtractor, DeprecatedFunction)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -485,10 +495,9 @@ TEST(CodeCompletionExtractor, DeprecatedFunction)
                                         CodeCompletion::Deprecated));
 }
 
-TEST(CodeCompletionExtractor, NotAccessibleFunction)
+TEST_F(CodeCompletionExtractor, NotAccessibleFunction)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
-
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
     CodeCompletionsExtractor extractor(completeResults.data());
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("NotAccessibleFunction"),
@@ -497,9 +506,9 @@ TEST(CodeCompletionExtractor, NotAccessibleFunction)
                                         CodeCompletion::NotAccessible));
 }
 
-TEST(CodeCompletionExtractor, NotAvailableFunction)
+TEST_F(CodeCompletionExtractor, NotAvailableFunction)
 {
-    ClangCodeCompleteResults completeResults(getResults("data/complete_extractor_function.cpp", 20));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -509,7 +518,7 @@ TEST(CodeCompletionExtractor, NotAvailableFunction)
                                         CodeCompletion::NotAvailable));
 }
 
-TEST(CodeCompletionExtractor, UnsavedFile)
+TEST_F(CodeCompletionExtractor, UnsavedFile)
 {
     ClangCodeCompleteResults completeResults(getResultsWithUnsavedFile("data/complete_extractor_function.cpp",
                                                                        "data/complete_extractor_function_unsaved.cpp",
