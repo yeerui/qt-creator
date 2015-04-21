@@ -437,7 +437,7 @@ TEST_F(CodeCompletionExtractor, MacroDefinition)
 
 TEST_F(CodeCompletionExtractor, FunctionMacro)
 {
-    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 35));
+    ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
