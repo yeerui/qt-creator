@@ -74,6 +74,9 @@ const CPlusPlus::Macro CPPTOOLS_EXPORT *findCanonicalMacro(const QTextCursor &cu
 QString CPPTOOLS_EXPORT correspondingHeaderOrSource(const QString &fileName, bool *wasHeader = 0);
 void CPPTOOLS_EXPORT switchHeaderSource();
 
+class CppCodeModelSettings;
+QSharedPointer<CppCodeModelSettings> CPPTOOLS_EXPORT codeModelSettings();
+
 } // CppTools
 
 #endif // CPPTOOLSREUSE_H

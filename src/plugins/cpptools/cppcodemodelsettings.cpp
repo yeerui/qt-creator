@@ -33,7 +33,6 @@
 #include "cpptoolsconstants.h"
 
 using namespace CppTools;
-using namespace CppTools::Internal;
 
 static QLatin1String cppHeaderMimeType(Constants::CPP_HEADER_MIMETYPE);
 static QLatin1String cHeaderMimeType(Constants::C_HEADER_MIMETYPE);

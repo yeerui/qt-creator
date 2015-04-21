@@ -36,13 +36,13 @@
 #include <QSettings>
 #include <QString>
 
+#include "cpptools_global.h"
+
 namespace CppTools {
 
 class ModelManagerSupport;
 
-namespace Internal {
-
-class CppCodeModelSettings
+class CPPTOOLS_EXPORT CppCodeModelSettings
 {
 public:
     enum PCHUsage {
@@ -83,7 +83,6 @@ private:
     PCHUsage m_pchUsage;
 };
 
-} // namespace Internal
 } // namespace CppTools
 
 #endif // CPPTOOLS_INTERNAL_CPPCODEMODELSETTINGS_H
