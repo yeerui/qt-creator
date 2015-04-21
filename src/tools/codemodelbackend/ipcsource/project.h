@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,38 +28,44 @@
 **
 ****************************************************************************/
 
-#ifndef UTF8STRINGVECTOR_H
-#define UTF8STRINGVECTOR_H
+#ifndef CODEMODELBACKEND_PROJECT_H
+#define CODEMODELBACKEND_PROJECT_H
 
-#include "utf8string.h"
+#include <memory>
+#include <vector>
 
-#include <QVector>
+class Utf8String;
+class Utf8StringVector;
 
-#include "sqliteglobal.h"
+namespace CodeModelBackEnd {
 
-class SQLITE_EXPORT Utf8StringVector : public QVector<Utf8String>
+class ProjectData;
+
+class Project
 {
 public:
-    Utf8StringVector();
-    Utf8StringVector(std::initializer_list<Utf8String> initializerList);
-    explicit Utf8StringVector(const Utf8String &utf8String);
-    Utf8StringVector(const QVector<Utf8String> &vector);
-    explicit Utf8StringVector(const QStringList &stringList);
-    explicit Utf8StringVector(int size, const Utf8String &text);
+    Project(const Utf8String &projectFilePath);
+    ~Project();
 
-    const Utf8String join(const Utf8String &separator) const;
+    Project(const Project &project);
+    Project &operator =(const Project &project);
 
-    static const Utf8StringVector fromIntegerVector(const QVector<int> &integerVector);
+    Project(Project &&project);
+    Project &operator =(Project &&project);
 
-    static void registerType();
+    const Utf8String projectFilePath() const;
 
-protected:
-    int totalByteSize() const;
+    void setArguments(const Utf8StringVector &arguments_);
+
+    const std::vector<const char*> &arguments() const;
+
+    int argumentCount() const;
+    const char *const *cxArguments() const;
+
+private:
+    std::shared_ptr<ProjectData> d;
 };
 
-SQLITE_EXPORT QDebug operator<<(QDebug debug, const Utf8StringVector &textVector);
-SQLITE_EXPORT void PrintTo(const Utf8StringVector &textVector, ::std::ostream* os);
+} // namespace CodeModelBackEnd
 
-Q_DECLARE_METATYPE(Utf8StringVector)
-
-#endif // UTF8STRINGVECTOR_H
+#endif // CODEMODELBACKEND_PROJECT_H

@@ -22,15 +22,15 @@ class Class {
 };
 
 template <int NonTypeTemplateParameter>
-void function3()
-{
-
-}
+void function3() {}
 
 #define MacroDefinition
 
 
 void function4()
 {
+#ifdef ArgumentDefinition
+    int ArgumentDefinitionVariable;
+#endif
 
 }

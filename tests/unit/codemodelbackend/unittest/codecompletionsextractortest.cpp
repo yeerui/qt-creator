@@ -40,6 +40,8 @@
 #include <filecontainer.h>
 #include <translationunit.h>
 #include <unsavedfiles.h>
+#include <project.h>
+#include <utf8stringvector.h>
 
 #include <QFile>
 
@@ -52,27 +54,21 @@ using CodeModelBackEnd::UnsavedFiles;
 namespace {
 
 using ::testing::PrintToString;
+using ::testing::Not;
 
-MATCHER_P4(IsCompletion, name, kind, priority, availability,
+MATCHER_P3(IsCompletion, name, kind,  availability,
            std::string(negation ? "isn't" : "is") + " completion of name " + PrintToString(name) +
-           ", kind " + PrintToString(kind) + " and priority " + PrintToString(priority)
-           )
+           ", kind " + PrintToString(kind))
 {
     while(arg.next()) {
         if (arg.currentCodeCompletion().text() == name) {
             if (arg.currentCodeCompletion().completionKind() == kind) {
-                if (arg.currentCodeCompletion().priority() == quint32(priority)) {
-                    if (arg.currentCodeCompletion().availability() == availability) {
-                        return true;
-                    } else if (!arg.peek(name)) {
-                        *result_listener << "availability is " << PrintToString(arg.currentCodeCompletion().availability()) << " and not " << PrintToString(availability);
-                        return false;
-                    }
+                if (arg.currentCodeCompletion().availability() == availability) {
+                    return true;
                 } else if (!arg.peek(name)) {
-                    *result_listener << "priority is " << PrintToString(arg.currentCodeCompletion().priority()) << " and not " << priority;
+                    *result_listener << "availability is " << PrintToString(arg.currentCodeCompletion().availability()) << " and not " << PrintToString(availability);
                     return false;
                 }
-
             } else if (!arg.peek(name)) {
                 *result_listener << "kind is " << PrintToString(arg.currentCodeCompletion().completionKind()) << " and not " << PrintToString(kind);
                 return false;
@@ -96,7 +92,9 @@ ClangCodeCompleteResults getResultsWithUnsavedFile(const char *filePath, const c
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
     unsavedFiles.update({unsavedDataFileContainer});
 
-    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath), unsavedFiles);
+    CodeModelBackEnd::Project project(Utf8StringLiteral("/path/to/projectfile"));
+
+    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath), unsavedFiles, project);
 
     return ClangCodeCompleteResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
                                                          translationUnit.filePath().constData(),
@@ -107,12 +105,12 @@ ClangCodeCompleteResults getResultsWithUnsavedFile(const char *filePath, const c
                                                          CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
 }
 
-ClangCodeCompleteResults getResults(const TranslationUnit &translationUnit, uint line)
+ClangCodeCompleteResults getResults(const TranslationUnit &translationUnit, uint line, uint column = 1)
 {
     return ClangCodeCompleteResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
                                                          translationUnit.filePath().constData(),
                                                          line,
-                                                         1,
+                                                         column,
                                                          translationUnit.cxUnsavedFiles(),
                                                          translationUnit.unsavedFilesCount(),
                                                          CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
@@ -121,13 +119,14 @@ ClangCodeCompleteResults getResults(const TranslationUnit &translationUnit, uint
 class CodeCompletionExtractor : public ::testing::Test
 {
 protected:
+    CodeModelBackEnd::Project project = Utf8StringLiteral("/path/to/projectfile");
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
-    TranslationUnit functionTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_function.cpp"), unsavedFiles);
-    TranslationUnit variableTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_variable.cpp"), unsavedFiles);
-    TranslationUnit classTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_class.cpp"), unsavedFiles);
-    TranslationUnit namespaceTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_namespace.cpp"), unsavedFiles);
-    TranslationUnit enumerationTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_enumeration.cpp"), unsavedFiles);
-    TranslationUnit constructorTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_constructor.cpp"), unsavedFiles);
+    TranslationUnit functionTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_function.cpp"), unsavedFiles, project);
+    TranslationUnit variableTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_variable.cpp"), unsavedFiles, project);
+    TranslationUnit classTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_class.cpp"), unsavedFiles, project);
+    TranslationUnit namespaceTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_namespace.cpp"), unsavedFiles, project);
+    TranslationUnit enumerationTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_enumeration.cpp"), unsavedFiles, project);
+    TranslationUnit constructorTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_constructor.cpp"), unsavedFiles, project);
 };
 
 
@@ -139,7 +138,6 @@ TEST_F(CodeCompletionExtractor, Function)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Function"),
                                         CodeCompletion::FunctionCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -151,7 +149,6 @@ TEST_F(CodeCompletionExtractor, TemplateFunction)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("TemplateFunction"),
                                         CodeCompletion::TemplateFunctionCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -163,20 +160,18 @@ TEST_F(CodeCompletionExtractor, Variable)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Var"),
                                         CodeCompletion::VariableCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
 }
 
 
 TEST_F(CodeCompletionExtractor, NonTypeTemplateParameter)
 {
-    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 27));
+    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 25, 19));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("NonTypeTemplateParameter"),
                                         CodeCompletion::VariableCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
 }
 
@@ -189,7 +184,6 @@ TEST_F(CodeCompletionExtractor, VariableReference)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Var"),
                                         CodeCompletion::VariableCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
 }
 
@@ -201,7 +195,6 @@ TEST_F(CodeCompletionExtractor, Parameter)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Parameter"),
                                         CodeCompletion::VariableCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
 }
 
@@ -213,7 +206,6 @@ TEST_F(CodeCompletionExtractor, Field)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Field"),
                                         CodeCompletion::VariableCompletionKind,
-                                        35,
                                         CodeCompletion::Available));
 }
 
@@ -225,7 +217,6 @@ TEST_F(CodeCompletionExtractor, Class)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Class"),
                                         CodeCompletion::ClassCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -237,7 +228,6 @@ TEST_F(CodeCompletionExtractor, Struct)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Struct"),
                                         CodeCompletion::ClassCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -249,7 +239,6 @@ TEST_F(CodeCompletionExtractor, Union)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Union"),
                                         CodeCompletion::ClassCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -261,7 +250,6 @@ TEST_F(CodeCompletionExtractor, TemplateTypeParameter)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("TemplateTypeParameter"),
                                         CodeCompletion::ClassCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
 }
 
@@ -273,7 +261,6 @@ TEST_F(CodeCompletionExtractor, TemplateClass)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("TemplateClass"),
                                         CodeCompletion::TemplateClassCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -285,7 +272,6 @@ TEST_F(CodeCompletionExtractor, TemplateTemplateParameter)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("TemplateTemplateParameter"),
                                         CodeCompletion::TemplateClassCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
 }
 
@@ -297,7 +283,6 @@ TEST_F(CodeCompletionExtractor, ClassTemplatePartialSpecialization)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("ClassTemplatePartialSpecialization"),
                                         CodeCompletion::TemplateClassCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -309,7 +294,6 @@ TEST_F(CodeCompletionExtractor, Namespace)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Namespace"),
                                         CodeCompletion::NamespaceCompletionKind,
-                                        75,
                                         CodeCompletion::Available));
 }
 
@@ -321,7 +305,6 @@ TEST_F(CodeCompletionExtractor, NamespaceAlias)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("NamespaceAlias"),
                                         CodeCompletion::NamespaceCompletionKind,
-                                        75,
                                         CodeCompletion::Available));
 }
 
@@ -333,7 +316,6 @@ TEST_F(CodeCompletionExtractor, Enumeration)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Enumeration"),
                                         CodeCompletion::EnumerationCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -345,7 +327,6 @@ TEST_F(CodeCompletionExtractor, Enumerator)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Enumerator"),
                                         CodeCompletion::EnumeratorCompletionKind,
-                                        65,
                                         CodeCompletion::Available));
 }
 
@@ -357,7 +338,6 @@ TEST_F(CodeCompletionExtractor, Constructor)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Constructor"),
                                         CodeCompletion::ConstructorCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -369,7 +349,6 @@ TEST_F(CodeCompletionExtractor, Destructor)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("~Constructor"),
                                         CodeCompletion::DestructorCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
 }
 
@@ -381,7 +360,6 @@ TEST_F(CodeCompletionExtractor, Method)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Method"),
                                         CodeCompletion::FunctionCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
     ASSERT_FALSE(extractor.currentCodeCompletion().hasParameters());
 }
@@ -394,7 +372,6 @@ TEST_F(CodeCompletionExtractor, MethodWithParameters)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("MethodWithParameters"),
                                         CodeCompletion::FunctionCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
     ASSERT_TRUE(extractor.currentCodeCompletion().hasParameters());
 }
@@ -407,7 +384,6 @@ TEST_F(CodeCompletionExtractor, Slot)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Slot"),
                                         CodeCompletion::SlotCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
 }
 
@@ -419,7 +395,6 @@ TEST_F(CodeCompletionExtractor, Signal)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Signal"),
                                         CodeCompletion::SignalCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
 }
 
@@ -431,7 +406,6 @@ TEST_F(CodeCompletionExtractor, MacroDefinition)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("MacroDefinition"),
                                         CodeCompletion::PreProcessorCompletionKind,
-                                        70,
                                         CodeCompletion::Available));
 }
 
@@ -443,7 +417,6 @@ TEST_F(CodeCompletionExtractor, FunctionMacro)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("FunctionMacro"),
                                         CodeCompletion::FunctionCompletionKind,
-                                        70,
                                         CodeCompletion::Available));
 }
 
@@ -455,7 +428,6 @@ TEST_F(CodeCompletionExtractor, IntKeyword)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("int"),
                                         CodeCompletion::KeywordCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -467,7 +439,6 @@ TEST_F(CodeCompletionExtractor, SwitchKeyword)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("switch"),
                                         CodeCompletion::KeywordCompletionKind,
-                                        40,
                                         CodeCompletion::Available));
 }
 
@@ -479,7 +450,6 @@ TEST_F(CodeCompletionExtractor, ClassKeyword)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("class"),
                                         CodeCompletion::KeywordCompletionKind,
-                                        50,
                                         CodeCompletion::Available));
 }
 
@@ -491,7 +461,6 @@ TEST_F(CodeCompletionExtractor, DeprecatedFunction)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("DeprecatedFunction"),
                                         CodeCompletion::FunctionCompletionKind,
-                                        34,
                                         CodeCompletion::Deprecated));
 }
 
@@ -502,7 +471,6 @@ TEST_F(CodeCompletionExtractor, NotAccessibleFunction)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("NotAccessibleFunction"),
                                         CodeCompletion::FunctionCompletionKind,
-                                        36,
                                         CodeCompletion::NotAccessible));
 }
 
@@ -514,7 +482,6 @@ TEST_F(CodeCompletionExtractor, NotAvailableFunction)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("NotAvailableFunction"),
                                         CodeCompletion::FunctionCompletionKind,
-                                        34,
                                         CodeCompletion::NotAvailable));
 }
 
@@ -528,7 +495,30 @@ TEST_F(CodeCompletionExtractor, UnsavedFile)
 
     ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Method2"),
                                         CodeCompletion::FunctionCompletionKind,
-                                        34,
                                         CodeCompletion::Available));
+}
+
+TEST_F(CodeCompletionExtractor, ArgumentDefinition)
+{
+    project.setArguments({Utf8StringLiteral("-DArgumentDefinition")});
+    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 35));
+
+    CodeCompletionsExtractor extractor(completeResults.data());
+
+    ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("ArgumentDefinitionVariable"),
+                                        CodeCompletion::VariableCompletionKind,
+                                        CodeCompletion::Available));
+}
+
+TEST_F(CodeCompletionExtractor, NoArgumentDefinition)
+{
+    project.setArguments(Utf8StringVector());
+    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 35));
+
+    CodeCompletionsExtractor extractor(completeResults.data());
+
+    ASSERT_THAT(extractor, Not(IsCompletion(Utf8StringLiteral("ArgumentDefinitionVariable"),
+                                        CodeCompletion::VariableCompletionKind,
+                                        CodeCompletion::Available)));
 }
 }

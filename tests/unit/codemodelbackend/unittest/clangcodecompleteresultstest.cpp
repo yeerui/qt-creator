@@ -36,6 +36,7 @@
 
 #include <clangcodecompleteresults.h>
 #include <translationunit.h>
+#include <project.h>
 #include <unsavedfiles.h>
 #include <utf8string.h>
 
@@ -44,11 +45,13 @@ namespace {
 using CodeModelBackEnd::ClangCodeCompleteResults;
 using CodeModelBackEnd::TranslationUnit;
 using CodeModelBackEnd::UnsavedFiles;
+using CodeModelBackEnd::Project;
 
 TEST(ClangCodeCompleteResults, GetData)
 {
+    Project project(Utf8StringLiteral("/path/to/projectfile"));
     UnsavedFiles unsavedFiles;
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), unsavedFiles);
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), unsavedFiles, project);
     CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(translationUnit.cxTranslationUnit(), translationUnit.filePath().constData(), 49, 1, 0, 0, 0);
 
     ClangCodeCompleteResults codeCompleteResults(cxCodeCompleteResults);
@@ -67,8 +70,9 @@ TEST(ClangCodeCompleteResults, GetInvalidData)
 
 TEST(ClangCodeCompleteResults, MoveClangCodeCompleteResults)
 {
+    Project project(Utf8StringLiteral("/path/to/projectfile"));
     UnsavedFiles unsavedFiles;
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), unsavedFiles);
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), unsavedFiles, project);
     CXCodeCompleteResults *cxCodeCompleteResults = clang_codeCompleteAt(translationUnit.cxTranslationUnit(), translationUnit.filePath().constData(), 49, 1, 0, 0, 0);
 
     ClangCodeCompleteResults codeCompleteResults(cxCodeCompleteResults);

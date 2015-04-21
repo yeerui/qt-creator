@@ -42,12 +42,15 @@ namespace CodeModelBackEnd {
 class TranslationUnitData;
 class CodeCompleter;
 class UnsavedFiles;
+class Project;
 
 class TranslationUnit
 {
 public:
     TranslationUnit() = default;
-    TranslationUnit(const Utf8String &filePath, const UnsavedFiles &unsavedFiles);
+    TranslationUnit(const Utf8String &filePath,
+                    const UnsavedFiles &unsavedFiles,
+                    const Project &project);
     ~TranslationUnit();
 
     TranslationUnit(const TranslationUnit &cxTranslationUnit);

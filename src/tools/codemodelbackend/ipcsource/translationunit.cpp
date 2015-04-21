@@ -39,23 +39,30 @@
 #include "translationunitisnullexception.h"
 #include "translationunitfilenotexitsexception.h"
 #include "unsavedfiles.h"
+#include "project.h"
 
 namespace CodeModelBackEnd {
 
 class TranslationUnitData
 {
 public:
-    TranslationUnitData(const Utf8String &filePath, const UnsavedFiles &unsavedFiles);
+    TranslationUnitData(const Utf8String &filePath,
+                        const UnsavedFiles &unsavedFiles,
+                        const Project &project);
     ~TranslationUnitData();
 
+    Project project;
     Utf8String filePath;
     CXTranslationUnit translationUnit = nullptr;
     CXIndex index = nullptr;
     UnsavedFiles unsavedFiles;
 };
 
-TranslationUnitData::TranslationUnitData(const Utf8String &filePath, const UnsavedFiles &unsavedFiles)
-    : filePath(filePath),
+TranslationUnitData::TranslationUnitData(const Utf8String &filePath,
+                                         const UnsavedFiles &unsavedFiles,
+                                         const Project &project)
+    : project(project),
+      filePath(filePath),
       unsavedFiles(unsavedFiles)
 {
 }
@@ -66,8 +73,10 @@ TranslationUnitData::~TranslationUnitData()
     clang_disposeIndex(index);
 }
 
-TranslationUnit::TranslationUnit(const Utf8String &filePath, const UnsavedFiles &unsavedFiles)
-    : d(std::make_shared<TranslationUnitData>(filePath, unsavedFiles))
+TranslationUnit::TranslationUnit(const Utf8String &filePath,
+                                 const UnsavedFiles &unsavedFiles,
+                                 const Project &project)
+    : d(std::make_shared<TranslationUnitData>(filePath, unsavedFiles, project))
 {
     checkIfFileNotExists();
 }
@@ -87,7 +96,7 @@ CXIndex TranslationUnit::index() const
     checkIfNull();
 
     if (!d->index)
-        d->index = clang_createIndex(1, 0);
+        d->index = clang_createIndex(1, 1);
 
     return d->index;
 }
@@ -104,8 +113,8 @@ CXTranslationUnit TranslationUnit::cxTranslationUnit() const
     if (!d->translationUnit)
         d->translationUnit = clang_parseTranslationUnit(index(),
                                                         d->filePath.constData(),
-                                                        0,
-                                                        0,
+                                                        d->project.cxArguments(),
+                                                        d->project.argumentCount(),
                                                         d->unsavedFiles.cxUnsavedFiles(),
                                                         d->unsavedFiles.count(),
                                                         options);

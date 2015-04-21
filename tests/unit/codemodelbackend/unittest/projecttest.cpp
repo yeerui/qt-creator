@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,38 +28,45 @@
 **
 ****************************************************************************/
 
-#ifndef UTF8STRINGVECTOR_H
-#define UTF8STRINGVECTOR_H
+#include "gtest/gtest.h"
 
-#include "utf8string.h"
+#include "gmock/gmock-matchers.h"
+#include "gmock/gmock-generated-matchers.h"
 
-#include <QVector>
+#include <project.h>
+#include <utf8stringvector.h>
 
-#include "sqliteglobal.h"
+using testing::ElementsAre;
+using testing::StrEq;
+using testing::Pointwise;
+using testing::Contains;
 
-class SQLITE_EXPORT Utf8StringVector : public QVector<Utf8String>
+namespace {
+
+TEST(Project, CreateProject)
 {
-public:
-    Utf8StringVector();
-    Utf8StringVector(std::initializer_list<Utf8String> initializerList);
-    explicit Utf8StringVector(const Utf8String &utf8String);
-    Utf8StringVector(const QVector<Utf8String> &vector);
-    explicit Utf8StringVector(const QStringList &stringList);
-    explicit Utf8StringVector(int size, const Utf8String &text);
+    Utf8String projectPath(Utf8StringLiteral("/tmp/blah.pro"));
 
-    const Utf8String join(const Utf8String &separator) const;
+    CodeModelBackEnd::Project project(projectPath);
 
-    static const Utf8StringVector fromIntegerVector(const QVector<int> &integerVector);
+    ASSERT_THAT(project.projectFilePath(), projectPath);
+}
 
-    static void registerType();
+TEST(Project, SetArguments)
+{
+    CodeModelBackEnd::Project project(Utf8StringLiteral("/tmp/blah.pro"));
 
-protected:
-    int totalByteSize() const;
-};
+    project.setArguments(Utf8StringVector({Utf8StringLiteral("-O"), Utf8StringLiteral("-fast")}));
 
-SQLITE_EXPORT QDebug operator<<(QDebug debug, const Utf8StringVector &textVector);
-SQLITE_EXPORT void PrintTo(const Utf8StringVector &textVector, ::std::ostream* os);
+    ASSERT_THAT(project.arguments(), ElementsAre(StrEq("-O"), StrEq("-fast")));
+}
 
-Q_DECLARE_METATYPE(Utf8StringVector)
+TEST(Project, ArgumentCount)
+{
+    CodeModelBackEnd::Project project(Utf8StringLiteral("/tmp/blah.pro"));
 
-#endif // UTF8STRINGVECTOR_H
+    project.setArguments(Utf8StringVector({Utf8StringLiteral("-O"), Utf8StringLiteral("-fast")}));
+
+    ASSERT_THAT(project.argumentCount(), 2);
+}
+}

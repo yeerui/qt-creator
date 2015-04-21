@@ -36,6 +36,7 @@
 #include <translationunit.h>
 #include <unsavedfiles.h>
 #include <utf8stringvector.h>
+#include <project.h>
 
 #include <QFile>
 
@@ -57,22 +58,16 @@ public:
     static void TearDownTestCase();
 
 protected:
-    CodeCompleter();
-
-
-protected:
+    static CodeModelBackEnd::Project project;
     static CodeModelBackEnd::UnsavedFiles unsavedFiles;
     static CodeModelBackEnd::TranslationUnit translationUnit;
     static CodeModelBackEnd::CodeCompleter completer;
 };
 
+CodeModelBackEnd::Project CodeCompleter::project(Utf8StringLiteral("/path/to/projectfile"));
 CodeModelBackEnd::UnsavedFiles CodeCompleter::unsavedFiles;
-CodeModelBackEnd::TranslationUnit CodeCompleter::translationUnit(Utf8StringLiteral("data/complete_completer.cpp"), unsavedFiles);
+CodeModelBackEnd::TranslationUnit CodeCompleter::translationUnit(Utf8StringLiteral("data/complete_completer.cpp"), unsavedFiles, project);
 CodeModelBackEnd::CodeCompleter CodeCompleter::completer = translationUnit.completer();
-
-CodeCompleter::CodeCompleter()
-{
-}
 
 void CodeCompleter::SetUpTestCase()
 {

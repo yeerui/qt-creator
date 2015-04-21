@@ -54,7 +54,8 @@ SOURCES += main.cpp \
     translationunittest.cpp \
     clangcodecompleteresultstest.cpp \
     codecompletionsextractortest.cpp \
-    unsavedfilestest.cpp
+    unsavedfilestest.cpp \
+    projecttest.cpp
 
 HEADERS += \
     gtest-qt-printing.h \
