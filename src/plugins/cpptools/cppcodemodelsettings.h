@@ -73,6 +73,8 @@ public:
     PCHUsage pchUsage() const { return m_pchUsage; }
     void setPCHUsage(PCHUsage pchUsage) { m_pchUsage = pchUsage; }
 
+    static QStringList supportedMimeTypes();
+
 private:
     void setIdForMimeType(const QVariant &var, const QString &mimeType);
 
