@@ -91,13 +91,16 @@ equals(TEST, 1) {
         $$PWD/test/clang_tests_database.qrc
 
     HEADERS += \
-        $$PWD/test/completiontesthelper.h
+        $$PWD/test/completiontesthelper.h \
+        $$PWD/test/clangcodecompletion_test.h
 
     SOURCES += \
         $$PWD/test/completiontesthelper.cpp \
-        $$PWD/test/clangcompletion_test.cpp
+        $$PWD/test/clangcompletion_test.cpp \
+        $$PWD/test/clangcodecompletion_test.cpp
 
     DISTFILES += \
+        $$PWD/test/globalCompletion.cpp \
         $$PWD/test/cxx_regression_1.cpp \
         $$PWD/test/cxx_regression_2.cpp \
         $$PWD/test/cxx_regression_3.cpp \

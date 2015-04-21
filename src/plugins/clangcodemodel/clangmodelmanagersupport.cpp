@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+#include "constants.h"
 #include "clangcompletion.h"
 #include "clangeditordocumentprocessor.h"
 #include "clangmodelmanagersupport.h"
@@ -48,7 +49,7 @@ ModelManagerSupport::~ModelManagerSupport()
 
 QString ModelManagerSupport::id() const
 {
-    return QLatin1String("ClangCodeMode.ClangCodeMode");
+    return QLatin1String(Constants::CLANG_MODELMANAGERSUPPORT_ID);
 }
 
 QString ModelManagerSupport::displayName() const

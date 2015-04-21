@@ -53,6 +53,8 @@ class ClangAssistProposalModel;
 
 class ClangCompletionAssistProvider : public CppTools::CppCompletionAssistProvider
 {
+    Q_OBJECT
+
 public:
     ClangCompletionAssistProvider();
 

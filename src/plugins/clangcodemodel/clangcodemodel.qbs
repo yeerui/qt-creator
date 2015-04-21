@@ -120,6 +120,8 @@ QtcPlugin {
         prefix: "test/"
         files: [
             "clang_tests_database.qrc",
+            "clangcodecompletion_test.cpp",
+            "clangcodecompletion_test.h",
             "clangcompletion_test.cpp",
             "completiontesthelper.cpp",
             "completiontesthelper.h",
@@ -131,6 +133,7 @@ QtcPlugin {
         prefix: "test/"
         fileTags: "none"
         files: [
+            "globalCompletion.cpp",
             "cxx_regression_1.cpp",
             "cxx_regression_2.cpp",
             "cxx_regression_3.cpp",

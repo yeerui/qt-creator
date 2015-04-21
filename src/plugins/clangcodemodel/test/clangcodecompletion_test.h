@@ -28,36 +28,36 @@
 **
 ****************************************************************************/
 
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef CLANGCODECOMPLETIONTEST_H
+#define CLANGCODECOMPLETIONTEST_H
 
-#include <QtCore/QLatin1Char>
+#include <QObject>
 
 namespace ClangCodeModel {
-namespace Constants {
+namespace Internal {
+namespace Tests {
 
-static const QLatin1Char kLParen('(');
-static const QLatin1Char kRParen(')');
-static const QLatin1Char kLBrace('{');
-static const QLatin1Char kRBrace('}');
-static const QLatin1Char kLBracket('[');
-static const QLatin1Char kRBracket(']');
-static const QLatin1Char kLABracket('<');
-static const QLatin1Char kRABracket('>');
-static const QLatin1Char kSemiColon(';');
-static const QLatin1Char kPound('#');
-static const QLatin1Char kColon(':');
-static const QLatin1Char kExclamation('!');
-static const QLatin1Char kSpace(' ');
-static const QLatin1Char kSlash('/');
-static const QLatin1Char kStar('*');
-static const QLatin1Char kDoubleQuote('"');
-static const QLatin1Char kNewLine('\n');
-static const QLatin1Char kHorizontalTab('\t');
+class ActivateClangModelManagerSupport;
 
-const char CLANG_MODELMANAGERSUPPORT_ID[] = "ClangCodeMode.ClangCodeMode";
+class ClangCodeCompletionTest : public QObject
+{
+    Q_OBJECT
 
-}
-}
+public:
+    ClangCodeCompletionTest();
+    ~ClangCodeCompletionTest();
 
-#endif // CONSTANTS_H
+private slots:
+    void initTestCase();
+
+    void testGlobalCompletion();
+
+private:
+    QScopedPointer<ActivateClangModelManagerSupport> m_activater;
+};
+
+} // namespace Tests
+} // namespace Internal
+} // namespace ClangCodeModel
+
+#endif // CLANGCODECOMPLETIONTEST_H

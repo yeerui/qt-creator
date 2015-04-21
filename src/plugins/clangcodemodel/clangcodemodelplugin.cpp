@@ -34,6 +34,10 @@
 #include "pchmanager.h"
 #include "utils.h"
 
+#ifdef WITH_TESTS
+#  include "test/clangcodecompletion_test.h"
+#endif
+
 #include <cpptools/cppmodelmanager.h>
 
 #include <projectexplorer/projectpanelfactory.h>
@@ -83,6 +87,15 @@ bool ClangCodeModelPlugin::initialize(const QStringList &arguments, QString *err
 void ClangCodeModelPlugin::extensionsInitialized()
 {
 }
+
+#ifdef WITH_TESTS
+QList<QObject *> ClangCodeModelPlugin::createTestObjects() const
+{
+    return QList<QObject *>()
+        << new Tests::ClangCodeCompletionTest
+        ;
+}
+#endif
 
 } // namespace Internal
 } // namespace Clang

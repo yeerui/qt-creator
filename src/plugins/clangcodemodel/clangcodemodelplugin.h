@@ -60,6 +60,8 @@ private:
 #endif // CLANG_INDEXING
 
 #ifdef WITH_TESTS
+    QList<QObject *> createTestObjects() const;
+
 private slots:
     void test_CXX_regressions();
     void test_CXX_regressions_data();

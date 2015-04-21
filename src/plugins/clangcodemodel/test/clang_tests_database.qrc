@@ -16,5 +16,6 @@
         <file>objc_messages_1.mm</file>
         <file>objc_messages_2.mm</file>
         <file>objc_messages_3.mm</file>
+        <file>globalCompletion.cpp</file>
     </qresource>
 </RCC>
