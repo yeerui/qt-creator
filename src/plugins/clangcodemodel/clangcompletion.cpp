@@ -604,8 +604,6 @@ int ClangCompletionAssistProcessor::startCompletionHelper()
     while (m_interface->characterAt(endOfOperator - 1).isSpace())
         --endOfOperator;
 
-    const QString fileName = m_interface->fileName();
-
     int endOfExpression = startOfOperator(endOfOperator,
                                           &m_model->m_completionOperator,
                                           /*want function call =*/ true);
@@ -677,7 +675,7 @@ int ClangCompletionAssistProcessor::startCompletionHelper()
 
     int line = 0, column = 0;
     Convenience::convertPosition(m_interface->textDocument(), endOfOperator, &line, &column);
-    return startCompletionInternal(fileName, line, column, endOfOperator);
+    return startCompletionInternal(m_interface->fileName(), line, column, endOfOperator);
 }
 
 int ClangCompletionAssistProcessor::startOfOperator(int pos,
@@ -786,9 +784,10 @@ int ClangCompletionAssistProcessor::findStartOfName(int pos) const
         pos = m_interface->position();
     QChar chr;
 
-    // Skip to the start of a name
     do {
         chr = m_interface->characterAt(--pos);
+        // TODO: Check also chr.isHighSurrogate() / ch.isLowSurrogate()?
+        // See also CppTools::isValidFirstIdentifierChar
     } while (chr.isLetterOrNumber() || chr == QLatin1Char('_'));
 
     return pos + 1;
