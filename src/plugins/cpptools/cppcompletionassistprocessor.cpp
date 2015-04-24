@@ -31,6 +31,10 @@
 #include "cppcompletionassistprocessor.h"
 
 #include <cppeditor/cppeditorconstants.h>
+#include <texteditor/codeassist/assistinterface.h>
+
+#include <utils/qtcassert.h>
+
 
 namespace CppTools {
 
@@ -68,6 +72,16 @@ CppCompletionAssistProcessor::CppCompletionAssistProcessor()
     , m_snippetCollector(QLatin1String(CppEditor::Constants::CPP_SNIPPETS_GROUP_ID),
                          QIcon(QLatin1String(":/texteditor/images/snippet.png")))
 {
+}
+
+int CppCompletionAssistProcessor::skipPrecedingWhitespace(
+        const TextEditor::AssistInterface *assistInterface,
+        int startPosition)
+{
+    QTC_ASSERT(assistInterface && startPosition >= 0, return startPosition);
+    while (assistInterface->characterAt(startPosition - 1).isSpace())
+        --startPosition;
+    return startPosition;
 }
 
 void CppCompletionAssistProcessor::addSnippets()

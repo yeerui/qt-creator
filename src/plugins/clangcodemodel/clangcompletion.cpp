@@ -598,12 +598,7 @@ int ClangCompletionAssistProcessor::startCompletionHelper()
     m_startPosition = startOfName;
     m_model->m_completionOperator = T_EOF_SYMBOL;
 
-    int endOfOperator = m_startPosition;
-
-    // Skip whitespace preceding this position
-    while (m_interface->characterAt(endOfOperator - 1).isSpace())
-        --endOfOperator;
-
+    int endOfOperator = skipPrecedingWhitespace(m_interface.data(), m_startPosition);
     int endOfExpression = startOfOperator(endOfOperator,
                                           &m_model->m_completionOperator,
                                           /*want function call =*/ true);

@@ -38,6 +38,8 @@
 
 #include <cplusplus/Icons.h>
 
+namespace TextEditor { class AssistInterface; }
+
 namespace CppTools {
 
 class CPPTOOLS_EXPORT CppCompletionAssistProcessor : public TextEditor::IAssistProcessor
@@ -46,6 +48,9 @@ public:
     CppCompletionAssistProcessor();
 
 protected:
+    static int skipPrecedingWhitespace(const TextEditor::AssistInterface *assistInterface,
+                                        int startPosition);
+
     void addSnippets();
 
     int m_startPosition;
