@@ -236,13 +236,11 @@ class ClangAssistProposalModel : public GenericProposalModel
 {
 public:
     ClangAssistProposalModel()
-        : m_sortable(false)
-        , m_completionOperator(T_EOF_SYMBOL)
+        : m_completionOperator(T_EOF_SYMBOL)
         , m_replaceDotForArrow(false)
     {}
 
     virtual bool isSortable(const QString &prefix) const;
-    bool m_sortable;
     unsigned m_completionOperator;
     bool m_replaceDotForArrow;
 };
@@ -581,7 +579,6 @@ IAssistProposal *ClangCompletionAssistProcessor::perform(const AssistInterface *
         if (m_hintProposal)
             return m_hintProposal;
 
-        m_model->m_sortable = (m_model->m_completionOperator != T_EOF_SYMBOL);
         return createContentProposal();
     }
 
