@@ -690,9 +690,7 @@ int ClangCompletionAssistProcessor::startOfOperator(int pos,
                 *kind = T_EOF_SYMBOL;
                 start = pos;
             }
-        }
-
-        if (*kind == T_COMMA) {
+        } else if (*kind == T_COMMA) {
             ExpressionUnderCursor expressionUnderCursor(m_interface->languageFeatures());
             if (expressionUnderCursor.startOfFunctionCall(tc) == -1) {
                 *kind = T_EOF_SYMBOL;
