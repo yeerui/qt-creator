@@ -40,7 +40,8 @@ SOURCES += \
     $$PWD/clangprojectsettings.cpp \
     $$PWD/clangprojectsettingspropertiespage.cpp \
     $$PWD/raii/scopedclangoptions.cpp \
-    $$PWD/clangmodelmanagersupport.cpp
+    $$PWD/clangmodelmanagersupport.cpp \
+    $$PWD/clangcompletioncontextanalyzer.cpp
 
 HEADERS += \
     $$PWD/clangcodemodelplugin.h \
@@ -64,7 +65,8 @@ HEADERS += \
     $$PWD/clangprojectsettings.h \
     $$PWD/clangprojectsettingspropertiespage.h \
     $$PWD/raii/scopedclangoptions.h \
-    $$PWD/clangmodelmanagersupport.h
+    $$PWD/clangmodelmanagersupport.h \
+    $$PWD/clangcompletioncontextanalyzer.h
 
 HEADERS += clangutils.h \
     cxprettyprinter.h
@@ -92,12 +94,14 @@ equals(TEST, 1) {
 
     HEADERS += \
         $$PWD/test/completiontesthelper.h \
-        $$PWD/test/clangcodecompletion_test.h
+        $$PWD/test/clangcodecompletion_test.h \
+        $$PWD/test/clangcompletioncontextanalyzertest.h
 
     SOURCES += \
         $$PWD/test/completiontesthelper.cpp \
         $$PWD/test/clangcompletion_test.cpp \
-        $$PWD/test/clangcodecompletion_test.cpp
+        $$PWD/test/clangcodecompletion_test.cpp \
+        $$PWD/test/clangcompletioncontextanalyzertest.cpp
 
     DISTFILES += \
         $$PWD/test/globalCompletion.cpp \
