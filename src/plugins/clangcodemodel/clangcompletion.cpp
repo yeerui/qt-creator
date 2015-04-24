@@ -585,17 +585,12 @@ IAssistProposal *ClangCompletionAssistProcessor::perform(const AssistInterface *
 
 int ClangCompletionAssistProcessor::startCompletionHelper()
 {
-    //### TODO: clean-up this method, some calculated values might not be used anymore.
-
-    Q_ASSERT(m_model);
-
     const int startOfName = findStartOfName();
     m_startPosition = startOfName;
     m_completionOperator = T_EOF_SYMBOL;
 
     int endOfOperator = skipPrecedingWhitespace(m_interface.data(), m_startPosition);
-    int endOfExpression = startOfOperator(endOfOperator,
-                                          &m_completionOperator,
+    int endOfExpression = startOfOperator(endOfOperator, &m_completionOperator,
                                           /*want function call =*/ true);
 
     if (m_completionOperator == T_EOF_SYMBOL) {
