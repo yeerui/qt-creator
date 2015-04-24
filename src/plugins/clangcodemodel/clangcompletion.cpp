@@ -239,7 +239,7 @@ public:
         : m_replaceDotForArrow(false)
     {}
 
-    virtual bool isSortable(const QString &prefix) const;
+    bool isSortable(const QString &prefix) const override;
     bool m_replaceDotForArrow;
 };
 
@@ -254,8 +254,8 @@ public:
         , m_replaceDotForArrow(static_cast<ClangAssistProposalModel *>(model)->m_replaceDotForArrow)
     {}
 
-    virtual bool isCorrective() const { return m_replaceDotForArrow; }
-    virtual void makeCorrection(TextEditorWidget *editorWidget)
+    bool isCorrective() const override { return m_replaceDotForArrow; }
+    void makeCorrection(TextEditorWidget *editorWidget) override
     {
         editorWidget->setCursorPosition(basePosition() - 1);
         editorWidget->replace(1, QLatin1String("->"));
@@ -277,10 +277,10 @@ public:
         , m_currentArg(-1)
     {}
 
-    virtual void reset() {}
-    virtual int size() const { return m_functionSymbols.size(); }
-    virtual QString text(int index) const;
-    virtual int activeArgument(const QString &prefix) const;
+    void reset() override {}
+    int size() const override { return m_functionSymbols.size(); }
+    QString text(int index) const override;
+    int activeArgument(const QString &prefix) const override;
 
 private:
     QList<CodeCompletionResult> m_functionSymbols;
@@ -342,9 +342,8 @@ class ClangAssistProposalItem : public AssistProposalItem
 public:
     ClangAssistProposalItem() {}
 
-    virtual bool prematurelyApplies(const QChar &c) const;
-    virtual void applyContextualContent(TextEditorWidget *editorWidget,
-                                        int basePosition) const;
+    bool prematurelyApplies(const QChar &c) const override;
+    void applyContextualContent(TextEditorWidget *editorWidget, int basePosition) const override;
 
     void keepCompletionOperator(unsigned compOp) { m_completionOperator = compOp; }
 
