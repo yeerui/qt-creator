@@ -236,12 +236,10 @@ class ClangAssistProposalModel : public GenericProposalModel
 {
 public:
     ClangAssistProposalModel()
-        : m_completionOperator(T_EOF_SYMBOL)
-        , m_replaceDotForArrow(false)
+        : m_replaceDotForArrow(false)
     {}
 
     virtual bool isSortable(const QString &prefix) const;
-    unsigned m_completionOperator;
     bool m_replaceDotForArrow;
 };
 
@@ -560,6 +558,7 @@ ClangCompletionAssistInterface::ClangCompletionAssistInterface(ClangCompleter::P
 
 ClangCompletionAssistProcessor::ClangCompletionAssistProcessor()
     : m_model(new ClangAssistProposalModel)
+    , m_completionOperator(T_EOF_SYMBOL)
 {
 }
 
@@ -593,16 +592,16 @@ int ClangCompletionAssistProcessor::startCompletionHelper()
 
     const int startOfName = findStartOfName();
     m_startPosition = startOfName;
-    m_model->m_completionOperator = T_EOF_SYMBOL;
+    m_completionOperator = T_EOF_SYMBOL;
 
     int endOfOperator = skipPrecedingWhitespace(m_interface.data(), m_startPosition);
     int endOfExpression = startOfOperator(endOfOperator,
-                                          &m_model->m_completionOperator,
+                                          &m_completionOperator,
                                           /*want function call =*/ true);
 
-    if (m_model->m_completionOperator == T_EOF_SYMBOL) {
+    if (m_completionOperator == T_EOF_SYMBOL) {
         endOfOperator = m_startPosition;
-    } else if (m_model->m_completionOperator == T_DOXY_COMMENT) {
+    } else if (m_completionOperator == T_DOXY_COMMENT) {
         for (int i = 1; i < T_DOXY_LAST_TAG; ++i)
             addCompletionItem(QString::fromLatin1(doxygenTagSpell(i)),
                               m_icons.keywordIcon());
@@ -611,16 +610,16 @@ int ClangCompletionAssistProcessor::startCompletionHelper()
 
     // Pre-processor completion
     //### TODO: check if clang can do pp completion
-    if (m_model->m_completionOperator == T_POUND) {
+    if (m_completionOperator == T_POUND) {
         completePreprocessor();
         m_startPosition = startOfName;
         return m_startPosition;
     }
 
     // Include completion
-    if (m_model->m_completionOperator == T_STRING_LITERAL
-            || m_model->m_completionOperator == T_ANGLE_STRING_LITERAL
-            || m_model->m_completionOperator == T_SLASH) {
+    if (m_completionOperator == T_STRING_LITERAL
+            || m_completionOperator == T_ANGLE_STRING_LITERAL
+            || m_completionOperator == T_SLASH) {
 
         QTextCursor c(m_interface->textDocument());
         c.setPosition(endOfExpression);
@@ -632,34 +631,34 @@ int ClangCompletionAssistProcessor::startCompletionHelper()
     ExpressionUnderCursor expressionUnderCursor(m_interface->languageFeatures());
     QTextCursor tc(m_interface->textDocument());
 
-    if (m_model->m_completionOperator == T_COMMA) {
+    if (m_completionOperator == T_COMMA) {
         tc.setPosition(endOfExpression);
         const int start = expressionUnderCursor.startOfFunctionCall(tc);
         if (start == -1) {
-            m_model->m_completionOperator = T_EOF_SYMBOL;
+            m_completionOperator = T_EOF_SYMBOL;
             return -1;
         }
 
         endOfExpression = start;
         m_startPosition = start + 1;
-        m_model->m_completionOperator = T_LPAREN;
+        m_completionOperator = T_LPAREN;
     }
 
     tc.setPosition(endOfExpression);
 
-    if (m_model->m_completionOperator) {
+    if (m_completionOperator) {
         const QString expression = expressionUnderCursor(tc);
 
-        if (m_model->m_completionOperator == T_LPAREN) {
+        if (m_completionOperator == T_LPAREN) {
             if (expression.endsWith(QLatin1String("SIGNAL")))
-                m_model->m_completionOperator = T_SIGNAL;
+                m_completionOperator = T_SIGNAL;
 
             else if (expression.endsWith(QLatin1String("SLOT")))
-                m_model->m_completionOperator = T_SLOT;
+                m_completionOperator = T_SLOT;
 
             else if (m_interface->position() != endOfOperator) {
                 // We don't want a function completion when the cursor isn't at the opening brace
-                m_model->m_completionOperator = T_EOF_SYMBOL;
+                m_completionOperator = T_EOF_SYMBOL;
                 m_startPosition = startOfName;
             }
         }
@@ -908,13 +907,13 @@ int ClangCompletionAssistProcessor::startCompletionInternal(const QString fileNa
     bool slotCompletion = false;
     QByteArray modifiedInput;
 
-    if (m_model->m_completionOperator == T_SIGNAL) {
+    if (m_completionOperator == T_SIGNAL) {
         signalCompletion = true;
         modifiedInput = modifyInput(m_interface->textDocument(), endOfExpression);
-    } else if (m_model->m_completionOperator == T_SLOT) {
+    } else if (m_completionOperator == T_SLOT) {
         slotCompletion = true;
         modifiedInput = modifyInput(m_interface->textDocument(), endOfExpression);
-    } else if (m_model->m_completionOperator == T_LPAREN) {
+    } else if (m_completionOperator == T_LPAREN) {
         // Find the expression that precedes the current name
         int index = endOfExpression;
         while (m_interface->characterAt(index - 1).isSpace())
@@ -1052,7 +1051,7 @@ int ClangCompletionAssistProcessor::startCompletionInternal(const QString fileNa
     foreach (ClangAssistProposalItem *item, items.values())
         m_completions.append(item);
 
-    if (m_model->m_completionOperator == T_EOF_SYMBOL)
+    if (m_completionOperator == T_EOF_SYMBOL)
         addSnippets();
 
     return m_startPosition;
@@ -1066,16 +1065,16 @@ int ClangCompletionAssistProcessor::startCompletionInternal(const QString fileNa
 bool ClangCompletionAssistProcessor::completeInclude(const QTextCursor &cursor)
 {
     QString directoryPrefix;
-    if (m_model->m_completionOperator == T_SLASH) {
+    if (m_completionOperator == T_SLASH) {
         QTextCursor c = cursor;
         c.movePosition(QTextCursor::StartOfLine, QTextCursor::KeepAnchor);
         QString sel = c.selectedText();
         int startCharPos = sel.indexOf(QLatin1Char('"'));
         if (startCharPos == -1) {
             startCharPos = sel.indexOf(QLatin1Char('<'));
-            m_model->m_completionOperator = T_ANGLE_STRING_LITERAL;
+            m_completionOperator = T_ANGLE_STRING_LITERAL;
         } else {
-            m_model->m_completionOperator = T_STRING_LITERAL;
+            m_completionOperator = T_STRING_LITERAL;
         }
         if (startCharPos != -1)
             directoryPrefix = sel.mid(startCharPos + 1, sel.length() - 1);
@@ -1130,7 +1129,7 @@ void ClangCompletionAssistProcessor::completeIncludePath(const QString &realPath
             item->setText(text);
             item->setDetail(hint);
             item->setIcon(m_icons.keywordIcon());
-            item->keepCompletionOperator(m_model->m_completionOperator);
+            item->keepCompletionOperator(m_completionOperator);
             m_completions.append(item);
         }
     }
@@ -1157,6 +1156,6 @@ void ClangCompletionAssistProcessor::addCompletionItem(const QString &text,
     item->setIcon(icon);
     item->setOrder(order);
     item->setData(data);
-    item->keepCompletionOperator(m_model->m_completionOperator);
+    item->keepCompletionOperator(m_completionOperator);
     m_completions.append(item);
 }

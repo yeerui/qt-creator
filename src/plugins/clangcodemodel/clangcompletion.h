@@ -139,6 +139,7 @@ private:
 private:
     QScopedPointer<const ClangCompletionAssistInterface> m_interface;
     QScopedPointer<Internal::ClangAssistProposalModel> m_model;
+    unsigned m_completionOperator;
 };
 
 } // namespace Clang
