@@ -67,6 +67,7 @@ OTHER_FILES += data/complete_testfile_1.cpp \
                data/complete_completer_unsaved.cpp \
                data/complete_extractor_function.cpp \
                data/complete_extractor_function_unsaved.cpp \
+               data/complete_extractor_function_unsaved_2.cpp \
                data/complete_extractor_variable.cpp \
                data/complete_extractor_class.cpp \
                data/complete_extractor_namespace.cpp \

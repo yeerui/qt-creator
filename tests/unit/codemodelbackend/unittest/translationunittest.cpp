@@ -48,6 +48,7 @@ using CodeModelBackEnd::Project;
 
 using testing::IsNull;
 using testing::NotNull;
+using testing::Gt;
 
 namespace {
 
@@ -114,5 +115,15 @@ TEST(TranslationUnit, ResetedTranslationUnitIsNull)
     translationUnit.reset();
 
     ASSERT_TRUE(translationUnit.isNull());
+}
+
+TEST(TranslationUnit, TimeStampIsUpdatedAsNewCxTranslationUnitIsGenerated)
+{
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), UnsavedFiles(), Project(Utf8StringLiteral("/tmp")));
+    auto lastChangeTimePoint = translationUnit.lastChangeTimePoint();
+
+    translationUnit.cxTranslationUnit();
+
+    ASSERT_THAT(translationUnit.lastChangeTimePoint(), Gt(lastChangeTimePoint));
 }
 }

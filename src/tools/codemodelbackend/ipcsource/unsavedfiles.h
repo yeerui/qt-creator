@@ -33,6 +33,7 @@
 
 #include <filecontainer.h>
 
+#include <chrono>
 #include <vector>
 #include <memory>
 
@@ -42,11 +43,22 @@
 
 namespace CodeModelBackEnd {
 
+using time_point = std::chrono::high_resolution_clock::time_point;
+
+class UnsavedFilesData;
+
 class UnsavedFiles
 {
+    friend class UnsavedFilesData;
 public:
     UnsavedFiles();
     ~UnsavedFiles();
+
+    UnsavedFiles(const UnsavedFiles &unsavedFiles);
+    UnsavedFiles &operator =(const UnsavedFiles &unsavedFiles);
+
+    UnsavedFiles(UnsavedFiles &&unsavedFiles);
+    UnsavedFiles &operator =(UnsavedFiles &&unsavedFiles);
 
     void update(const QVector<FileContainer> &fileContainers);
     void clear();
@@ -56,15 +68,18 @@ public:
     CXUnsavedFile *cxUnsavedFiles() const;
     const std::vector<CXUnsavedFile> &cxUnsavedFileVector() const;
 
+    const time_point &lastChangeTimePoint() const;
+
 private:
     const CXUnsavedFile createCxUnsavedFile(const Utf8String &filePath, const Utf8String &fileContent);
-    void deleteCXUnsavedFile(const CXUnsavedFile &cxUnsavedFile);
+    static void deleteCXUnsavedFile(const CXUnsavedFile &cxUnsavedFile);
     void updateCXUnsavedFileWithFileContainer(const FileContainer &fileContainer);
     void removeCXUnsavedFile(const FileContainer &fileContainer);
     void addOrUpdateCXUnsavedFile(const FileContainer &fileContainer);
+    void updateLastChangeTimePoint();
 
 private:
-    mutable std::shared_ptr<std::vector<CXUnsavedFile>> cxUnsavedFiles_;
+    mutable std::shared_ptr<UnsavedFilesData> d;
 };
 
 } // namespace CodeModelBackEnd

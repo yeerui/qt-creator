@@ -33,6 +33,7 @@
 
 #include <clang-c/Index.h>
 
+#include <chrono>
 #include <memory>
 
 class Utf8String;
@@ -43,6 +44,8 @@ class TranslationUnitData;
 class CodeCompleter;
 class UnsavedFiles;
 class Project;
+
+using time_point = std::chrono::high_resolution_clock::time_point;
 
 class TranslationUnit
 {
@@ -72,9 +75,13 @@ public:
 
     const Utf8String filePath() const;
 
+    const time_point &lastChangeTimePoint() const;
+
 private:
     void checkIfNull() const;
     void checkIfFileNotExists() const;
+    void updateLastChangeTimePoint() const;
+    void removeOutdatedTranslationUnit() const;
 
 private:
     mutable std::shared_ptr<TranslationUnitData> d;

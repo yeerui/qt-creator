@@ -79,30 +79,21 @@ MATCHER_P3(IsCompletion, name, kind,  availability,
     return false;
 }
 
-ClangCodeCompleteResults getResultsWithUnsavedFile(const char *filePath, const char *unsavedFilePath, uint line)
+const Utf8String unsavedFileContent(const char *unsavedFilePath)
 {
     QFile unsavedFileContentFile(QString::fromUtf8(unsavedFilePath));
     bool isOpen = unsavedFileContentFile.open(QIODevice::ReadOnly | QIODevice::Text);
     if (!isOpen)
          ADD_FAILURE() << "File with the unsaved content cannot be opened!";
 
-    const Utf8String unsavedFileContent = Utf8String::fromByteArray(unsavedFileContentFile.readAll());
-    const CodeModelBackEnd::FileContainer unsavedDataFileContainer(Utf8String::fromUtf8(filePath), unsavedFileContent, true);
+    return Utf8String::fromByteArray(unsavedFileContentFile.readAll());
+}
 
-    CodeModelBackEnd::UnsavedFiles unsavedFiles;
-    unsavedFiles.update({unsavedDataFileContainer});
-
-    CodeModelBackEnd::Project project(Utf8StringLiteral("/path/to/projectfile"));
-
-    TranslationUnit translationUnit(Utf8String::fromUtf8(filePath), unsavedFiles, project);
-
-    return ClangCodeCompleteResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
-                                                         translationUnit.filePath().constData(),
-                                                         line,
-                                                         1,
-                                                         translationUnit.cxUnsavedFiles(),
-                                                         translationUnit.unsavedFilesCount(),
-                                                         CXCodeComplete_IncludeMacros | CXCodeComplete_IncludeCodePatterns));
+const CodeModelBackEnd::FileContainer unsavedDataFileContainer(const char *filePath, const char *unsavedFilePath)
+{
+    return CodeModelBackEnd::FileContainer(Utf8String::fromUtf8(filePath),
+                                           unsavedFileContent(unsavedFilePath),
+                                           true);
 }
 
 ClangCodeCompleteResults getResults(const TranslationUnit &translationUnit, uint line, uint column = 1)
@@ -118,17 +109,38 @@ ClangCodeCompleteResults getResults(const TranslationUnit &translationUnit, uint
 
 class CodeCompletionExtractor : public ::testing::Test
 {
+public:
+    static void TearDownTestCase();
+
 protected:
-    CodeModelBackEnd::Project project = Utf8StringLiteral("/path/to/projectfile");
-    CodeModelBackEnd::UnsavedFiles unsavedFiles;
-    TranslationUnit functionTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_function.cpp"), unsavedFiles, project);
-    TranslationUnit variableTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_variable.cpp"), unsavedFiles, project);
-    TranslationUnit classTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_class.cpp"), unsavedFiles, project);
-    TranslationUnit namespaceTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_namespace.cpp"), unsavedFiles, project);
-    TranslationUnit enumerationTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_enumeration.cpp"), unsavedFiles, project);
-    TranslationUnit constructorTranslationUnit = TranslationUnit(Utf8StringLiteral("data/complete_extractor_constructor.cpp"), unsavedFiles, project);
+    static CodeModelBackEnd::Project project;
+    static CodeModelBackEnd::UnsavedFiles unsavedFiles;
+    static TranslationUnit functionTranslationUnit;
+    static TranslationUnit variableTranslationUnit;
+    static TranslationUnit classTranslationUnit ;
+    static TranslationUnit namespaceTranslationUnit;
+    static TranslationUnit enumerationTranslationUnit;
+    static TranslationUnit constructorTranslationUnit;
 };
 
+CodeModelBackEnd::Project CodeCompletionExtractor::project(Utf8StringLiteral("/path/to/projectfile"));
+CodeModelBackEnd::UnsavedFiles CodeCompletionExtractor::unsavedFiles;
+TranslationUnit CodeCompletionExtractor::functionTranslationUnit(Utf8StringLiteral("data/complete_extractor_function.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionExtractor::variableTranslationUnit(Utf8StringLiteral("data/complete_extractor_variable.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionExtractor::classTranslationUnit(Utf8StringLiteral("data/complete_extractor_class.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionExtractor::namespaceTranslationUnit(Utf8StringLiteral("data/complete_extractor_namespace.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionExtractor::enumerationTranslationUnit(Utf8StringLiteral("data/complete_extractor_enumeration.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionExtractor::constructorTranslationUnit(Utf8StringLiteral("data/complete_extractor_constructor.cpp"), unsavedFiles, project);
+
+void CodeCompletionExtractor::TearDownTestCase()
+{
+    functionTranslationUnit.reset();
+    variableTranslationUnit.reset();
+    classTranslationUnit.reset();
+    namespaceTranslationUnit.reset();
+    enumerationTranslationUnit.reset();
+    constructorTranslationUnit.reset();
+}
 
 TEST_F(CodeCompletionExtractor, Function)
 {
@@ -487,9 +499,12 @@ TEST_F(CodeCompletionExtractor, NotAvailableFunction)
 
 TEST_F(CodeCompletionExtractor, UnsavedFile)
 {
-    ClangCodeCompleteResults completeResults(getResultsWithUnsavedFile("data/complete_extractor_function.cpp",
-                                                                       "data/complete_extractor_function_unsaved.cpp",
-                                                                       20));
+    CodeModelBackEnd::UnsavedFiles unsavedFiles;
+    CodeModelBackEnd::Project project(Utf8StringLiteral("/path/to/projectfile"));
+    TranslationUnit translationUnit(Utf8String::fromUtf8("data/complete_extractor_function.cpp"), unsavedFiles, project);
+    unsavedFiles.update({unsavedDataFileContainer("data/complete_extractor_function.cpp",
+                                                  "data/complete_extractor_function_unsaved.cpp")});
+    ClangCodeCompleteResults completeResults(getResults(translationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());
 
@@ -498,8 +513,28 @@ TEST_F(CodeCompletionExtractor, UnsavedFile)
                                         CodeCompletion::Available));
 }
 
+TEST_F(CodeCompletionExtractor, ChangeUnsavedFile)
+{
+    CodeModelBackEnd::UnsavedFiles unsavedFiles;
+    CodeModelBackEnd::Project project(Utf8StringLiteral("/path/to/projectfile"));
+    TranslationUnit translationUnit(Utf8String::fromUtf8("data/complete_extractor_function.cpp"), unsavedFiles, project);
+    unsavedFiles.update({unsavedDataFileContainer("data/complete_extractor_function.cpp",
+                                                  "data/complete_extractor_function_unsaved.cpp")});
+    ClangCodeCompleteResults completeResults(getResults(translationUnit, 20));
+    unsavedFiles.update({unsavedDataFileContainer("data/complete_extractor_function.cpp",
+                                                  "data/complete_extractor_function_unsaved_2.cpp")});
+    completeResults = getResults(translationUnit, 20);
+
+    CodeCompletionsExtractor extractor(completeResults.data());
+
+    ASSERT_THAT(extractor, IsCompletion(Utf8StringLiteral("Method3"),
+                                        CodeCompletion::FunctionCompletionKind,
+                                        CodeCompletion::Available));
+}
+
 TEST_F(CodeCompletionExtractor, ArgumentDefinition)
 {
+    variableTranslationUnit.cxTranslationUnit();
     project.setArguments({Utf8StringLiteral("-DArgumentDefinition")});
     ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 35));
 
@@ -512,6 +547,7 @@ TEST_F(CodeCompletionExtractor, ArgumentDefinition)
 
 TEST_F(CodeCompletionExtractor, NoArgumentDefinition)
 {
+    variableTranslationUnit.cxTranslationUnit();
     project.setArguments(Utf8StringVector());
     ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 35));
 

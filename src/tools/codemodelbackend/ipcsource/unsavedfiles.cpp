@@ -35,43 +35,78 @@
 
 namespace CodeModelBackEnd {
 
-UnsavedFiles::UnsavedFiles()
-    :cxUnsavedFiles_(std::make_shared<std::vector<CXUnsavedFile>>())
+class UnsavedFilesData
+{
+public:
+    UnsavedFilesData();
+    ~UnsavedFilesData();
+
+public:
+    time_point lastChangeTimePoint;
+    std::vector<CXUnsavedFile> cxUnsavedFiles;
+};
+
+UnsavedFilesData::UnsavedFilesData()
+    : lastChangeTimePoint(std::chrono::high_resolution_clock::now())
 {
 }
 
-UnsavedFiles::~UnsavedFiles()
+UnsavedFilesData::~UnsavedFilesData()
 {
-    clear();
+    for (const CXUnsavedFile &cxUnsavedFile : cxUnsavedFiles)
+        UnsavedFiles::deleteCXUnsavedFile(cxUnsavedFile);
+
+    cxUnsavedFiles.clear();
 }
+
+UnsavedFiles::UnsavedFiles()
+    : d(std::make_shared<UnsavedFilesData>())
+{
+}
+
+UnsavedFiles::~UnsavedFiles() = default;
+
+UnsavedFiles::UnsavedFiles(const UnsavedFiles &) = default;
+UnsavedFiles &UnsavedFiles::operator =(const UnsavedFiles &) = default;
+
+UnsavedFiles::UnsavedFiles(UnsavedFiles &&) = default;
+UnsavedFiles &UnsavedFiles::operator =(UnsavedFiles &&) = default;
 
 void UnsavedFiles::update(const QVector<FileContainer> &fileContainers)
 {
     for (const FileContainer &fileContainer : fileContainers)
         updateCXUnsavedFileWithFileContainer(fileContainer);
+
+    updateLastChangeTimePoint();
 }
 
 void UnsavedFiles::clear()
 {
-    for (const CXUnsavedFile &cxUnsavedFile : *cxUnsavedFiles_.get())
+    for (const CXUnsavedFile &cxUnsavedFile : d->cxUnsavedFiles)
         deleteCXUnsavedFile(cxUnsavedFile);
 
-    cxUnsavedFiles_->clear();
+    d->cxUnsavedFiles.clear();
+    updateLastChangeTimePoint();
 }
 
 int UnsavedFiles::count() const
 {
-    return cxUnsavedFiles_->size();
+    return d->cxUnsavedFiles.size();
 }
 
 CXUnsavedFile *UnsavedFiles::cxUnsavedFiles() const
 {
-    return cxUnsavedFiles_->data();
+    return d->cxUnsavedFiles.data();
 }
 
 const std::vector<CXUnsavedFile> &UnsavedFiles::cxUnsavedFileVector() const
 {
-    return *cxUnsavedFiles_.get();
+    return d->cxUnsavedFiles;
+}
+
+const time_point &UnsavedFiles::lastChangeTimePoint() const
+{
+    return d->lastChangeTimePoint;
 }
 
 const CXUnsavedFile UnsavedFiles::createCxUnsavedFile(const Utf8String &filePath, const Utf8String &fileContent)
@@ -105,7 +140,7 @@ void UnsavedFiles::removeCXUnsavedFile(const FileContainer &fileContainer)
     const Utf8String filePath = fileContainer.filePath();
     auto isSameFile = [filePath] (const CXUnsavedFile &cxUnsavedFile) { return filePath == cxUnsavedFile.Filename; };
 
-    cxUnsavedFiles_->erase(std::remove_if(cxUnsavedFiles_->begin(), cxUnsavedFiles_->end(), isSameFile), cxUnsavedFiles_->end());
+    d->cxUnsavedFiles.erase(std::remove_if(d->cxUnsavedFiles.begin(), d->cxUnsavedFiles.end(), isSameFile), d->cxUnsavedFiles.end());
 }
 
 void UnsavedFiles::addOrUpdateCXUnsavedFile(const FileContainer &fileContainer)
@@ -114,13 +149,18 @@ void UnsavedFiles::addOrUpdateCXUnsavedFile(const FileContainer &fileContainer)
     const Utf8String fileContent = fileContainer.unsavedFileContent();
     auto isSameFile = [filePath] (const CXUnsavedFile &cxUnsavedFile) { return filePath == cxUnsavedFile.Filename; };
 
-    auto cxUnsavedFileIterator = std::find_if(cxUnsavedFiles_->begin(), cxUnsavedFiles_->end(), isSameFile);
-    if (cxUnsavedFileIterator == cxUnsavedFiles_->end())
-        cxUnsavedFiles_->push_back(createCxUnsavedFile(filePath, fileContent));
+    auto cxUnsavedFileIterator = std::find_if(d->cxUnsavedFiles.begin(), d->cxUnsavedFiles.end(), isSameFile);
+    if (cxUnsavedFileIterator == d->cxUnsavedFiles.end())
+        d->cxUnsavedFiles.push_back(createCxUnsavedFile(filePath, fileContent));
     else {
         deleteCXUnsavedFile(*cxUnsavedFileIterator);
         *cxUnsavedFileIterator = createCxUnsavedFile(filePath, fileContent);
     }
+}
+
+void UnsavedFiles::updateLastChangeTimePoint()
+{
+    d->lastChangeTimePoint = std::chrono::high_resolution_clock::now();
 }
 
 

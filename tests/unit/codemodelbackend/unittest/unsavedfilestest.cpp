@@ -42,6 +42,7 @@ using CodeModelBackEnd::FileContainer;
 
 using ::testing::IsNull;
 using ::testing::NotNull;
+using ::testing::Gt;
 
 namespace {
 
@@ -125,6 +126,18 @@ TEST_F(UnsavedFiles, ExchangeUnsavedFileForUpdateWithUnsavedContent)
     unsavedFiles.update(fileContainers);
 
     ASSERT_THAT(unsavedFiles, HasUnsavedFiles(QVector<FileContainer>({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo2"), true)})));
+}
+
+TEST_F(UnsavedFiles, TimeStampIsUpdatedAsUnsavedFilesChanged)
+{
+    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo"), true),
+                                           FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo2"), true)});
+    auto lastChangeTimePoint = unsavedFiles.lastChangeTimePoint();
+
+    unsavedFiles.update(fileContainers);
+
+    ASSERT_THAT(unsavedFiles.lastChangeTimePoint(), Gt(lastChangeTimePoint));
+
 }
 
 }

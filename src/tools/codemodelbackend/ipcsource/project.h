@@ -33,6 +33,7 @@
 
 #include <memory>
 #include <vector>
+#include <chrono>
 
 class Utf8String;
 class Utf8StringVector;
@@ -40,6 +41,8 @@ class Utf8StringVector;
 namespace CodeModelBackEnd {
 
 class ProjectData;
+
+using time_point = std::chrono::high_resolution_clock::time_point;
 
 class Project
 {
@@ -61,6 +64,11 @@ public:
 
     int argumentCount() const;
     const char *const *cxArguments() const;
+
+    const time_point &lastChangeTimePoint() const;
+
+private:
+    void updateLastChangeTimePoint();
 
 private:
     std::shared_ptr<ProjectData> d;

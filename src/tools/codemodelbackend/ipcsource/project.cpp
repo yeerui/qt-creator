@@ -34,7 +34,6 @@
 
 #include <utf8stringvector.h>
 
-
 namespace CodeModelBackEnd {
 
 class ProjectData {
@@ -42,12 +41,14 @@ public:
     ProjectData(const Utf8String &projectFilePath);
 
 public:
+    time_point lastChangeTimePoint;
     std::vector<const char*> arguments;
     Utf8String projectFilePath;
 };
 
 ProjectData::ProjectData(const Utf8String &projectFilePath)
-    : projectFilePath(projectFilePath)
+    : lastChangeTimePoint(std::chrono::high_resolution_clock::now()),
+      projectFilePath(projectFilePath)
 {
 }
 
@@ -58,11 +59,11 @@ Project::Project(const Utf8String &projectFilePath)
 
 Project::~Project() = default;
 
-Project::Project(const Project &project) = default;
-Project &Project::operator =(const Project &project) = default;
+Project::Project(const Project &) = default;
+Project &Project::operator =(const Project &) = default;
 
-Project::Project(Project &&project) = default;
-Project &Project::operator =(Project &&project) = default;
+Project::Project(Project &&) = default;
+Project &Project::operator =(Project &&) = default;
 
 const Utf8String Project::projectFilePath() const
 {
@@ -81,6 +82,7 @@ void Project::setArguments(const Utf8StringVector &arguments)
 {
     d->arguments.resize(arguments.size());
     std::transform(arguments.cbegin(), arguments.cend(), d->arguments.begin(), strdup);
+    updateLastChangeTimePoint();
 }
 
 const std::vector<const char*> &Project::arguments() const
@@ -96,6 +98,16 @@ int Project::argumentCount() const
 const char * const *Project::cxArguments() const
 {
     return arguments().data();
+}
+
+const time_point &Project::lastChangeTimePoint() const
+{
+    return d->lastChangeTimePoint;
+}
+
+void Project::updateLastChangeTimePoint()
+{
+    d->lastChangeTimePoint = std::chrono::high_resolution_clock::now();
 }
 
 } // namespace CodeModelBackEnd

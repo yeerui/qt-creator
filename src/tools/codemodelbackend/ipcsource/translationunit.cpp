@@ -51,6 +51,8 @@ public:
                         const Project &project);
     ~TranslationUnitData();
 
+public:
+    time_point lastChangeTimePoint;
     Project project;
     Utf8String filePath;
     CXTranslationUnit translationUnit = nullptr;
@@ -61,7 +63,8 @@ public:
 TranslationUnitData::TranslationUnitData(const Utf8String &filePath,
                                          const UnsavedFiles &unsavedFiles,
                                          const Project &project)
-    : project(project),
+    : lastChangeTimePoint(std::chrono::high_resolution_clock::now()),
+      project(project),
       filePath(filePath),
       unsavedFiles(unsavedFiles)
 {
@@ -110,7 +113,9 @@ CXTranslationUnit TranslationUnit::cxTranslationUnit() const
             | CXTranslationUnit_PrecompiledPreamble
             | CXTranslationUnit_SkipFunctionBodies;
 
-    if (!d->translationUnit)
+    removeOutdatedTranslationUnit();
+
+    if (!d->translationUnit) {
         d->translationUnit = clang_parseTranslationUnit(index(),
                                                         d->filePath.constData(),
                                                         d->project.cxArguments(),
@@ -118,6 +123,9 @@ CXTranslationUnit TranslationUnit::cxTranslationUnit() const
                                                         d->unsavedFiles.cxUnsavedFiles(),
                                                         d->unsavedFiles.count(),
                                                         options);
+        updateLastChangeTimePoint();
+    }
+
 
     return d->translationUnit;
 }
@@ -134,6 +142,11 @@ const Utf8String TranslationUnit::filePath() const
     return d->filePath;
 }
 
+const time_point &TranslationUnit::lastChangeTimePoint() const
+{
+    return d->lastChangeTimePoint;
+}
+
 void TranslationUnit::checkIfNull() const
 {
     if (isNull())
@@ -144,6 +157,19 @@ void TranslationUnit::checkIfFileNotExists() const
 {
     if (!QFileInfo::exists(d->filePath.toString()))
         throw TranslationUnitFileNotExitsException();
+}
+
+void TranslationUnit::updateLastChangeTimePoint() const
+{
+    d->lastChangeTimePoint = std::chrono::high_resolution_clock::now();
+}
+
+void TranslationUnit::removeOutdatedTranslationUnit() const
+{
+    if (d->project.lastChangeTimePoint() > d->lastChangeTimePoint) {
+        clang_disposeTranslationUnit(d->translationUnit);
+        d->translationUnit = nullptr;
+    }
 }
 
 uint TranslationUnit::unsavedFilesCount() const

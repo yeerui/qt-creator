@@ -36,10 +36,13 @@
 #include <project.h>
 #include <utf8stringvector.h>
 
+#include <chrono>
+
 using testing::ElementsAre;
 using testing::StrEq;
 using testing::Pointwise;
 using testing::Contains;
+using testing::Gt;
 
 namespace {
 
@@ -68,5 +71,16 @@ TEST(Project, ArgumentCount)
     project.setArguments(Utf8StringVector({Utf8StringLiteral("-O"), Utf8StringLiteral("-fast")}));
 
     ASSERT_THAT(project.argumentCount(), 2);
+}
+
+TEST(Project, TimeStampIsUpdatedAsArgumentChanged)
+{
+    CodeModelBackEnd::Project project(Utf8StringLiteral("/tmp/blah.pro"));
+    auto lastChangeTimePoint = project.lastChangeTimePoint();
+
+    project.setArguments(Utf8StringVector({Utf8StringLiteral("-O"), Utf8StringLiteral("-fast")}));
+
+    ASSERT_THAT(project.lastChangeTimePoint(), Gt(lastChangeTimePoint));
+
 }
 }
