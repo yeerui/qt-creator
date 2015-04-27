@@ -93,48 +93,48 @@ void UnsavedFiles::TearDown()
 
 TEST_F(UnsavedFiles, DoNothingForUpdateIfFileHasNoUnsavedContent)
 {
-    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"))});
+    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"))});
 
-    unsavedFiles.update(fileContainers);
+    unsavedFiles.createOrUpdate(fileContainers);
 
     ASSERT_THAT(unsavedFiles, HasUnsavedFiles(QVector<FileContainer>()));
 }
 
 TEST_F(UnsavedFiles, AddUnsavedFileForUpdateWithUnsavedContent)
 {
-    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp")),
-                                           FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo"), true)});
-    unsavedFiles.update(fileContainers);
+    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro")),
+                                           FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"), Utf8StringLiteral("foo"), true)});
+    unsavedFiles.createOrUpdate(fileContainers);
 
-    ASSERT_THAT(unsavedFiles, HasUnsavedFiles(QVector<FileContainer>({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo"), true)})));
+    ASSERT_THAT(unsavedFiles, HasUnsavedFiles(QVector<FileContainer>({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"), Utf8StringLiteral("foo"), true)})));
 }
 
 TEST_F(UnsavedFiles, RemoveUnsavedFileForUpdateWithUnsavedContent)
 {
-    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo"), true),
-                                           FileContainer(Utf8StringLiteral("file.cpp"))});
+    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"), Utf8StringLiteral("foo"), true),
+                                           FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"))});
 
-    unsavedFiles.update(fileContainers);
+    unsavedFiles.createOrUpdate(fileContainers);
 
     ASSERT_THAT(unsavedFiles, HasUnsavedFiles(QVector<FileContainer>()));
 }
 
 TEST_F(UnsavedFiles, ExchangeUnsavedFileForUpdateWithUnsavedContent)
 {
-    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo"), true),
-                                           FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo2"), true)});
-    unsavedFiles.update(fileContainers);
+    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"), Utf8StringLiteral("foo"), true),
+                                           FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"), Utf8StringLiteral("foo2"), true)});
+    unsavedFiles.createOrUpdate(fileContainers);
 
-    ASSERT_THAT(unsavedFiles, HasUnsavedFiles(QVector<FileContainer>({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo2"), true)})));
+    ASSERT_THAT(unsavedFiles, HasUnsavedFiles(QVector<FileContainer>({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"), Utf8StringLiteral("foo2"), true)})));
 }
 
 TEST_F(UnsavedFiles, TimeStampIsUpdatedAsUnsavedFilesChanged)
 {
-    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo"), true),
-                                           FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("foo2"), true)});
+    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"), Utf8StringLiteral("foo"), true),
+                                           FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"), Utf8StringLiteral("foo2"), true)});
     auto lastChangeTimePoint = unsavedFiles.lastChangeTimePoint();
 
-    unsavedFiles.update(fileContainers);
+    unsavedFiles.createOrUpdate(fileContainers);
 
     ASSERT_THAT(unsavedFiles.lastChangeTimePoint(), Gt(lastChangeTimePoint));
 

@@ -129,7 +129,7 @@ TEST_F(ReadAndWriteCommandBlockTest, CompareAliveCommand)
 
 TEST_F(ReadAndWriteCommandBlockTest, CompareRegisterFilesForCodeCompletionCommand)
 {
-    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"));
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), Utf8StringLiteral("pathToProject.pro"));
     QVector<CodeModelBackEnd::FileContainer> fileContainers({fileContainer});
 
     CompareCommand(CodeModelBackEnd::RegisterFilesForCodeCompletionCommand(fileContainers));

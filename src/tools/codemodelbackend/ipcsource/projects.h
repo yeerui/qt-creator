@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,60 +28,34 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_UNSAVEDFILES_H
-#define CODEMODELBACKEND_UNSAVEDFILES_H
+#ifndef CODEMODELBACKEND_PROJECTS_H
+#define CODEMODELBACKEND_PROJECTS_H
 
-#include <filecontainer.h>
+#include <projectcontainer.h>
 
-#include <chrono>
+#include "project.h"
+
 #include <vector>
-#include <memory>
-
-#include <QVector>
-
-#include <clang-c/Index.h>
 
 namespace CodeModelBackEnd {
 
-using time_point = std::chrono::high_resolution_clock::time_point;
-
-class UnsavedFilesData;
-
-class UnsavedFiles
+class Projects
 {
-    friend class UnsavedFilesData;
 public:
-    UnsavedFiles();
-    ~UnsavedFiles();
+    void createOrUpdate(const QVector<ProjectContainer> &projectConainers);
 
-    UnsavedFiles(const UnsavedFiles &unsavedFiles);
-    UnsavedFiles &operator =(const UnsavedFiles &unsavedFiles);
+    const Project &project(const Utf8String &projectFilePath) const;
 
-    UnsavedFiles(UnsavedFiles &&unsavedFiles);
-    UnsavedFiles &operator =(UnsavedFiles &&unsavedFiles);
-
-    void createOrUpdate(const QVector<FileContainer> &fileContainers);
-    void clear();
-
-    int count() const;
-
-    CXUnsavedFile *cxUnsavedFiles() const;
-    const std::vector<CXUnsavedFile> &cxUnsavedFileVector() const;
-
-    const time_point &lastChangeTimePoint() const;
+    const std::vector<Project>::const_iterator findProject(const Utf8String &projectFilePath) const;
+    const std::vector<Project>::iterator findProject(const Utf8String &projectFilePath);
 
 private:
-    const CXUnsavedFile createCxUnsavedFile(const Utf8String &filePath, const Utf8String &fileContent);
-    static void deleteCXUnsavedFile(const CXUnsavedFile &cxUnsavedFile);
-    void updateCXUnsavedFileWithFileContainer(const FileContainer &fileContainer);
-    void removeCXUnsavedFile(const FileContainer &fileContainer);
-    void addOrUpdateCXUnsavedFile(const FileContainer &fileContainer);
-    void updateLastChangeTimePoint();
+    void createOrUpdateProject(const ProjectContainer &projectConainer);
 
 private:
-    mutable std::shared_ptr<UnsavedFilesData> d;
+    std::vector<Project> projects;
 };
 
-} // namespace CodeModelBackEnd
+} // namespace CodeModelbackEnd
 
-#endif // CODEMODELBACKEND_UNSAVEDFILES_H
+#endif // CODEMODELBACKEND_PROJECTS_H

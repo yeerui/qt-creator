@@ -35,6 +35,8 @@
 #include <cmbechocommand.h>
 #include <cmbregisterfilesforcodecompletioncommand.h>
 #include <cmbunregisterfilesforcodecompletioncommand.h>
+#include <cmbregisterprojectsforcodecompletioncommand.h>
+#include <cmbunregisterprojectsforcodecompletioncommand.h>
 #include <cmbcompletecodecommand.h>
 #include <cmbcodecompletedcommand.h>
 
@@ -76,6 +78,18 @@ void Commands::registerCommands()
     qRegisterMetaType<CodeCompletedCommand>();
     qRegisterMetaTypeStreamOperators<CodeCompletedCommand>();
     QMetaType::registerComparators<CodeCompletedCommand>();
+
+    qRegisterMetaType<RegisterProjectsForCodeCompletionCommand>();
+    qRegisterMetaTypeStreamOperators<RegisterProjectsForCodeCompletionCommand>();
+    QMetaType::registerComparators<RegisterProjectsForCodeCompletionCommand>();
+
+    qRegisterMetaType<ProjectContainer>();
+    qRegisterMetaTypeStreamOperators<ProjectContainer>();
+    QMetaType::registerComparators<ProjectContainer>();
+
+    qRegisterMetaType<UnregisterProjectsForCodeCompletionCommand>();
+    qRegisterMetaTypeStreamOperators<UnregisterProjectsForCodeCompletionCommand>();
+    QMetaType::registerComparators<UnregisterProjectsForCodeCompletionCommand>();
 }
 
 } // namespace CodeModelBackEnd

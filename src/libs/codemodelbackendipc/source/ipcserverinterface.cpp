@@ -35,6 +35,8 @@
 
 #include "cmbregisterfilesforcodecompletioncommand.h"
 #include "cmbunregisterfilesforcodecompletioncommand.h"
+#include "cmbregisterprojectsforcodecompletioncommand.h"
+#include "cmbunregisterprojectsforcodecompletioncommand.h"
 #include "cmbcompletecodecommand.h"
 
 namespace CodeModelBackEnd {
@@ -44,6 +46,8 @@ void IpcServerInterface::dispatch(const QVariant &command)
     static const int endCommandType = QMetaType::type("CodeModelBackEnd::EndCommand");
     static const int registerFilesForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::RegisterFilesForCodeCompletionCommand");
     static const int unregisterFilesForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand");
+    static const int registerProjectsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::RegisterProjectsForCodeCompletionCommand");
+    static const int unregisterProjectsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::UnregisterProjectsForCodeCompletionCommand");
     static const int completeCodeCommandType = QMetaType::type("CodeModelBackEnd::CompleteCodeCommand");
 
     int type = command.userType();
@@ -54,6 +58,10 @@ void IpcServerInterface::dispatch(const QVariant &command)
         registerFilesForCodeCompletion(command.value<RegisterFilesForCodeCompletionCommand>());
     else if (type == unregisterFilesForCodeCompletionCommandType)
         unregisterFilesForCodeCompletion(command.value<UnregisterFilesForCodeCompletionCommand>());
+    else if (type == registerProjectsForCodeCompletionCommandType)
+        registerProjectsForCodeCompletion(command.value<RegisterProjectsForCodeCompletionCommand>());
+    else if (type == unregisterProjectsForCodeCompletionCommandType)
+        unregisterProjectsForCodeCompletion(command.value<UnregisterProjectsForCodeCompletionCommand>());
     else if (type == completeCodeCommandType)
         completeCode(command.value<CompleteCodeCommand>());
     else

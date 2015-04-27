@@ -11,7 +11,11 @@ HEADERS += clangipcserver.h \
     $$PWD/codecompletionsextractor.h \
     $$PWD/unsavedfiles.h \
     $$PWD/translationunitfilenotexitsexception.h \
-    $$PWD/project.h
+    $$PWD/project.h \
+    $$PWD/projects.h \
+    $$PWD/projectdonotexistsexception.h \
+    $$PWD/translationunits.h \
+    $$PWD/translationunitdonotexistsexception.h
 
 SOURCES += clangipcserver.cpp \
            codecompleter.cpp \
@@ -23,4 +27,8 @@ SOURCES += clangipcserver.cpp \
     $$PWD/codecompletionsextractor.cpp \
     $$PWD/unsavedfiles.cpp \
     $$PWD/translationunitfilenotexitsexception.cpp \
-    $$PWD/project.cpp
+    $$PWD/project.cpp \
+    $$PWD/projects.cpp \
+    $$PWD/projectdonotexistsexception.cpp \
+    $$PWD/translationunits.cpp \
+    $$PWD/translationunitdonotexistsexception.cpp

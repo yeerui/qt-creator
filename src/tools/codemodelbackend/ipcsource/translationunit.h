@@ -71,9 +71,8 @@ public:
     CXUnsavedFile * cxUnsavedFiles() const;
     uint unsavedFilesCount() const;
 
-    CodeCompleter completer() const;
-
-    const Utf8String filePath() const;
+    const Utf8String &filePath() const;
+    const Utf8String &projectFilePath() const;
 
     const time_point &lastChangeTimePoint() const;
 

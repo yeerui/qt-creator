@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,64 +28,65 @@
 **
 ****************************************************************************/
 
-#include "cmbregisterfilesforcodecompletioncommand.h"
+#include "cmbunregisterprojectsforcodecompletioncommand.h"
 
 #include <QtDebug>
 
 namespace CodeModelBackEnd {
 
-RegisterFilesForCodeCompletionCommand::RegisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
-    : fileContainers_(fileContainers)
+
+UnregisterProjectsForCodeCompletionCommand::UnregisterProjectsForCodeCompletionCommand(const Utf8StringVector &filePaths)
+    : filePaths_(filePaths)
 {
 }
 
-const QVector<FileContainer> &RegisterFilesForCodeCompletionCommand::fileContainers() const
+const Utf8StringVector &UnregisterProjectsForCodeCompletionCommand::filePaths() const
 {
-    return fileContainers_;
+    return filePaths_;
 }
 
-QDataStream &operator<<(QDataStream &out, const RegisterFilesForCodeCompletionCommand &command)
+QDataStream &operator<<(QDataStream &out, const UnregisterProjectsForCodeCompletionCommand &command)
 {
-    out << command.fileContainers_;
+    out << command.filePaths_;
 
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, RegisterFilesForCodeCompletionCommand &command)
+QDataStream &operator>>(QDataStream &in, UnregisterProjectsForCodeCompletionCommand &command)
 {
-    in >> command.fileContainers_;
+    in >> command.filePaths_;
 
     return in;
 }
 
-bool operator == (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second)
+bool operator == (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second)
 {
-    return first.fileContainers_ == second.fileContainers_;
+    return first.filePaths_ == second.filePaths_;
 }
 
-bool operator < (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second)
+bool operator < (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second)
 {
-    return first.fileContainers_ < second.fileContainers_;
+    return first.filePaths_ < second.filePaths_;
 }
 
-QDebug operator <<(QDebug debug, const RegisterFilesForCodeCompletionCommand &command)
+QDebug operator <<(QDebug debug, const UnregisterProjectsForCodeCompletionCommand &command)
 {
-    debug.nospace() << "RegisterFileForCodeCompletion(";
+    debug.nospace() << "UnregisterFileForCodeCompletion(";
 
-    for (const FileContainer &fileContainer : command.fileContainers())
-        debug.nospace() << fileContainer<< ", ";
+    for (const Utf8String &fileNames_ : command.filePaths())
+        debug.nospace() << fileNames_ << ", ";
 
     debug.nospace() << ")";
 
     return debug;
 }
 
-void PrintTo(const RegisterFilesForCodeCompletionCommand &command, ::std::ostream* os)
+void PrintTo(const UnregisterProjectsForCodeCompletionCommand &command, ::std::ostream* os)
 {
-    *os << "RegisterFileForCodeCompletion(";
+    *os << "UnregisterFileForCodeCompletion(";
 
-    for (const FileContainer &fileContainer : command.fileContainers())
-        PrintTo(fileContainer, os);
+    for (const Utf8String &fileNames_ : command.filePaths())
+        *os << fileNames_.constData() << ", ";
 
     *os << ")";
 }

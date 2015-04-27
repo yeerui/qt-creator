@@ -130,16 +130,18 @@ CXTranslationUnit TranslationUnit::cxTranslationUnit() const
     return d->translationUnit;
 }
 
-CodeCompleter TranslationUnit::completer() const
-{
-    return CodeCompleter(*this);
-}
-
-const Utf8String TranslationUnit::filePath() const
+const Utf8String &TranslationUnit::filePath() const
 {
     checkIfNull();
 
     return d->filePath;
+}
+
+const Utf8String &TranslationUnit::projectFilePath() const
+{
+    checkIfNull();
+
+    return d->project.projectFilePath();
 }
 
 const time_point &TranslationUnit::lastChangeTimePoint() const

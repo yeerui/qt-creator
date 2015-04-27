@@ -35,17 +35,22 @@
 
 namespace CodeModelBackEnd {
 
-CompleteCodeCommand::CompleteCodeCommand(const Utf8String &filePath, quint32 line, quint32 column, const Utf8String &commandLine)
+CompleteCodeCommand::CompleteCodeCommand(const Utf8String &filePath, quint32 line, quint32 column, const Utf8String &projectFilePath)
     : filePath_(filePath),
+      projectFilePath_(projectFilePath),
       line_(line),
-      column_(column),
-      commandLine_(commandLine)
+      column_(column)
 {
 }
 
-const Utf8String CompleteCodeCommand::filePath() const
+const Utf8String &CompleteCodeCommand::filePath() const
 {
     return filePath_;
+}
+
+const Utf8String &CompleteCodeCommand::projectFilePath() const
+{
+    return projectFilePath_;
 }
 
 quint32 CompleteCodeCommand::line() const
@@ -58,17 +63,12 @@ quint32 CompleteCodeCommand::column() const
     return column_;
 }
 
-const Utf8String CompleteCodeCommand::commandLine() const
-{
-    return commandLine_;
-}
-
 QDataStream &operator<<(QDataStream &out, const CompleteCodeCommand &command)
 {
     out << command.filePath_;
+    out << command.projectFilePath_;
     out << command.line_;
     out << command.column_;
-    out << command.commandLine_;
 
     return out;
 }
@@ -76,9 +76,9 @@ QDataStream &operator<<(QDataStream &out, const CompleteCodeCommand &command)
 QDataStream &operator>>(QDataStream &in, CompleteCodeCommand &command)
 {
     in >> command.filePath_;
+    in >> command.projectFilePath_;
     in >> command.line_;
     in >> command.column_;
-    in >> command.commandLine_;
 
     return in;
 }
@@ -86,17 +86,17 @@ QDataStream &operator>>(QDataStream &in, CompleteCodeCommand &command)
 bool operator == (const CompleteCodeCommand &first, const CompleteCodeCommand &second)
 {
     return first.filePath_ == second.filePath_
+            && first.projectFilePath_ == second.projectFilePath_
             && first.line_ == second.line_
-            && first.column_ == second.column_
-            && first.commandLine_ == second.commandLine_;
+            && first.column_ == second.column_;
 }
 
 bool operator < (const CompleteCodeCommand &first, const CompleteCodeCommand &second)
 {
     return first.filePath_ < second.filePath_
+            && first.projectFilePath_ < second.projectFilePath_
             && first.line_ < second.line_
-            && first.column_ < second.column_
-            && first.commandLine_ < second.commandLine_;
+            && first.column_ < second.column_;
 }
 
 QDebug operator <<(QDebug debug, const CompleteCodeCommand &command)
@@ -106,7 +106,7 @@ QDebug operator <<(QDebug debug, const CompleteCodeCommand &command)
     debug.nospace() << command.filePath_ << ", ";
     debug.nospace() << command.line_<< ", ";
     debug.nospace() << command.column_<< ", ";
-    debug.nospace() << command.commandLine_;
+    debug.nospace() << command.projectFilePath_;
 
     debug.nospace() << ")";
 
@@ -120,7 +120,7 @@ void PrintTo(const CompleteCodeCommand &command, ::std::ostream* os)
     *os << command.filePath_.constData() << ", ";
     *os << command.line_ << ", ";
     *os << command.column_ << ", ";
-    *os << command.commandLine_.constData();
+    *os << command.projectFilePath_.constData();
 
     *os << ")";
 }

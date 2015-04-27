@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,60 +28,40 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_UNSAVEDFILES_H
-#define CODEMODELBACKEND_UNSAVEDFILES_H
+#ifndef CODEMODELBACKEND_TRANSLATIONUNITS_H
+#define CODEMODELBACKEND_TRANSLATIONUNITS_H
 
 #include <filecontainer.h>
-
-#include <chrono>
-#include <vector>
-#include <memory>
-
 #include <QVector>
 
-#include <clang-c/Index.h>
+#include <vector>
+
+#include "translationunit.h"
 
 namespace CodeModelBackEnd {
 
-using time_point = std::chrono::high_resolution_clock::time_point;
+class Projects;
+class UnsavedFiles;
 
-class UnsavedFilesData;
-
-class UnsavedFiles
+class TranslationUnits
 {
-    friend class UnsavedFilesData;
 public:
-    UnsavedFiles();
-    ~UnsavedFiles();
-
-    UnsavedFiles(const UnsavedFiles &unsavedFiles);
-    UnsavedFiles &operator =(const UnsavedFiles &unsavedFiles);
-
-    UnsavedFiles(UnsavedFiles &&unsavedFiles);
-    UnsavedFiles &operator =(UnsavedFiles &&unsavedFiles);
+    TranslationUnits(Projects &projects, UnsavedFiles &unsavedFiles);
 
     void createOrUpdate(const QVector<FileContainer> &fileContainers);
-    void clear();
 
-    int count() const;
-
-    CXUnsavedFile *cxUnsavedFiles() const;
-    const std::vector<CXUnsavedFile> &cxUnsavedFileVector() const;
-
-    const time_point &lastChangeTimePoint() const;
+    const TranslationUnit &translationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const;
 
 private:
-    const CXUnsavedFile createCxUnsavedFile(const Utf8String &filePath, const Utf8String &fileContent);
-    static void deleteCXUnsavedFile(const CXUnsavedFile &cxUnsavedFile);
-    void updateCXUnsavedFileWithFileContainer(const FileContainer &fileContainer);
-    void removeCXUnsavedFile(const FileContainer &fileContainer);
-    void addOrUpdateCXUnsavedFile(const FileContainer &fileContainer);
-    void updateLastChangeTimePoint();
-
+    void createOrUpdateTranslationUnit(const FileContainer &fileContainer);
+    const std::vector<TranslationUnit>::iterator findTranslationUnit(const FileContainer &fileContainer);
+    const std::vector<TranslationUnit>::const_iterator findTranslationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const;
 private:
-    mutable std::shared_ptr<UnsavedFilesData> d;
+    std::vector<TranslationUnit> translationUnits;
+    Projects &projects;
+    UnsavedFiles &unsavedFiles;
 };
 
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_UNSAVEDFILES_H
+#endif // CODEMODELBACKEND_TRANSLATIONUNITS_H

@@ -35,9 +35,11 @@
 namespace CodeModelBackEnd {
 
 FileContainer::FileContainer(const Utf8String &fileName,
+                             const Utf8String &projectFilePath,
                              const Utf8String &unsavedFileContent,
                              bool hasUnsavedFileContent)
     : filePath_(fileName),
+      projectFilePath_(projectFilePath),
       unsavedFileContent_(unsavedFileContent),
       hasUnsavedFileContent_(hasUnsavedFileContent)
 {
@@ -46,6 +48,11 @@ FileContainer::FileContainer(const Utf8String &fileName,
 const Utf8String &FileContainer::filePath() const
 {
     return filePath_;
+}
+
+const Utf8String &FileContainer::projectFilePath() const
+{
+    return projectFilePath_;
 }
 
 const Utf8String &FileContainer::unsavedFileContent() const
@@ -61,6 +68,7 @@ bool FileContainer::hasUnsavedFileContent() const
 QDataStream &operator<<(QDataStream &out, const FileContainer &container)
 {
     out << container.filePath_;
+    out << container.projectFilePath_;
     out << container.unsavedFileContent_;
     out << container.hasUnsavedFileContent_;
 
@@ -70,6 +78,7 @@ QDataStream &operator<<(QDataStream &out, const FileContainer &container)
 QDataStream &operator>>(QDataStream &in, FileContainer &container)
 {
     in >> container.filePath_;
+    in >> container.projectFilePath_;
     in >> container.unsavedFileContent_;
     in >> container.hasUnsavedFileContent_;
 
@@ -78,18 +87,23 @@ QDataStream &operator>>(QDataStream &in, FileContainer &container)
 
 bool operator == (const FileContainer &first, const FileContainer &second)
 {
-    return first.filePath_ == second.filePath_;
+    return first.filePath_ == second.filePath_ && first.projectFilePath_ == second.projectFilePath_;
 }
 
 bool operator < (const FileContainer &first, const FileContainer &second)
 {
+    if (first.filePath_ == second.filePath_)
+        return first.projectFilePath_ < second.projectFilePath_;
+
     return first.filePath_ < second.filePath_;
 }
 
 QDebug operator <<(QDebug debug, const FileContainer &container)
 {
     debug.nospace() << "FileContainer("
-                    << container.filePath();
+                    << container.filePath()
+                    << ", "
+                    << container.projectFilePath();
 
     if (container.hasUnsavedFileContent())
         debug.nospace() << ", "
@@ -103,7 +117,9 @@ QDebug operator <<(QDebug debug, const FileContainer &container)
 void PrintTo(const FileContainer &container, ::std::ostream* os)
 {
     *os << "FileContainer("
-                    << container.filePath().constData();
+        << container.filePath().constData()
+        << ", "
+        << container.projectFilePath().constData();
 
     if (container.hasUnsavedFileContent())
         *os << ", "

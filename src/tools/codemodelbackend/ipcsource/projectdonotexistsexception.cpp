@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,32 +28,9 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_IPCCLIENTINTERFACE_H
-#define CODEMODELBACKEND_IPCCLIENTINTERFACE_H
-
-#include "ipcinterface.h"
+#include "projectdonotexistsexception.h"
 
 namespace CodeModelBackEnd {
 
-class IpcServerInterface;
-class RegisterFilesForCodeCompletionCommand;
-class RegisterProjectsForCodeCompletionCommand;
-class UnregisterFilesForCodeCompletionCommand;
-class UnregisterProjectsForCodeCompletionCommand;
-class EchoCommand;
-class CompleteCodeCommand;
-class CodeCompletedCommand;
-
-class CMBIPC_EXPORT IpcClientInterface : public IpcInterface
-{
-public:
-    void dispatch(const QVariant &command) override;
-
-    virtual void alive() = 0;
-    virtual void echo(const EchoCommand &command) = 0;
-    virtual void codeCompleted(const CodeCompletedCommand &command) = 0;
-};
-
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_IPCCLIENTINTERFACE_H

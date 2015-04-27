@@ -34,6 +34,8 @@
 
 #include <utf8stringvector.h>
 
+#include <projectcontainer.h>
+
 namespace CodeModelBackEnd {
 
 class ProjectData {
@@ -57,6 +59,12 @@ Project::Project(const Utf8String &projectFilePath)
 {
 }
 
+Project::Project(const ProjectContainer &projectContainer)
+    : d(std::make_shared<ProjectData>(projectContainer.filePath()))
+{
+    setArguments(projectContainer.arguments());
+}
+
 Project::~Project() = default;
 
 Project::Project(const Project &) = default;
@@ -65,7 +73,7 @@ Project &Project::operator =(const Project &) = default;
 Project::Project(Project &&) = default;
 Project &Project::operator =(Project &&) = default;
 
-const Utf8String Project::projectFilePath() const
+const Utf8String &Project::projectFilePath() const
 {
     return d->projectFilePath;
 }
@@ -108,6 +116,11 @@ const time_point &Project::lastChangeTimePoint() const
 void Project::updateLastChangeTimePoint()
 {
     d->lastChangeTimePoint = std::chrono::high_resolution_clock::now();
+}
+
+bool operator ==(const Project &first, const Project &second)
+{
+    return first.projectFilePath() == second.projectFilePath();
 }
 
 } // namespace CodeModelBackEnd

@@ -41,7 +41,7 @@
 namespace CodeModelBackEnd {
 
 ConnectionClient::ConnectionClient(IpcClientInterface *client)
-    : serverProxy(client, &localSocket),
+    : serverProxy_(client, &localSocket),
       isInConnectedMode(false)
 {
     processAliveTimer.setInterval(10000);
@@ -84,23 +84,23 @@ bool ConnectionClient::isConnected() const
 
 void ConnectionClient::sendEndCommand()
 {
-    serverProxy.end();
+    serverProxy_.end();
     localSocket.flush();
 }
 
 void ConnectionClient::sendRegisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
 {
-    serverProxy.registerFilesForCodeCompletion(RegisterFilesForCodeCompletionCommand(fileContainers));
+    serverProxy_.registerFilesForCodeCompletion(RegisterFilesForCodeCompletionCommand(fileContainers));
 }
 
 void ConnectionClient::sendUnregisterFilesForCodeCompletionCommand(const Utf8StringVector &fileNames)
 {
-    serverProxy.unregisterFilesForCodeCompletion(UnregisterFilesForCodeCompletionCommand(fileNames));
+    serverProxy_.unregisterFilesForCodeCompletion(UnregisterFilesForCodeCompletionCommand(fileNames));
 }
 
 void ConnectionClient::sendCompleteCodeCommand(const Utf8String &fileName, quint32 line, quint32 column, const Utf8String &commandLine)
 {
-    serverProxy.completeCode(CompleteCodeCommand(fileName, line, column, commandLine));
+    serverProxy_.completeCode(CompleteCodeCommand(fileName, line, column, commandLine));
 }
 
 void ConnectionClient::resetProcessAliveTimer()
@@ -188,12 +188,17 @@ void ConnectionClient::finishProcess()
 
     process_.reset();
 
-    serverProxy.resetCounter();
+    serverProxy_.resetCounter();
 }
 
 bool ConnectionClient::waitForEcho()
 {
     return localSocket.waitForReadyRead();
+}
+
+IpcServerProxy &ConnectionClient::serverProxy()
+{
+    return serverProxy_;
 }
 
 bool ConnectionClient::isProcessIsRunning() const

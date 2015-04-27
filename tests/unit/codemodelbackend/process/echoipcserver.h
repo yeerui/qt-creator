@@ -42,6 +42,8 @@ public:
     void end() override;
     void registerFilesForCodeCompletion(const RegisterFilesForCodeCompletionCommand &command) override;
     void unregisterFilesForCodeCompletion(const UnregisterFilesForCodeCompletionCommand &command) override;
+    void registerProjectsForCodeCompletion(const RegisterProjectsForCodeCompletionCommand &command) override;
+    void unregisterProjectsForCodeCompletion(const UnregisterProjectsForCodeCompletionCommand &command) override;
     void completeCode(const CompleteCodeCommand &command) override;
 
 private:

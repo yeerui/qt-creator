@@ -67,7 +67,7 @@ protected:
 CodeModelBackEnd::Project CodeCompleter::project(Utf8StringLiteral("/path/to/projectfile"));
 CodeModelBackEnd::UnsavedFiles CodeCompleter::unsavedFiles;
 CodeModelBackEnd::TranslationUnit CodeCompleter::translationUnit(Utf8StringLiteral("data/complete_completer.cpp"), unsavedFiles, project);
-CodeModelBackEnd::CodeCompleter CodeCompleter::completer = translationUnit.completer();
+CodeModelBackEnd::CodeCompleter CodeCompleter::completer = translationUnit;
 
 void CodeCompleter::SetUpTestCase()
 {
@@ -75,9 +75,12 @@ void CodeCompleter::SetUpTestCase()
     unsavedFileContentFile.open(QIODevice::ReadOnly);
 
     const Utf8String unsavedFileContent = Utf8String::fromByteArray(unsavedFileContentFile.readAll());
-    const CodeModelBackEnd::FileContainer unsavedDataFileContainer(translationUnit.filePath(), unsavedFileContent, true);
+    const CodeModelBackEnd::FileContainer unsavedDataFileContainer(translationUnit.filePath(),
+                                                                   project.projectFilePath(),
+                                                                   unsavedFileContent,
+                                                                   true);
 
-    unsavedFiles.update({unsavedDataFileContainer});
+    unsavedFiles.createOrUpdate({unsavedDataFileContainer});
 }
 
 void CodeCompleter::TearDownTestCase()

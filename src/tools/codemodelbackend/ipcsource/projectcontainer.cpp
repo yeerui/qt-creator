@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,67 +28,72 @@
 **
 ****************************************************************************/
 
-#include "cmbregisterfilesforcodecompletioncommand.h"
+#include "projectcontainer.h"
 
 #include <QtDebug>
 
 namespace CodeModelBackEnd {
 
-RegisterFilesForCodeCompletionCommand::RegisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
-    : fileContainers_(fileContainers)
+ProjectContainer::ProjectContainer(const Utf8String &fileName,
+                                   const Utf8StringVector &arguments)
+    : filePath_(fileName),
+      arguments_(arguments)
 {
 }
 
-const QVector<FileContainer> &RegisterFilesForCodeCompletionCommand::fileContainers() const
+const Utf8String &ProjectContainer::filePath() const
 {
-    return fileContainers_;
+    return filePath_;
 }
 
-QDataStream &operator<<(QDataStream &out, const RegisterFilesForCodeCompletionCommand &command)
+const Utf8StringVector &ProjectContainer::arguments() const
 {
-    out << command.fileContainers_;
+    return arguments_;
+}
+
+
+QDataStream &operator<<(QDataStream &out, const ProjectContainer &container)
+{
+    out << container.filePath_;
+    out << container.arguments_;
 
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, RegisterFilesForCodeCompletionCommand &command)
+QDataStream &operator>>(QDataStream &in, ProjectContainer &container)
 {
-    in >> command.fileContainers_;
+    in >> container.filePath_;
+    in >> container.arguments_;
 
     return in;
 }
 
-bool operator == (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second)
+bool operator == (const ProjectContainer &first, const ProjectContainer &second)
 {
-    return first.fileContainers_ == second.fileContainers_;
+    return first.filePath_ == second.filePath_;
 }
 
-bool operator < (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second)
+bool operator < (const ProjectContainer &first, const ProjectContainer &second)
 {
-    return first.fileContainers_ < second.fileContainers_;
+    return first.filePath_ < second.filePath_;
 }
 
-QDebug operator <<(QDebug debug, const RegisterFilesForCodeCompletionCommand &command)
+QDebug operator <<(QDebug debug, const ProjectContainer &container)
 {
-    debug.nospace() << "RegisterFileForCodeCompletion(";
-
-    for (const FileContainer &fileContainer : command.fileContainers())
-        debug.nospace() << fileContainer<< ", ";
-
-    debug.nospace() << ")";
+    debug.nospace() << "ProjectContainer("
+                    << container.filePath()
+                    << ")";
 
     return debug;
 }
 
-void PrintTo(const RegisterFilesForCodeCompletionCommand &command, ::std::ostream* os)
+void PrintTo(const ProjectContainer &container, ::std::ostream* os)
 {
-    *os << "RegisterFileForCodeCompletion(";
-
-    for (const FileContainer &fileContainer : command.fileContainers())
-        PrintTo(fileContainer, os);
-
-    *os << ")";
+    *os << "ProjectContainer("
+        << container.filePath().constData()
+        << ")";
 }
+
 
 } // namespace CodeModelBackEnd
 

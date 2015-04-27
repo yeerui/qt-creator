@@ -34,6 +34,8 @@
 #include "cmbechocommand.h"
 #include "cmbregisterfilesforcodecompletioncommand.h"
 #include "cmbunregisterfilesforcodecompletioncommand.h"
+#include "cmbregisterprojectsforcodecompletioncommand.h"
+#include "cmbunregisterprojectsforcodecompletioncommand.h"
 #include "cmbcompletecodecommand.h"
 #include "cmbcodecompletedcommand.h"
 
@@ -62,6 +64,16 @@ void EchoIpcServer::registerFilesForCodeCompletion(const RegisterFilesForCodeCom
 }
 
 void EchoIpcServer::unregisterFilesForCodeCompletion(const UnregisterFilesForCodeCompletionCommand &command)
+{
+    echoCommand(QVariant::fromValue(command));
+}
+
+void EchoIpcServer::registerProjectsForCodeCompletion(const RegisterProjectsForCodeCompletionCommand &command)
+{
+    echoCommand(QVariant::fromValue(command));
+}
+
+void EchoIpcServer::unregisterProjectsForCodeCompletion(const UnregisterProjectsForCodeCompletionCommand &command)
 {
     echoCommand(QVariant::fromValue(command));
 }

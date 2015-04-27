@@ -35,6 +35,8 @@
 
 #include <project.h>
 #include <utf8stringvector.h>
+#include <projects.h>
+#include <projectdonotexistsexception.h>
 
 #include <chrono>
 
@@ -53,6 +55,16 @@ TEST(Project, CreateProject)
     CodeModelBackEnd::Project project(projectPath);
 
     ASSERT_THAT(project.projectFilePath(), projectPath);
+}
+
+TEST(Project, CreateProjectWithProjectContainer)
+{
+    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-O")});
+
+    CodeModelBackEnd::Project project(projectContainer);
+
+    ASSERT_THAT(project.projectFilePath(), Utf8StringLiteral("pathToProject.pro"));
+    ASSERT_THAT(project.arguments(), Contains(StrEq("-O")));
 }
 
 TEST(Project, SetArguments)
@@ -83,4 +95,36 @@ TEST(Project, TimeStampIsUpdatedAsArgumentChanged)
     ASSERT_THAT(project.lastChangeTimePoint(), Gt(lastChangeTimePoint));
 
 }
+
+TEST(Project, GetNonExistingPoject)
+{
+    CodeModelBackEnd::Projects projects;
+
+    ASSERT_THROW(projects.project(Utf8StringLiteral("pathToProject.pro")), CodeModelBackEnd::ProjectDoNotExistsException);
+}
+
+TEST(Project, AddProjects)
+{
+    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-O")});
+    CodeModelBackEnd::Projects projects;
+
+    projects.createOrUpdate({projectContainer});
+
+    ASSERT_THAT(projects.project(projectContainer.filePath()), CodeModelBackEnd::Project(projectContainer));
+    ASSERT_THAT(projects.project(projectContainer.filePath()).arguments(), ElementsAre(StrEq("-O")));
+}
+
+TEST(Project, UpdateProjects)
+{
+    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-O")});
+    CodeModelBackEnd::ProjectContainer projectContainerWithNewArguments(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-fast")});
+    CodeModelBackEnd::Projects projects;
+    projects.createOrUpdate({projectContainer});
+
+    projects.createOrUpdate({projectContainerWithNewArguments});
+
+    ASSERT_THAT(projects.project(projectContainer.filePath()), CodeModelBackEnd::Project(projectContainer));
+    ASSERT_THAT(projects.project(projectContainer.filePath()).arguments(), ElementsAre(StrEq("-fast")));
+}
+
 }

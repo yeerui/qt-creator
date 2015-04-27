@@ -28,7 +28,11 @@ SOURCES += ipcserverinterface.cpp \
     cmbcompletecodecommand.cpp \
     cmbcodecompletedcommand.cpp \
     codecompletion.cpp \
-    codemodelbackendipc_global.cpp
+    codemodelbackendipc_global.cpp \
+    $$PWD/projectcontainer.cpp \
+    $$PWD/cmbregisterprojectsforcodecompletioncommand.cpp \
+    $$PWD/cmbunregisterprojectsforcodecompletioncommand.cpp
+
 
 HEADERS += codemodelbackendipc_global.h \
     ipcserverinterface.h \
@@ -51,4 +55,7 @@ HEADERS += codemodelbackendipc_global.h \
     cmbunregisterfilesforcodecompletioncommand.h \
     cmbcompletecodecommand.h \
     cmbcodecompletedcommand.h \
-    codecompletion.h
+    codecompletion.h \
+    $$PWD/projectcontainer.h \
+    $$PWD/cmbregisterprojectsforcodecompletioncommand.h \
+    $$PWD/cmbunregisterprojectsforcodecompletioncommand.h

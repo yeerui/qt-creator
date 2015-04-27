@@ -30,7 +30,7 @@
 
 #include "gtest/gtest.h"
 #include "gmock/gmock-matchers.h"
-#include "gmock/gmock.h"
+#include "gmock/gmock-generated-matchers.h"
 
 #include <clang-c/Index.h>
 
@@ -38,9 +38,12 @@
 #include <unsavedfiles.h>
 #include <utf8string.h>
 #include <project.h>
-
-#include "translationunitisnullexception.h"
-#include "translationunitfilenotexitsexception.h"
+#include <translationunits.h>
+#include <filecontainer.h>
+#include <projects.h>
+#include <translationunitdonotexistsexception.h>
+#include <translationunitisnullexception.h>
+#include <translationunitfilenotexitsexception.h>
 
 using CodeModelBackEnd::TranslationUnit;
 using CodeModelBackEnd::UnsavedFiles;
@@ -119,11 +122,12 @@ TEST(TranslationUnit, ResetedTranslationUnitIsNull)
 
 TEST(TranslationUnit, TimeStampIsUpdatedAsNewCxTranslationUnitIsGenerated)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), UnsavedFiles(), Project(Utf8StringLiteral("/tmp")));
+    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), UnsavedFiles(), Project(Utf8StringLiteral("/path/to/projectfile")));
     auto lastChangeTimePoint = translationUnit.lastChangeTimePoint();
 
     translationUnit.cxTranslationUnit();
 
     ASSERT_THAT(translationUnit.lastChangeTimePoint(), Gt(lastChangeTimePoint));
 }
+
 }

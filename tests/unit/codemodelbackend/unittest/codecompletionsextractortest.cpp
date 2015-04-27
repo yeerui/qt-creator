@@ -89,9 +89,11 @@ const Utf8String unsavedFileContent(const char *unsavedFilePath)
     return Utf8String::fromByteArray(unsavedFileContentFile.readAll());
 }
 
-const CodeModelBackEnd::FileContainer unsavedDataFileContainer(const char *filePath, const char *unsavedFilePath)
+const CodeModelBackEnd::FileContainer unsavedDataFileContainer(const char *filePath,
+                                                               const char *unsavedFilePath)
 {
     return CodeModelBackEnd::FileContainer(Utf8String::fromUtf8(filePath),
+                                           Utf8String(),
                                            unsavedFileContent(unsavedFilePath),
                                            true);
 }
@@ -502,7 +504,7 @@ TEST_F(CodeCompletionExtractor, UnsavedFile)
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
     CodeModelBackEnd::Project project(Utf8StringLiteral("/path/to/projectfile"));
     TranslationUnit translationUnit(Utf8String::fromUtf8("data/complete_extractor_function.cpp"), unsavedFiles, project);
-    unsavedFiles.update({unsavedDataFileContainer("data/complete_extractor_function.cpp",
+    unsavedFiles.createOrUpdate({unsavedDataFileContainer("data/complete_extractor_function.cpp",
                                                   "data/complete_extractor_function_unsaved.cpp")});
     ClangCodeCompleteResults completeResults(getResults(translationUnit, 20));
 
@@ -518,10 +520,10 @@ TEST_F(CodeCompletionExtractor, ChangeUnsavedFile)
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
     CodeModelBackEnd::Project project(Utf8StringLiteral("/path/to/projectfile"));
     TranslationUnit translationUnit(Utf8String::fromUtf8("data/complete_extractor_function.cpp"), unsavedFiles, project);
-    unsavedFiles.update({unsavedDataFileContainer("data/complete_extractor_function.cpp",
+    unsavedFiles.createOrUpdate({unsavedDataFileContainer("data/complete_extractor_function.cpp",
                                                   "data/complete_extractor_function_unsaved.cpp")});
     ClangCodeCompleteResults completeResults(getResults(translationUnit, 20));
-    unsavedFiles.update({unsavedDataFileContainer("data/complete_extractor_function.cpp",
+    unsavedFiles.createOrUpdate({unsavedDataFileContainer("data/complete_extractor_function.cpp",
                                                   "data/complete_extractor_function_unsaved_2.cpp")});
     completeResults = getResults(translationUnit, 20);
 

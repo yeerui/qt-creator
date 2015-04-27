@@ -28,56 +28,53 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_PROJECT_H
-#define CODEMODELBACKEND_PROJECT_H
+#include "projects.h"
 
-#include <memory>
-#include <vector>
-#include <chrono>
+#include <QtGlobal>
 
-class Utf8String;
-class Utf8StringVector;
+#include "projectdonotexistsexception.h"
 
 namespace CodeModelBackEnd {
 
-class ProjectContainer;
-class ProjectData;
-
-using time_point = std::chrono::high_resolution_clock::time_point;
-
-class Project
+void Projects::createOrUpdate(const QVector<ProjectContainer> &projectContainers)
 {
-public:
-    Project(const Utf8String &projectFilePath);
-    Project(const ProjectContainer &projectContainer);
-    ~Project();
+    for (const ProjectContainer &projectContainer : projectContainers)
+        createOrUpdateProject(projectContainer);
+}
 
-    Project(const Project &project);
-    Project &operator =(const Project &project);
+const Project &Projects::project(const Utf8String &projectFilePath) const
+{
+    const auto findIterator = findProject(projectFilePath);
 
-    Project(Project &&project);
-    Project &operator =(Project &&project);
+    if (findIterator == projects.cend())
+        throw ProjectDoNotExistsException();
 
-    const Utf8String &projectFilePath() const;
+    return *findIterator;
+}
 
-    void setArguments(const Utf8StringVector &arguments_);
+const std::vector<Project>::const_iterator Projects::findProject(const Utf8String &projectFilePath) const
+{
+    return std::find_if(projects.begin(), projects.end(), [projectFilePath] (const Project &project) {
+        return project.projectFilePath() == projectFilePath;
+    });
+}
 
-    const std::vector<const char*> &arguments() const;
+const std::vector<Project>::iterator Projects::findProject(const Utf8String &projectFilePath)
+{
+    return std::find_if(projects.begin(), projects.end(), [projectFilePath] (const Project &project) {
+        return project.projectFilePath() == projectFilePath;
+    });
+}
 
-    int argumentCount() const;
-    const char *const *cxArguments() const;
+void Projects::createOrUpdateProject(const ProjectContainer &projectContainer)
+{
+    auto findIterator = findProject(projectContainer.filePath());
+    if (findIterator == projects.cend())
+        projects.push_back(Project(projectContainer));
+    else
+        findIterator->setArguments(projectContainer.arguments());
+}
 
-    const time_point &lastChangeTimePoint() const;
 
-private:
-    void updateLastChangeTimePoint();
+} // namespace CodeModelbackEnd
 
-private:
-    std::shared_ptr<ProjectData> d;
-};
-
-bool operator ==(const Project &first, const Project &second);
-
-} // namespace CodeModelBackEnd
-
-#endif // CODEMODELBACKEND_PROJECT_H

@@ -81,6 +81,8 @@ public:
 
     bool waitForEcho();
 
+    IpcServerProxy &serverProxy();
+
 signals:
     void processRestarted();
 
@@ -95,7 +97,7 @@ private:
 private:
     mutable std::unique_ptr<QProcess> process_;
     QLocalSocket localSocket;
-    IpcServerProxy serverProxy;
+    IpcServerProxy serverProxy_;
     QTimer processAliveTimer;
     QString processPath_;
     bool isInConnectedMode;

@@ -38,6 +38,8 @@
 #include <cmbalivecommand.h>
 #include <cmbregisterfilesforcodecompletioncommand.h>
 #include <cmbunregisterfilesforcodecompletioncommand.h>
+#include <cmbregisterprojectsforcodecompletioncommand.h>
+#include <cmbunregisterprojectsforcodecompletioncommand.h>
 #include <cmbcompletecodecommand.h>
 
 #include <ipcclientinterface.h>
@@ -75,6 +77,16 @@ void IpcServerProxy::registerFilesForCodeCompletion(const RegisterFilesForCodeCo
 }
 
 void IpcServerProxy::unregisterFilesForCodeCompletion(const UnregisterFilesForCodeCompletionCommand &command)
+{
+    writeCommandBlock.write(QVariant::fromValue(command));
+}
+
+void IpcServerProxy::registerProjectsForCodeCompletion(const RegisterProjectsForCodeCompletionCommand &command)
+{
+    writeCommandBlock.write(QVariant::fromValue(command));
+}
+
+void IpcServerProxy::unregisterProjectsForCodeCompletion(const UnregisterProjectsForCodeCompletionCommand &command)
 {
     writeCommandBlock.write(QVariant::fromValue(command));
 }

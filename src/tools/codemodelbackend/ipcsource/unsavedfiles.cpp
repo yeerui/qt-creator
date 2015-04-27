@@ -72,7 +72,7 @@ UnsavedFiles &UnsavedFiles::operator =(const UnsavedFiles &) = default;
 UnsavedFiles::UnsavedFiles(UnsavedFiles &&) = default;
 UnsavedFiles &UnsavedFiles::operator =(UnsavedFiles &&) = default;
 
-void UnsavedFiles::update(const QVector<FileContainer> &fileContainers)
+void UnsavedFiles::createOrUpdate(const QVector<FileContainer> &fileContainers)
 {
     for (const FileContainer &fileContainer : fileContainers)
         updateCXUnsavedFileWithFileContainer(fileContainer);

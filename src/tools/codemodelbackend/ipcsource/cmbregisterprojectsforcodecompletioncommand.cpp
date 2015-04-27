@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,64 +28,64 @@
 **
 ****************************************************************************/
 
-#include "cmbregisterfilesforcodecompletioncommand.h"
+#include "cmbregisterprojectsforcodecompletioncommand.h"
 
 #include <QtDebug>
 
 namespace CodeModelBackEnd {
 
-RegisterFilesForCodeCompletionCommand::RegisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
-    : fileContainers_(fileContainers)
+RegisterProjectsForCodeCompletionCommand::RegisterProjectsForCodeCompletionCommand(const QVector<ProjectContainer> &projectContainers)
+    :projectContainers_(projectContainers)
 {
 }
 
-const QVector<FileContainer> &RegisterFilesForCodeCompletionCommand::fileContainers() const
+const QVector<ProjectContainer> &RegisterProjectsForCodeCompletionCommand::projectContainers() const
 {
-    return fileContainers_;
+    return projectContainers_;
 }
 
-QDataStream &operator<<(QDataStream &out, const RegisterFilesForCodeCompletionCommand &command)
+QDataStream &operator<<(QDataStream &out, const RegisterProjectsForCodeCompletionCommand &command)
 {
-    out << command.fileContainers_;
+    out << command.projectContainers_;
 
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, RegisterFilesForCodeCompletionCommand &command)
+QDataStream &operator>>(QDataStream &in, RegisterProjectsForCodeCompletionCommand &command)
 {
-    in >> command.fileContainers_;
+    in >> command.projectContainers_;
 
     return in;
 }
 
-bool operator == (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second)
+bool operator == (const RegisterProjectsForCodeCompletionCommand &first, const RegisterProjectsForCodeCompletionCommand &second)
 {
-    return first.fileContainers_ == second.fileContainers_;
+    return first.projectContainers_ == second.projectContainers_;
 }
 
-bool operator < (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second)
+bool operator < (const RegisterProjectsForCodeCompletionCommand &first, const RegisterProjectsForCodeCompletionCommand &second)
 {
-    return first.fileContainers_ < second.fileContainers_;
+    return first.projectContainers_ < second.projectContainers_;
 }
 
-QDebug operator <<(QDebug debug, const RegisterFilesForCodeCompletionCommand &command)
+QDebug operator <<(QDebug debug, const RegisterProjectsForCodeCompletionCommand &command)
 {
-    debug.nospace() << "RegisterFileForCodeCompletion(";
+    debug.nospace() << "RegisterProjectsForCodeCompletionCommand(";
 
-    for (const FileContainer &fileContainer : command.fileContainers())
-        debug.nospace() << fileContainer<< ", ";
+    for (const ProjectContainer &projectContainer : command.projectContainers())
+        debug.nospace() << projectContainer<< ", ";
 
     debug.nospace() << ")";
 
     return debug;
 }
 
-void PrintTo(const RegisterFilesForCodeCompletionCommand &command, ::std::ostream* os)
+void PrintTo(const RegisterProjectsForCodeCompletionCommand &command, ::std::ostream* os)
 {
-    *os << "RegisterFileForCodeCompletion(";
+    *os << "RegisterProjectsForCodeCompletionCommand(";
 
-    for (const FileContainer &fileContainer : command.fileContainers())
-        PrintTo(fileContainer, os);
+    for (const ProjectContainer &projectContainer : command.projectContainers())
+        PrintTo(projectContainer, os);
 
     *os << ")";
 }

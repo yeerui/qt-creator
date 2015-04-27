@@ -47,7 +47,6 @@ SOURCES += main.cpp \
     clientserverinprocesstest.cpp \
     clientserveroutsideprocess.cpp \
     gtest-qt-printing.cpp \
-    clanginprocesstest.cpp \
     codecompletiontest.cpp \
     ../../../../src/libs/utils/qtcassert.cpp \
     clangstringtest.cpp \
@@ -55,7 +54,9 @@ SOURCES += main.cpp \
     clangcodecompleteresultstest.cpp \
     codecompletionsextractortest.cpp \
     unsavedfilestest.cpp \
-    projecttest.cpp
+    projecttest.cpp \
+    clangipcservertest.cpp \
+    translationunitstest.cpp
 
 HEADERS += \
     gtest-qt-printing.h \

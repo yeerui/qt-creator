@@ -46,6 +46,8 @@
 #include <cmbregisterfilesforcodecompletioncommand.h>
 #include <cmbunregisterfilesforcodecompletioncommand.h>
 #include <cmbcodecompletedcommand.h>
+#include <cmbregisterprojectsforcodecompletioncommand.h>
+#include <cmbunregisterprojectsforcodecompletioncommand.h>
 #include <cmbcompletecodecommand.h>
 #include <writecommandblock.h>
 #include <readcommandblock.h>
@@ -74,6 +76,10 @@ class MockIpcServer : public IpcServerInterface {
       void(const RegisterFilesForCodeCompletionCommand &command));
   MOCK_METHOD1(unregisterFilesForCodeCompletion,
       void(const UnregisterFilesForCodeCompletionCommand &command));
+  MOCK_METHOD1(registerProjectsForCodeCompletion,
+      void(const RegisterProjectsForCodeCompletionCommand &command));
+  MOCK_METHOD1(unregisterProjectsForCodeCompletion,
+      void(const UnregisterProjectsForCodeCompletionCommand &command));
   MOCK_METHOD1(completeCode,
       void(const CompleteCodeCommand &command));
 };
@@ -118,9 +124,9 @@ TEST_F(ClientServerInProcess, SendAliveCommand)
 
 TEST_F(ClientServerInProcess, SendRegisterFilesForCodeCompletionCommand)
 {
-    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo"));
-    QVector<CodeModelBackEnd::FileContainer> fileContainers({fileContainer});
-    CodeModelBackEnd::RegisterFilesForCodeCompletionCommand command(fileContainers);
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("data/complete_extractor_function.cpp"),
+                                                  Utf8StringLiteral("pathToProject.pro"));
+    CodeModelBackEnd::RegisterFilesForCodeCompletionCommand command({fileContainer});
 
     EXPECT_CALL(mockIpcServer, registerFilesForCodeCompletion(command))
         .Times(1);
@@ -162,6 +168,29 @@ TEST_F(ClientServerInProcess, SendCodeCompletedCommand)
 
     clientProxy.codeCompleted(command);
     scheduleClientCommands();
+}
+
+TEST_F(ClientServerInProcess, SendRegisterProjectsForCodeCompletionCommand)
+{
+    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("data/complete.pro"));
+    CodeModelBackEnd::RegisterProjectsForCodeCompletionCommand command({projectContainer});
+
+    EXPECT_CALL(mockIpcServer, registerProjectsForCodeCompletion(command))
+        .Times(1);
+
+    serverProxy.registerProjectsForCodeCompletion(command);
+    scheduleServerCommands();
+}
+
+TEST_F(ClientServerInProcess, SendUnregisterProjectsForCodeCompletionCommand)
+{
+    CodeModelBackEnd::UnregisterProjectsForCodeCompletionCommand command({Utf8StringLiteral("data/complete.pro")});
+
+    EXPECT_CALL(mockIpcServer, unregisterProjectsForCodeCompletion(command))
+        .Times(1);
+
+    serverProxy.unregisterProjectsForCodeCompletion(command);
+    scheduleServerCommands();
 }
 
 ClientServerInProcess::ClientServerInProcess()

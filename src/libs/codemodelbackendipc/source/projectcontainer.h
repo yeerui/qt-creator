@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,52 +28,46 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_FILECONTAINER_H
-#define CODEMODELBACKEND_FILECONTAINER_H
+#ifndef CODEMODELBACKEND_PROJECTCONTAINER_H
+#define CODEMODELBACKEND_PROJECTCONTAINER_H
 
-#include <qmetatype.h>
+#include <QMetaType>
 
-#include <utf8string.h>
+#include <utf8stringvector.h>
 
 #include <codemodelbackendipc_global.h>
 
 namespace CodeModelBackEnd {
 
-class CMBIPC_EXPORT FileContainer
+class CMBIPC_EXPORT ProjectContainer
 {
-    friend QDataStream &operator<<(QDataStream &out, const FileContainer &container);
-    friend QDataStream &operator>>(QDataStream &in, FileContainer &container);
-    friend bool operator == (const FileContainer &first, const FileContainer &second);
-    friend bool operator < (const FileContainer &first, const FileContainer &second);
+    friend QDataStream &operator<<(QDataStream &out, const ProjectContainer &container);
+    friend QDataStream &operator>>(QDataStream &in, ProjectContainer &container);
+    friend bool operator == (const ProjectContainer &first, const ProjectContainer &second);
+    friend bool operator < (const ProjectContainer &first, const ProjectContainer &second);
 public:
-    FileContainer() = default;
-    FileContainer(const Utf8String &filePath,
-                  const Utf8String &projectFilePath,
-                  const Utf8String &unsavedFileContent = Utf8String(),
-                  bool hasUnsavedFileContent = false);
+    ProjectContainer() = default;
+    ProjectContainer(const Utf8String &filePath,
+                     const Utf8StringVector &arguments = Utf8StringVector());
 
     const Utf8String &filePath() const;
-    const Utf8String &projectFilePath() const;
-    const Utf8String &unsavedFileContent() const;
-    bool hasUnsavedFileContent() const;
+    const Utf8StringVector &arguments() const;
 
 private:
     Utf8String filePath_;
-    Utf8String projectFilePath_;
-    Utf8String unsavedFileContent_;
-    bool hasUnsavedFileContent_ = false;
+    Utf8StringVector arguments_;
 };
 
-CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const FileContainer &container);
-CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, FileContainer &container);
-CMBIPC_EXPORT bool operator == (const FileContainer &first, const FileContainer &second);
-CMBIPC_EXPORT bool operator < (const FileContainer &first, const FileContainer &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectContainer &container);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, ProjectContainer &container);
+CMBIPC_EXPORT bool operator == (const ProjectContainer &first, const ProjectContainer &second);
+CMBIPC_EXPORT bool operator < (const ProjectContainer &first, const ProjectContainer &second);
 
-QDebug operator <<(QDebug debug, const FileContainer &container);
-void PrintTo(const FileContainer &container, ::std::ostream* os);
+QDebug operator <<(QDebug debug, const ProjectContainer &container);
+void PrintTo(const ProjectContainer &container, ::std::ostream* os);
 
 } // namespace CodeModelBackEnd
 
-Q_DECLARE_METATYPE(CodeModelBackEnd::FileContainer)
+Q_DECLARE_METATYPE(CodeModelBackEnd::ProjectContainer)
 
-#endif // CODEMODELBACKEND_FILECONTAINER_H
+#endif // CODEMODELBACKEND_PROJECTCONTAINER_H

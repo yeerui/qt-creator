@@ -52,18 +52,19 @@ public:
     CompleteCodeCommand(const Utf8String &filePath,
                         quint32 line,
                         quint32 column,
-                        const Utf8String &commandLine);
+                        const Utf8String &projectFilePath);
 
-    const Utf8String filePath() const;
+    const Utf8String &filePath() const;
+    const Utf8String &projectFilePath() const;
+
     quint32 line() const;
     quint32 column() const;
-    const Utf8String commandLine() const;
 
 private:
     Utf8String filePath_;
+    Utf8String projectFilePath_;
     quint32 line_ = 0;
     quint32 column_ = 0;
-    Utf8String commandLine_;
 };
 
 CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const CompleteCodeCommand &command);
