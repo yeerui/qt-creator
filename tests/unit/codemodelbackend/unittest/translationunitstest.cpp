@@ -95,14 +95,22 @@ void TranslationUnits::SetUp()
 }
 
 
-TEST_F(TranslationUnits, GetNonExistingTranslationUnit)
+TEST_F(TranslationUnits, ThrowForGettingWithWrongFilePath)
 {
     ASSERT_THROW(translationUnits.translationUnit(Utf8StringLiteral("foo.cpp"), projectFilePath),
                  CodeModelBackEnd::TranslationUnitDoNotExistsException);
 
 }
 
-TEST_F(TranslationUnits, AddTranslationUnit)
+TEST_F(TranslationUnits, ThrowForGettingWithWrongProjectFilePath)
+{
+    ASSERT_THROW(translationUnits.translationUnit(filePath, Utf8StringLiteral("foo.pro")),
+                 CodeModelBackEnd::TranslationUnitDoNotExistsException);
+
+}
+
+
+TEST_F(TranslationUnits, Add)
 {
     CodeModelBackEnd::FileContainer fileContainer(filePath, projectFilePath);
 
@@ -110,6 +118,33 @@ TEST_F(TranslationUnits, AddTranslationUnit)
 
     ASSERT_THAT(translationUnits.translationUnit(filePath, projectFilePath),
                 IsTranslationUnit(filePath, projectFilePath));
+}
+
+TEST_F(TranslationUnits, ThrowForRemovingWithWrongFilePath)
+{
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), projectFilePath);
+
+    ASSERT_THROW(translationUnits.remove({fileContainer}),
+                 CodeModelBackEnd::TranslationUnitDoNotExistsException);
+}
+
+TEST_F(TranslationUnits, ThrowForRemovingWithWrongProjectFilePath)
+{
+    CodeModelBackEnd::FileContainer fileContainer(filePath, Utf8StringLiteral("foo.pro"));
+
+    ASSERT_THROW(translationUnits.remove({fileContainer}),
+                 CodeModelBackEnd::TranslationUnitDoNotExistsException);
+}
+
+TEST_F(TranslationUnits, Remove)
+{
+    CodeModelBackEnd::FileContainer fileContainer(filePath, projectFilePath);
+    translationUnits.createOrUpdate({fileContainer});
+
+    translationUnits.remove({fileContainer});
+
+    ASSERT_THROW(translationUnits.translationUnit(filePath, projectFilePath),
+                 CodeModelBackEnd::TranslationUnitDoNotExistsException);
 }
 
 }

@@ -58,6 +58,8 @@ public:
     Project(Project &&project);
     Project &operator =(Project &&project);
 
+    void clearProjectFilePath();
+
     const Utf8String &projectFilePath() const;
 
     void setArguments(const Utf8StringVector &arguments_);

@@ -137,8 +137,8 @@ TEST_F(ClientServerInProcess, SendRegisterFilesForCodeCompletionCommand)
 
 TEST_F(ClientServerInProcess, SendUnregisterFilesForCodeCompletionCommand)
 {
-    Utf8StringVector fileNames({Utf8StringLiteral("foo")});
-    CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand command(fileNames);
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), Utf8StringLiteral("pathToProject.pro"));
+    CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand command({fileContainer});
 
     EXPECT_CALL(mockIpcServer, unregisterFilesForCodeCompletion(command))
         .Times(1);

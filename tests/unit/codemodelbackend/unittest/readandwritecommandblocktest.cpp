@@ -137,9 +137,9 @@ TEST_F(ReadAndWriteCommandBlockTest, CompareRegisterFilesForCodeCompletionComman
 
 TEST_F(ReadAndWriteCommandBlockTest, CompareUnregisterFileForCodeCompletionCommand)
 {
-    Utf8StringVector fileNames({Utf8StringLiteral("foo")});
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), Utf8StringLiteral("pathToProject.pro"));
 
-    CompareCommand(CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand(fileNames));
+    CompareCommand(CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand({fileContainer}));
 }
 
 TEST_F(ReadAndWriteCommandBlockTest, CompareCompleteCodeCommand)

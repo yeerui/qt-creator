@@ -127,4 +127,26 @@ TEST(Project, UpdateProjects)
     ASSERT_THAT(projects.project(projectContainer.filePath()).arguments(), ElementsAre(StrEq("-fast")));
 }
 
+TEST(Project, ThrowExceptionForAccesingRemovedProjects)
+{
+    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-O")});
+    CodeModelBackEnd::Projects projects;
+    projects.createOrUpdate({projectContainer});
+
+    projects.remove({projectContainer.filePath()});
+
+    ASSERT_THROW(projects.project(projectContainer.filePath()), CodeModelBackEnd::ProjectDoNotExistsException);
+}
+
+TEST(Project, ProjectFilePathIsEmptyfterRemoving)
+{
+    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-O")});
+    CodeModelBackEnd::Projects projects;
+    projects.createOrUpdate({projectContainer});
+    CodeModelBackEnd::Project project(projects.project(projectContainer.filePath()));
+
+    projects.remove({projectContainer.filePath()});
+
+    ASSERT_TRUE(project.projectFilePath().isEmpty());
+}
 }

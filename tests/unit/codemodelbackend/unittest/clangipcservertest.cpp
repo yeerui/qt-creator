@@ -45,18 +45,21 @@
 #include <cmbregisterfilesforcodecompletioncommand.h>
 #include <cmbunregisterfilesforcodecompletioncommand.h>
 #include <cmbregisterprojectsforcodecompletioncommand.h>
+#include <cmbunregisterprojectsforcodecompletioncommand.h>
 
 #include <QBuffer>
-
+#include <QFile>
 
 using testing::Property;
 using testing::Contains;
+using testing::Not;
 
 namespace {
 
 using CodeModelBackEnd::RegisterFilesForCodeCompletionCommand;
 using CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand;
 using CodeModelBackEnd::RegisterProjectsForCodeCompletionCommand;
+using CodeModelBackEnd::UnregisterProjectsForCodeCompletionCommand;
 using CodeModelBackEnd::CompleteCodeCommand;
 using CodeModelBackEnd::CodeCompletedCommand;
 using CodeModelBackEnd::CodeCompletion;
@@ -82,6 +85,7 @@ protected:
     void registerFiles();
     void registerProject();
     void changeProjectArguments();
+    static const Utf8String unsavedContent(const QString &unsavedFilePath);
 
 protected:
     MockIpcClient mockIpcClient;
@@ -89,6 +93,8 @@ protected:
     const Utf8String projectFilePath = Utf8StringLiteral("pathToProject.pro");
     const Utf8String functionTestFilePath = Utf8StringLiteral("data/complete_extractor_function.cpp");
     const Utf8String variableTestFilePath = Utf8StringLiteral("data/complete_extractor_variable.cpp");
+    const QString unsavedTestFilePath = QStringLiteral("data/complete_extractor_function_unsaved.cpp");
+    const QString updatedUnsavedTestFilePath = QStringLiteral("data/complete_extractor_function_unsaved_2.cpp");
 };
 
 
@@ -101,7 +107,7 @@ void ClangIpcServer::SetUp()
 
 void ClangIpcServer::registerFiles()
 {
-    RegisterFilesForCodeCompletionCommand command({FileContainer(functionTestFilePath, projectFilePath),
+    RegisterFilesForCodeCompletionCommand command({FileContainer(functionTestFilePath, projectFilePath, unsavedContent(unsavedTestFilePath), true),
                                                    FileContainer(variableTestFilePath, projectFilePath)});
 
     clangServer.registerFilesForCodeCompletion(command);
@@ -120,6 +126,16 @@ void ClangIpcServer::changeProjectArguments()
 
     clangServer.registerProjectsForCodeCompletion(command);
 
+}
+
+const Utf8String ClangIpcServer::unsavedContent(const QString &unsavedFilePath)
+{
+    QFile unsavedFileContentFile(unsavedFilePath);
+    bool isOpen = unsavedFileContentFile.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!isOpen)
+        ADD_FAILURE() << "File with the unsaved content cannot be opened!";
+
+    return Utf8String::fromByteArray(unsavedFileContentFile.readAll());
 }
 
 TEST_F(ClangIpcServer, GetCodeCompletion)
@@ -159,7 +175,7 @@ TEST_F(ClangIpcServer, GetCodeCompletionDependingOnArgumets)
     clangServer.completeCode(completeCodeCommand);
 }
 
-TEST_F(ClangIpcServer, ThrowExceptionForNonExistingTranslationUnit)
+TEST_F(ClangIpcServer, ThrowExceptionForCodeCompletionOnNonExistingTranslationUnit)
 {
     CompleteCodeCommand completeCodeCommand(Utf8StringLiteral("dontexists.cpp"),
                                             34,
@@ -169,10 +185,109 @@ TEST_F(ClangIpcServer, ThrowExceptionForNonExistingTranslationUnit)
     ASSERT_THROW(clangServer.completeCode(completeCodeCommand), CodeModelBackEnd::TranslationUnitDoNotExistsException);
 }
 
-TEST_F(ClangIpcServer, RegisterProject)
+TEST_F(ClangIpcServer, GetCodeCompletionForUnsavedFile)
 {
+    CompleteCodeCommand completeCodeCommand(functionTestFilePath,
+                                            20,
+                                            1,
+                                            projectFilePath);
+    CodeCompletion codeCompletion(Utf8StringLiteral("Method2"),
+                                  Utf8String(),
+                                  Utf8String(),
+                                  34,
+                                  CodeCompletion::FunctionCompletionKind);
 
+    EXPECT_CALL(mockIpcClient, codeCompleted(Property(&CodeCompletedCommand::codeCompletions, Contains(codeCompletion))))
+        .Times(1);
+
+    clangServer.completeCode(completeCodeCommand);
 }
 
+TEST_F(ClangIpcServer, GetNoCodeCompletionAfterRemovingUnsavedFile)
+{
+    clangServer.registerFilesForCodeCompletion(RegisterFilesForCodeCompletionCommand({FileContainer(functionTestFilePath, projectFilePath)}));
+    CompleteCodeCommand completeCodeCommand(functionTestFilePath,
+                                            20,
+                                            1,
+                                            projectFilePath);
+    CodeCompletion codeCompletion(Utf8StringLiteral("Method2"),
+                                  Utf8String(),
+                                  Utf8String(),
+                                  34,
+                                  CodeCompletion::FunctionCompletionKind);
+
+    EXPECT_CALL(mockIpcClient, codeCompleted(Property(&CodeCompletedCommand::codeCompletions, Not(Contains(codeCompletion)))))
+        .Times(1);
+
+    clangServer.completeCode(completeCodeCommand);
+}
+
+TEST_F(ClangIpcServer, GetNewCodeCompletionAfterUpdatingUnsavedFile)
+{
+    clangServer.registerFilesForCodeCompletion(RegisterFilesForCodeCompletionCommand({FileContainer(functionTestFilePath,
+                                                                                                    projectFilePath,
+                                                                                                    unsavedContent(updatedUnsavedTestFilePath),
+                                                                                                    true)}));
+    CompleteCodeCommand completeCodeCommand(functionTestFilePath,
+                                            20,
+                                            1,
+                                            projectFilePath);
+    CodeCompletion codeCompletion(Utf8StringLiteral("Method3"),
+                                  Utf8String(),
+                                  Utf8String(),
+                                  34,
+                                  CodeCompletion::FunctionCompletionKind);
+
+    EXPECT_CALL(mockIpcClient, codeCompleted(Property(&CodeCompletedCommand::codeCompletions, Contains(codeCompletion))))
+        .Times(1);
+
+    clangServer.completeCode(completeCodeCommand);
+}
+
+TEST_F(ClangIpcServer, ThrowExceptionForUnregisterTranslationUnitWithWrongFilePath)
+{
+    UnregisterFilesForCodeCompletionCommand command({FileContainer(Utf8StringLiteral("foo.cpp"), projectFilePath)});
+
+    ASSERT_THROW(clangServer.unregisterFilesForCodeCompletion(command), CodeModelBackEnd::TranslationUnitDoNotExistsException);
+}
+
+TEST_F(ClangIpcServer, ThrowExceptionForUnregisterTranslationUnitWithWrongProjectFilePath)
+{
+    UnregisterFilesForCodeCompletionCommand command({FileContainer(functionTestFilePath, Utf8StringLiteral("bar.pro"))});
+
+    ASSERT_THROW(clangServer.unregisterFilesForCodeCompletion(command), CodeModelBackEnd::TranslationUnitDoNotExistsException);
+}
+
+TEST_F(ClangIpcServer, UnregisterTranslationUnitAndTestFailingCompletion)
+{
+    UnregisterFilesForCodeCompletionCommand command({FileContainer(functionTestFilePath, projectFilePath)});
+    clangServer.unregisterFilesForCodeCompletion(command);
+    CompleteCodeCommand completeCodeCommand(functionTestFilePath,
+                                            20,
+                                            1,
+                                            projectFilePath);
+
+    ASSERT_THROW(clangServer.completeCode(completeCodeCommand), CodeModelBackEnd::TranslationUnitDoNotExistsException);
+}
+
+TEST_F(ClangIpcServer, UnregisterProjectAndCompletionIsStillWorking)
+{
+    UnregisterProjectsForCodeCompletionCommand command({projectFilePath});
+    clangServer.unregisterProjectsForCodeCompletion(command);
+    CompleteCodeCommand completeCodeCommand(functionTestFilePath,
+                                            20,
+                                            1,
+                                            Utf8String());
+    CodeCompletion codeCompletion(Utf8StringLiteral("Method2"),
+                                  Utf8String(),
+                                  Utf8String(),
+                                  34,
+                                  CodeCompletion::FunctionCompletionKind);
+
+    EXPECT_CALL(mockIpcClient, codeCompleted(Property(&CodeCompletedCommand::codeCompletions, Contains(codeCompletion))))
+        .Times(1);
+
+    clangServer.completeCode(completeCodeCommand);
+}
 
 }

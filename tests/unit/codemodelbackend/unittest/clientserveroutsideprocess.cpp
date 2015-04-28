@@ -118,13 +118,13 @@ TEST_F(ClientServerOutsideProcess, SendRegisterFilesForCodeCompletionCommand)
 
 TEST_F(ClientServerOutsideProcess, SendUnregisterFilesForCodeCompletionCommand)
 {
-    Utf8StringVector fileNames({Utf8StringLiteral("foo")});
-    EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand(fileNames)));
+    FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), Utf8StringLiteral("bar.pro"));
+    EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand({fileContainer})));
 
     EXPECT_CALL(mockIpcClient, echo(echoCommand))
             .Times(1);
 
-    client.sendUnregisterFilesForCodeCompletionCommand(fileNames);
+    client.sendUnregisterFilesForCodeCompletionCommand({fileContainer});
     ASSERT_TRUE(client.waitForEcho());
 }
 

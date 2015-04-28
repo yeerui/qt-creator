@@ -73,6 +73,11 @@ Project &Project::operator =(const Project &) = default;
 Project::Project(Project &&) = default;
 Project &Project::operator =(Project &&) = default;
 
+void Project::clearProjectFilePath()
+{
+    d->projectFilePath.clear();
+}
+
 const Utf8String &Project::projectFilePath() const
 {
     return d->projectFilePath;

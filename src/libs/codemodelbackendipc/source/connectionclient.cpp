@@ -93,14 +93,14 @@ void ConnectionClient::sendRegisterFilesForCodeCompletionCommand(const QVector<F
     serverProxy_.registerFilesForCodeCompletion(RegisterFilesForCodeCompletionCommand(fileContainers));
 }
 
-void ConnectionClient::sendUnregisterFilesForCodeCompletionCommand(const Utf8StringVector &fileNames)
+void ConnectionClient::sendUnregisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
 {
-    serverProxy_.unregisterFilesForCodeCompletion(UnregisterFilesForCodeCompletionCommand(fileNames));
+    serverProxy_.unregisterFilesForCodeCompletion(UnregisterFilesForCodeCompletionCommand(fileContainers));
 }
 
-void ConnectionClient::sendCompleteCodeCommand(const Utf8String &fileName, quint32 line, quint32 column, const Utf8String &commandLine)
+void ConnectionClient::sendCompleteCodeCommand(const Utf8String &fileName, quint32 line, quint32 column, const Utf8String &projectFilePath)
 {
-    serverProxy_.completeCode(CompleteCodeCommand(fileName, line, column, commandLine));
+    serverProxy_.completeCode(CompleteCodeCommand(fileName, line, column, projectFilePath));
 }
 
 void ConnectionClient::resetProcessAliveTimer()

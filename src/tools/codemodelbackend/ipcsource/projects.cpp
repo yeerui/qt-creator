@@ -42,6 +42,25 @@ void Projects::createOrUpdate(const QVector<ProjectContainer> &projectContainers
         createOrUpdateProject(projectContainer);
 }
 
+void Projects::remove(const Utf8StringVector &projectFilePaths)
+{
+    auto lastRemoveBeginIterator = projects.end();
+
+    for (const Utf8String &projectFilePath : projectFilePaths) {
+        auto removeBeginIterator = std::remove_if(projects.begin(), lastRemoveBeginIterator, [projectFilePath] (const Project &project) {
+            return project.projectFilePath() == projectFilePath;
+        });
+
+        if (removeBeginIterator == lastRemoveBeginIterator)
+            throw ProjectDoNotExistsException();
+
+        lastRemoveBeginIterator = removeBeginIterator;
+    }
+
+    std::for_each(lastRemoveBeginIterator, projects.end(), [](Project &project) { project.clearProjectFilePath(); });
+    projects.erase(lastRemoveBeginIterator, projects.end());
+}
+
 const Project &Projects::project(const Utf8String &projectFilePath) const
 {
     const auto findIterator = findProject(projectFilePath);

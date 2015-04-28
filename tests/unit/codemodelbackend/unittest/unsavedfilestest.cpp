@@ -137,10 +137,17 @@ TEST_F(UnsavedFiles, TimeStampIsUpdatedAsUnsavedFilesChanged)
     unsavedFiles.createOrUpdate(fileContainers);
 
     ASSERT_THAT(unsavedFiles.lastChangeTimePoint(), Gt(lastChangeTimePoint));
-
 }
 
-}
+TEST_F(UnsavedFiles, RemoveUnsavedFiles)
+{
+    QVector<FileContainer> fileContainers({FileContainer(Utf8StringLiteral("file.cpp"), Utf8StringLiteral("pathToProject.pro"), Utf8StringLiteral("foo"), true)});
+    unsavedFiles.createOrUpdate(fileContainers);
 
+    unsavedFiles.remove(fileContainers);
+
+    ASSERT_THAT(unsavedFiles, HasUnsavedFiles(QVector<FileContainer>()));
+}
+}
 
 

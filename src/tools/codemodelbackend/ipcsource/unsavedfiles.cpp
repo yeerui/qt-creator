@@ -80,6 +80,14 @@ void UnsavedFiles::createOrUpdate(const QVector<FileContainer> &fileContainers)
     updateLastChangeTimePoint();
 }
 
+void UnsavedFiles::remove(const QVector<FileContainer> &fileContainers)
+{
+    for (const FileContainer &fileContainer : fileContainers)
+        removeCXUnsavedFile(fileContainer);
+
+    updateLastChangeTimePoint();
+}
+
 void UnsavedFiles::clear()
 {
     for (const CXUnsavedFile &cxUnsavedFile : d->cxUnsavedFiles)
@@ -138,9 +146,11 @@ void UnsavedFiles::updateCXUnsavedFileWithFileContainer(const FileContainer &fil
 void UnsavedFiles::removeCXUnsavedFile(const FileContainer &fileContainer)
 {
     const Utf8String filePath = fileContainer.filePath();
-    auto isSameFile = [filePath] (const CXUnsavedFile &cxUnsavedFile) { return filePath == cxUnsavedFile.Filename; };
+    auto removeBeginIterator = std::remove_if(d->cxUnsavedFiles.begin(),
+                                              d->cxUnsavedFiles.end(),
+                                              [filePath] (const CXUnsavedFile &cxUnsavedFile) { return filePath == cxUnsavedFile.Filename; });
 
-    d->cxUnsavedFiles.erase(std::remove_if(d->cxUnsavedFiles.begin(), d->cxUnsavedFiles.end(), isSameFile), d->cxUnsavedFiles.end());
+    d->cxUnsavedFiles.erase( removeBeginIterator, d->cxUnsavedFiles.end());
 }
 
 void UnsavedFiles::addOrUpdateCXUnsavedFile(const FileContainer &fileContainer)

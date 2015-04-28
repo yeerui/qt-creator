@@ -62,7 +62,7 @@ public:
 
     void sendEndCommand();
     void sendRegisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers);
-    void sendUnregisterFilesForCodeCompletionCommand(const Utf8StringVector &fileNames);
+    void sendUnregisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers);
     void sendCompleteCodeCommand(const Utf8String &fileName,
                                  quint32 line,
                                  quint32 column,

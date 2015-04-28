@@ -61,6 +61,7 @@ public:
     UnsavedFiles &operator =(UnsavedFiles &&unsavedFiles);
 
     void createOrUpdate(const QVector<FileContainer> &fileContainers);
+    void remove(const QVector<FileContainer> &fileContainers);
     void clear();
 
     int count() const;

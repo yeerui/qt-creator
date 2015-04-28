@@ -505,7 +505,7 @@ TEST_F(CodeCompletionExtractor, UnsavedFile)
     CodeModelBackEnd::Project project(Utf8StringLiteral("/path/to/projectfile"));
     TranslationUnit translationUnit(Utf8String::fromUtf8("data/complete_extractor_function.cpp"), unsavedFiles, project);
     unsavedFiles.createOrUpdate({unsavedDataFileContainer("data/complete_extractor_function.cpp",
-                                                  "data/complete_extractor_function_unsaved.cpp")});
+                                                          "data/complete_extractor_function_unsaved.cpp")});
     ClangCodeCompleteResults completeResults(getResults(translationUnit, 20));
 
     CodeCompletionsExtractor extractor(completeResults.data());

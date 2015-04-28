@@ -49,6 +49,7 @@ public:
     TranslationUnits(Projects &projects, UnsavedFiles &unsavedFiles);
 
     void createOrUpdate(const QVector<FileContainer> &fileContainers);
+    void remove(const QVector<FileContainer> &fileContainers);
 
     const TranslationUnit &translationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const;
 

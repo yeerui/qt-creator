@@ -5,6 +5,7 @@
 #include <cmbregisterfilesforcodecompletioncommand.h>
 #include <cmbunregisterfilesforcodecompletioncommand.h>
 #include <cmbregisterprojectsforcodecompletioncommand.h>
+#include <cmbunregisterprojectsforcodecompletioncommand.h>
 #include <cmbcodecompletedcommand.h>
 #include <cmbcompletecodecommand.h>
 
@@ -32,9 +33,9 @@ void ClangIpcServer::registerFilesForCodeCompletion(const CodeModelBackEnd::Regi
     unsavedFiles.createOrUpdate(command.fileContainers());
 }
 
-void ClangIpcServer::unregisterFilesForCodeCompletion(const CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand &/*command*/)
+void ClangIpcServer::unregisterFilesForCodeCompletion(const CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand &command)
 {
-
+    translationUnits.remove(command.fileContainers());
 }
 
 void ClangIpcServer::registerProjectsForCodeCompletion(const RegisterProjectsForCodeCompletionCommand &command)
@@ -44,7 +45,7 @@ void ClangIpcServer::registerProjectsForCodeCompletion(const RegisterProjectsFor
 
 void ClangIpcServer::unregisterProjectsForCodeCompletion(const UnregisterProjectsForCodeCompletionCommand &command)
 {
-
+    projects.remove(command.filePaths());
 }
 
 void ClangIpcServer::completeCode(const CodeModelBackEnd::CompleteCodeCommand &command)

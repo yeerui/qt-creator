@@ -43,6 +43,7 @@ class Projects
 {
 public:
     void createOrUpdate(const QVector<ProjectContainer> &projectConainers);
+    void remove(const Utf8StringVector &projectFilePaths);
 
     const Project &project(const Utf8String &projectFilePath) const;
 

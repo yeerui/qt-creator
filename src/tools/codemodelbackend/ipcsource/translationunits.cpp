@@ -47,6 +47,24 @@ void TranslationUnits::createOrUpdate(const QVector<FileContainer> &fileContaine
         createOrUpdateTranslationUnit(fileContainer);
 }
 
+void TranslationUnits::remove(const QVector<FileContainer> &fileContainers)
+{
+    auto lastRemoveBeginIterator = translationUnits.end();
+
+    for (const FileContainer &fileContainer : fileContainers) {
+        auto removeBeginIterator = std::remove_if(translationUnits.begin(), lastRemoveBeginIterator, [fileContainer] (const TranslationUnit &translationUnit) {
+            return fileContainer.filePath() == translationUnit.filePath() && fileContainer.projectFilePath() == translationUnit.projectFilePath();
+        });
+
+        if (removeBeginIterator == lastRemoveBeginIterator)
+            throw TranslationUnitDoNotExistsException();
+
+        lastRemoveBeginIterator = removeBeginIterator;
+    }
+
+    translationUnits.erase(lastRemoveBeginIterator, translationUnits.end());
+}
+
 const TranslationUnit &TranslationUnits::translationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const
 {
     auto findIterator = findTranslationUnit(filePath, projectFilePath);
@@ -77,7 +95,6 @@ const std::vector<TranslationUnit>::const_iterator TranslationUnits::findTransla
         return filePath == translationUnit.filePath() && projectFilePath == translationUnit.projectFilePath();
     });
 }
-
 
 } // namespace CodeModelBackEnd
 
