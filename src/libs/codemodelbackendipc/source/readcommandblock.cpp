@@ -97,6 +97,9 @@ bool ReadCommandBlock::isTheWholeCommandReadable(QDataStream &in)
 {
     const qint64 bytesAvailable = ioDevice->bytesAvailable();
 
+    if (bytesAvailable == 0)
+        return false;
+
     if (blockSize == 0)
         in >> blockSize;
 
