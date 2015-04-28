@@ -44,14 +44,14 @@ class ModelManagerSupportInternal: public ModelManagerSupport
 
 public:
     ModelManagerSupportInternal();
-    virtual ~ModelManagerSupportInternal();
+    ~ModelManagerSupportInternal();
 
-    virtual QString id() const;
-    virtual QString displayName() const;
+    QString id() const override;
+    QString displayName() const override;
 
-    virtual CppCompletionAssistProvider *completionAssistProvider();
-    virtual BaseEditorDocumentProcessor *editorDocumentProcessor(
-                TextEditor::TextDocument *baseTextDocument);
+    CppCompletionAssistProvider *completionAssistProvider() override;
+    BaseEditorDocumentProcessor *editorDocumentProcessor(
+            TextEditor::TextDocument *baseTextDocument) override;
 
 private:
     QScopedPointer<CppCompletionAssistProvider> m_completionAssistProvider;
