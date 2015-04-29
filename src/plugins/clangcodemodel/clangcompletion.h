@@ -33,22 +33,20 @@
 
 #include "clangcompleter.h"
 
-#include <cplusplus/Icons.h>
-
 #include <cpptools/cppcompletionassistprocessor.h>
 #include <cpptools/cppcompletionassistprovider.h>
 #include <cpptools/cppmodelmanager.h>
 
+#include <texteditor/codeassist/assistinterface.h>
 #include <texteditor/codeassist/assistproposalitem.h>
 #include <texteditor/codeassist/completionassistprovider.h>
-#include <texteditor/codeassist/assistinterface.h>
 
 #include <QStringList>
 #include <QTextCursor>
 
 namespace ClangCodeModel {
-
 namespace Internal {
+
 class ClangAssistProposalModel;
 
 class ClangCompletionAssistProvider : public CppTools::CppCompletionAssistProvider
@@ -58,19 +56,17 @@ class ClangCompletionAssistProvider : public CppTools::CppCompletionAssistProvid
 public:
     ClangCompletionAssistProvider();
 
-    virtual TextEditor::IAssistProcessor *createProcessor() const;
-    virtual TextEditor::AssistInterface *createAssistInterface(
+    TextEditor::IAssistProcessor *createProcessor() const override;
+    TextEditor::AssistInterface *createAssistInterface(
             const QString &filePath, QTextDocument *document,
             const CPlusPlus::LanguageFeatures &languageFeatures,
-            int position, TextEditor::AssistReason reason) const;
+            int position, TextEditor::AssistReason reason) const override;
 
 private:
     ClangCodeModel::ClangCompleter::Ptr m_clangCompletionWrapper;
 };
 
-} // namespace Internal
-
-class CLANG_EXPORT ClangCompletionAssistInterface: public TextEditor::AssistInterface
+class ClangCompletionAssistInterface: public TextEditor::AssistInterface
 {
 public:
     ClangCompletionAssistInterface(ClangCodeModel::ClangCompleter::Ptr clangWrapper,
@@ -83,22 +79,12 @@ public:
                                    const Internal::PchInfo::Ptr &pchInfo,
                                    const CPlusPlus::LanguageFeatures &features);
 
-    ClangCodeModel::ClangCompleter::Ptr clangWrapper() const
-    { return m_clangWrapper; }
-
-    const ClangCodeModel::Internal::UnsavedFiles &unsavedFiles() const
-    { return m_unsavedFiles; }
-
+    ClangCodeModel::ClangCompleter::Ptr clangWrapper() const;
+    const ClangCodeModel::Internal::UnsavedFiles &unsavedFiles() const;
     bool objcEnabled() const;
-
-    const QStringList &options() const
-    { return m_options; }
-
-    const QList<CppTools::ProjectPart::HeaderPath> &headerPaths() const
-    { return m_headerPaths; }
-
-    CPlusPlus::LanguageFeatures languageFeatures() const
-    { return m_languageFeatures; }
+    const QStringList &options() const;
+    const QList<CppTools::ProjectPart::HeaderPath> &headerPaths() const;
+    CPlusPlus::LanguageFeatures languageFeatures() const;
 
 private:
     ClangCodeModel::ClangCompleter::Ptr m_clangWrapper;
@@ -109,15 +95,15 @@ private:
     CPlusPlus::LanguageFeatures m_languageFeatures;
 };
 
-class CLANG_EXPORT ClangCompletionAssistProcessor : public CppTools::CppCompletionAssistProcessor
+class ClangCompletionAssistProcessor : public CppTools::CppCompletionAssistProcessor
 {
     Q_DECLARE_TR_FUNCTIONS(ClangCodeModel::Internal::ClangCompletionAssistProcessor)
 
 public:
     ClangCompletionAssistProcessor();
-    virtual ~ClangCompletionAssistProcessor();
+    ~ClangCompletionAssistProcessor();
 
-    virtual TextEditor::IAssistProposal *perform(const TextEditor::AssistInterface *interface);
+    TextEditor::IAssistProposal *perform(const TextEditor::AssistInterface *interface) override;
 
 private:
     int startCompletionHelper();
@@ -144,6 +130,7 @@ private:
     unsigned m_completionOperator;
 };
 
+} // namespace Internal
 } // namespace Clang
 
 #endif // CPPEDITOR_INTERNAL_CLANGCOMPLETION_H

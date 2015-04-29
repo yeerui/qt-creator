@@ -32,9 +32,6 @@
 #include "clangutils.h"
 #include "pchmanager.h"
 
-#include <coreplugin/icore.h>
-#include <coreplugin/idocument.h>
-
 #include <cplusplus/BackwardsScanner.h>
 #include <cplusplus/ExpressionUnderCursor.h>
 #include <cplusplus/Token.h>
@@ -377,8 +374,6 @@ bool ClangAssistProposalModel::isSortable(const QString &prefix) const
     return true;
 }
 
-} // namespace Internal
-} // namespace ClangCodeModel
 
 bool ClangAssistProposalItem::prematurelyApplies(const QChar &typedChar) const
 {
@@ -533,7 +528,23 @@ bool ClangCompletionAssistInterface::objcEnabled() const
     return m_clangWrapper->objcEnabled();
 }
 
-ClangCompletionAssistInterface::ClangCompletionAssistInterface(ClangCompleter::Ptr clangWrapper,
+const QStringList &ClangCompletionAssistInterface::options() const
+{
+    return m_options;
+}
+
+const QList<ProjectPart::HeaderPath> &ClangCompletionAssistInterface::headerPaths() const
+{
+    return m_headerPaths;
+}
+
+LanguageFeatures ClangCompletionAssistInterface::languageFeatures() const
+{
+    return m_languageFeatures;
+}
+
+ClangCompletionAssistInterface::ClangCompletionAssistInterface(
+        ClangCompleter::Ptr clangWrapper,
         QTextDocument *document,
         int position,
         const QString &fileName,
@@ -553,6 +564,16 @@ ClangCompletionAssistInterface::ClangCompletionAssistInterface(ClangCompleter::P
 
     CppModelManager *mmi = CppModelManager::instance();
     m_unsavedFiles = Utils::createUnsavedFiles(mmi->workingCopy());
+}
+
+ClangCompleter::Ptr ClangCompletionAssistInterface::clangWrapper() const
+{
+    return m_clangWrapper;
+}
+
+const UnsavedFiles &ClangCompletionAssistInterface::unsavedFiles() const
+{
+    return m_unsavedFiles;
 }
 
 ClangCompletionAssistProcessor::ClangCompletionAssistProcessor()
@@ -1151,3 +1172,7 @@ void ClangCompletionAssistProcessor::addCompletionItem(const QString &text,
     item->keepCompletionOperator(m_completionOperator);
     m_completions.append(item);
 }
+
+
+} // namespace Internal
+} // namespace ClangCodeModel
