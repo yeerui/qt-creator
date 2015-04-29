@@ -53,23 +53,14 @@
 #include <cmbcompletecodecommand.h>
 #include <writecommandblock.h>
 #include <readcommandblock.h>
-
 #include <connectionclient.h>
+#include <translationunitdoesnotexistscommand.h>
+
+#include <mockipclient.h>
 
 using namespace CodeModelBackEnd;
 
 using ::testing::Eq;
-
-class MockIpcClient : public IpcClientInterface {
- public:
-  MOCK_METHOD0(alive,
-      void());
-  MOCK_METHOD1(echo,
-      void(const EchoCommand &command));
-  MOCK_METHOD1(codeCompleted,
-      void(const CodeCompletedCommand &command));
-};
-
 
 class ClientServerOutsideProcess : public ::testing::Test
 {

@@ -41,9 +41,10 @@
 #include <translationunits.h>
 #include <filecontainer.h>
 #include <projects.h>
-#include <translationunitdonotexistsexception.h>
+#include <translationunitdoesnotexistsexception.h>
 #include <translationunitisnullexception.h>
 #include <translationunitfilenotexitsexception.h>
+#include <translationunitparseerrorexception.h>
 
 using CodeModelBackEnd::TranslationUnit;
 using CodeModelBackEnd::UnsavedFiles;
@@ -129,5 +130,14 @@ TEST(TranslationUnit, TimeStampIsUpdatedAsNewCxTranslationUnitIsGenerated)
 
     ASSERT_THAT(translationUnit.lastChangeTimePoint(), Gt(lastChangeTimePoint));
 }
+
+//TEST(TranslationUnit, ThrowParseErrorForWrongArguments)
+//{
+//    Project project(Utf8StringLiteral("/path/to/projectfile"));
+//    project.setArguments({Utf8StringLiteral("-fblah")});
+//    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), UnsavedFiles(), project);
+
+//    ASSERT_THROW(translationUnit.cxTranslationUnit(), CodeModelBackEnd::TranslationUnitParseErrorException);
+//}
 
 }

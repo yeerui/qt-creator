@@ -37,7 +37,8 @@
 #include <ipcclientproxy.h>
 #include <ipcserverproxy.h>
 #include <clangipcserver.h>
-#include <translationunitdonotexistsexception.h>
+#include <translationunitdoesnotexistsexception.h>
+#include <translationunitparseerrorexception.h>
 
 #include <cmbcodecompletedcommand.h>
 #include <cmbcompletecodecommand.h>
@@ -46,9 +47,12 @@
 #include <cmbunregisterfilesforcodecompletioncommand.h>
 #include <cmbregisterprojectsforcodecompletioncommand.h>
 #include <cmbunregisterprojectsforcodecompletioncommand.h>
+#include <translationunitdoesnotexistscommand.h>
 
 #include <QBuffer>
 #include <QFile>
+
+#include "mockipclient.h"
 
 using testing::Property;
 using testing::Contains;
@@ -65,16 +69,7 @@ using CodeModelBackEnd::CodeCompletedCommand;
 using CodeModelBackEnd::CodeCompletion;
 using CodeModelBackEnd::FileContainer;
 using CodeModelBackEnd::ProjectContainer;
-
-class MockIpcClient : public CodeModelBackEnd::IpcClientInterface {
- public:
-  MOCK_METHOD0(alive,
-      void());
-  MOCK_METHOD1(echo,
-      void(const CodeModelBackEnd::EchoCommand &command));
-  MOCK_METHOD1(codeCompleted,
-      void(const CodeModelBackEnd::CodeCompletedCommand &command));
-};
+using CodeModelBackEnd::TranslationUnitDoesNotExistsCommand;
 
 
 class ClangIpcServer : public ::testing::Test
@@ -85,6 +80,7 @@ protected:
     void registerFiles();
     void registerProject();
     void changeProjectArguments();
+    void changeProjectArgumentsToWrongValues();
     static const Utf8String unsavedContent(const QString &unsavedFilePath);
 
 protected:
@@ -95,6 +91,7 @@ protected:
     const Utf8String variableTestFilePath = Utf8StringLiteral("data/complete_extractor_variable.cpp");
     const QString unsavedTestFilePath = QStringLiteral("data/complete_extractor_function_unsaved.cpp");
     const QString updatedUnsavedTestFilePath = QStringLiteral("data/complete_extractor_function_unsaved_2.cpp");
+    const Utf8String parseErrorTestFilePath = Utf8StringLiteral("data/complete_translationunit_parse_error.cpp");
 };
 
 
@@ -125,7 +122,13 @@ void ClangIpcServer::changeProjectArguments()
     RegisterProjectsForCodeCompletionCommand command({ProjectContainer(projectFilePath, {Utf8StringLiteral("-DArgumentDefinition")})});
 
     clangServer.registerProjectsForCodeCompletion(command);
+}
 
+void ClangIpcServer::changeProjectArgumentsToWrongValues()
+{
+    RegisterProjectsForCodeCompletionCommand command({ProjectContainer(projectFilePath, {Utf8StringLiteral("-blah")})});
+
+    clangServer.registerProjectsForCodeCompletion(command);
 }
 
 const Utf8String ClangIpcServer::unsavedContent(const QString &unsavedFilePath)
@@ -175,14 +178,33 @@ TEST_F(ClangIpcServer, GetCodeCompletionDependingOnArgumets)
     clangServer.completeCode(completeCodeCommand);
 }
 
-TEST_F(ClangIpcServer, ThrowExceptionForCodeCompletionOnNonExistingTranslationUnit)
+TEST_F(ClangIpcServer, GetTranslationUnitDoesNotExistsForCodeCompletionOnNonExistingTranslationUnit)
 {
     CompleteCodeCommand completeCodeCommand(Utf8StringLiteral("dontexists.cpp"),
                                             34,
                                             1,
                                             Utf8String());
+    TranslationUnitDoesNotExistsCommand translationUnitDoesNotExistsCommand(Utf8StringLiteral("dontexists.cpp"), Utf8String());
 
-    ASSERT_THROW(clangServer.completeCode(completeCodeCommand), CodeModelBackEnd::TranslationUnitDoNotExistsException);
+    EXPECT_CALL(mockIpcClient, translationUnitDoesNotExists(translationUnitDoesNotExistsCommand))
+        .Times(1);
+
+    clangServer.completeCode(completeCodeCommand);
+}
+
+
+TEST_F(ClangIpcServer, GetTranslationUnitDoesNotExistsForCompletingUnregisteredFile)
+{
+    CompleteCodeCommand completeCodeCommand(parseErrorTestFilePath,
+                                            20,
+                                            1,
+                                            projectFilePath);
+    TranslationUnitDoesNotExistsCommand translationUnitDoesNotExistsCommand(parseErrorTestFilePath, projectFilePath);
+
+    EXPECT_CALL(mockIpcClient, translationUnitDoesNotExists(translationUnitDoesNotExistsCommand))
+        .Times(1);
+
+    clangServer.completeCode(completeCodeCommand);
 }
 
 TEST_F(ClangIpcServer, GetCodeCompletionForUnsavedFile)
@@ -244,30 +266,45 @@ TEST_F(ClangIpcServer, GetNewCodeCompletionAfterUpdatingUnsavedFile)
     clangServer.completeCode(completeCodeCommand);
 }
 
-TEST_F(ClangIpcServer, ThrowExceptionForUnregisterTranslationUnitWithWrongFilePath)
+TEST_F(ClangIpcServer, GetTranslationUnitDoesNotExistsForUnregisterTranslationUnitWithWrongFilePath)
 {
-    UnregisterFilesForCodeCompletionCommand command({FileContainer(Utf8StringLiteral("foo.cpp"), projectFilePath)});
+    FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), projectFilePath);
+    UnregisterFilesForCodeCompletionCommand command({fileContainer});
+    TranslationUnitDoesNotExistsCommand translationUnitDoesNotExistsCommand(fileContainer);
 
-    ASSERT_THROW(clangServer.unregisterFilesForCodeCompletion(command), CodeModelBackEnd::TranslationUnitDoNotExistsException);
+    EXPECT_CALL(mockIpcClient, translationUnitDoesNotExists(translationUnitDoesNotExistsCommand))
+        .Times(1);
+
+    clangServer.unregisterFilesForCodeCompletion(command);
 }
 
-TEST_F(ClangIpcServer, ThrowExceptionForUnregisterTranslationUnitWithWrongProjectFilePath)
+TEST_F(ClangIpcServer, GetTranslationUnitDoesNotExistsForUnregisterTranslationUnitWithWrongProjectFilePath)
 {
-    UnregisterFilesForCodeCompletionCommand command({FileContainer(functionTestFilePath, Utf8StringLiteral("bar.pro"))});
+    FileContainer fileContainer(functionTestFilePath, Utf8StringLiteral("bar.pro"));
+    UnregisterFilesForCodeCompletionCommand command({fileContainer});
+    TranslationUnitDoesNotExistsCommand translationUnitDoesNotExistsCommand(fileContainer);
 
-    ASSERT_THROW(clangServer.unregisterFilesForCodeCompletion(command), CodeModelBackEnd::TranslationUnitDoNotExistsException);
+    EXPECT_CALL(mockIpcClient, translationUnitDoesNotExists(translationUnitDoesNotExistsCommand))
+        .Times(1);
+
+    clangServer.unregisterFilesForCodeCompletion(command);
 }
 
 TEST_F(ClangIpcServer, UnregisterTranslationUnitAndTestFailingCompletion)
 {
-    UnregisterFilesForCodeCompletionCommand command({FileContainer(functionTestFilePath, projectFilePath)});
+    FileContainer fileContainer(functionTestFilePath, projectFilePath);
+    UnregisterFilesForCodeCompletionCommand command({fileContainer});
     clangServer.unregisterFilesForCodeCompletion(command);
     CompleteCodeCommand completeCodeCommand(functionTestFilePath,
                                             20,
                                             1,
                                             projectFilePath);
+    TranslationUnitDoesNotExistsCommand translationUnitDoesNotExistsCommand(fileContainer);
 
-    ASSERT_THROW(clangServer.completeCode(completeCodeCommand), CodeModelBackEnd::TranslationUnitDoNotExistsException);
+    EXPECT_CALL(mockIpcClient, translationUnitDoesNotExists(translationUnitDoesNotExistsCommand))
+        .Times(1);
+
+    clangServer.completeCode(completeCodeCommand);
 }
 
 TEST_F(ClangIpcServer, UnregisterProjectAndCompletionIsStillWorking)
@@ -290,4 +327,15 @@ TEST_F(ClangIpcServer, UnregisterProjectAndCompletionIsStillWorking)
     clangServer.completeCode(completeCodeCommand);
 }
 
+//TEST_F(ClangIpcServer, ThrowForTranslationUnitParsingError)
+//{
+//    changeProjectArgumentsToWrongValues();
+
+//    CompleteCodeCommand completeCodeCommand(functionTestFilePath,
+//                                            20,
+//                                            1,
+//                                            projectFilePath);
+
+//    ASSERT_THROW(clangServer.completeCode(completeCodeCommand), CodeModelBackEnd::TranslationUnitParseErrorException);
+//}
 }

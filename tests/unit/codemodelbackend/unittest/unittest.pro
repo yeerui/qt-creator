@@ -61,7 +61,9 @@ SOURCES += main.cpp \
 HEADERS += \
     gtest-qt-printing.h \
     spydummy.h \
-    ../../../../src/libs/utils/qtcassert.h
+    ../../../../src/libs/utils/qtcassert.h \
+    mockipclient.h \
+    mockipcserver.h
 
 OTHER_FILES += data/complete_testfile_1.cpp \
                data/complete_completer.cpp \
@@ -73,7 +75,8 @@ OTHER_FILES += data/complete_testfile_1.cpp \
                data/complete_extractor_class.cpp \
                data/complete_extractor_namespace.cpp \
                data/complete_extractor_enumeration.cpp \
-               data/complete_extractor_constructor.cpp
+               data/complete_extractor_constructor.cpp \
+               data/complete_translationunit_parse_error.cpp
 
 DEFINES += QT_NO_CAST_FROM_ASCII
 DEFINES += CODEMODELBACKEND_TESTS

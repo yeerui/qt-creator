@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,16 +28,24 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H
-#define CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H
-
+#include "translationunitdoesnotexistsexception.h"
 
 namespace CodeModelBackEnd {
 
-class TranslationUnitIsNullException
+TranslationUnitDoesNotExistsException::TranslationUnitDoesNotExistsException(const FileContainer &fileContainer)
+    : fileContainer_(fileContainer)
 {
-};
+}
+
+TranslationUnitDoesNotExistsException::TranslationUnitDoesNotExistsException(const Utf8String filePath, const Utf8String projectFilePath)
+    : fileContainer_(filePath, projectFilePath)
+{
+}
+
+const FileContainer TranslationUnitDoesNotExistsException::fileContainer() const
+{
+    return fileContainer_;
+}
 
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H

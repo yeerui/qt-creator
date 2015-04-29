@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,16 +28,20 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H
-#define CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H
+#ifndef MOCKIPCLIENT_H
+#define MOCKIPCLIENT_H
 
-
-namespace CodeModelBackEnd {
-
-class TranslationUnitIsNullException
-{
+class MockIpcClient : public CodeModelBackEnd::IpcClientInterface {
+ public:
+  MOCK_METHOD0(alive,
+      void());
+  MOCK_METHOD1(echo,
+      void(const CodeModelBackEnd::EchoCommand &command));
+  MOCK_METHOD1(codeCompleted,
+      void(const CodeModelBackEnd::CodeCompletedCommand &command));
+  MOCK_METHOD1(translationUnitDoesNotExists,
+      void(const CodeModelBackEnd::TranslationUnitDoesNotExistsCommand &command));
 };
 
-} // namespace CodeModelBackEnd
+#endif // MOCKIPCLIENT_H
 
-#endif // CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H

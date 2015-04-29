@@ -41,6 +41,7 @@
 #include "cmbechocommand.h"
 #include "cmbregisterfilesforcodecompletioncommand.h"
 #include "cmbcodecompletedcommand.h"
+#include "translationunitdoesnotexistscommand.h"
 
 namespace CodeModelBackEnd {
 
@@ -64,6 +65,11 @@ void IpcClientProxy::echo(const EchoCommand &command)
 }
 
 void IpcClientProxy::codeCompleted(const CodeCompletedCommand &command)
+{
+    writeCommandBlock.write(QVariant::fromValue(command));
+}
+
+void IpcClientProxy::translationUnitDoesNotExists(const TranslationUnitDoesNotExistsCommand &command)
 {
     writeCommandBlock.write(QVariant::fromValue(command));
 }

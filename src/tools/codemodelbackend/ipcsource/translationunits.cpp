@@ -31,7 +31,7 @@
 #include "translationunits.h"
 
 #include <projects.h>
-#include <translationunitdonotexistsexception.h>
+#include <translationunitdoesnotexistsexception.h>
 
 namespace CodeModelBackEnd {
 
@@ -57,7 +57,7 @@ void TranslationUnits::remove(const QVector<FileContainer> &fileContainers)
         });
 
         if (removeBeginIterator == lastRemoveBeginIterator)
-            throw TranslationUnitDoNotExistsException();
+            throw TranslationUnitDoesNotExistsException(fileContainer);
 
         lastRemoveBeginIterator = removeBeginIterator;
     }
@@ -70,7 +70,7 @@ const TranslationUnit &TranslationUnits::translationUnit(const Utf8String &fileP
     auto findIterator = findTranslationUnit(filePath, projectFilePath);
 
     if (findIterator == translationUnits.end())
-        throw TranslationUnitDoNotExistsException();
+        throw TranslationUnitDoesNotExistsException(FileContainer(filePath, projectFilePath));
 
     return *findIterator;
 }

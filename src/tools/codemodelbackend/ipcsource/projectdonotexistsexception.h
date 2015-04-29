@@ -31,13 +31,19 @@
 #ifndef CODEMODELBACKEND_PROJECTDONOTEXISTSEXCEPTION_H
 #define CODEMODELBACKEND_PROJECTDONOTEXISTSEXCEPTION_H
 
+#include <utf8string.h>
 
 namespace CodeModelBackEnd {
 
 class ProjectDoNotExistsException
 {
 public:
+    ProjectDoNotExistsException(const Utf8String &projectFilePath);
 
+    const Utf8String projectFilePath() const;
+
+private:
+    Utf8String projectFilePath_;
 };
 
 } // namespace CodeModelBackEnd

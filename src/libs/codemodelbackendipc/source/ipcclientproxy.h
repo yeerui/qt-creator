@@ -61,6 +61,7 @@ public:
     void alive() override;
     void echo(const EchoCommand &command) override;
     void codeCompleted(const CodeCompletedCommand &command) override;
+    void translationUnitDoesNotExists(const TranslationUnitDoesNotExistsCommand &command) override;
 
     void readCommands();
 

@@ -34,7 +34,9 @@ CMBIPC_EXPORT bool operator == (const UnregisterFilesForCodeCompletionCommand &f
 CMBIPC_EXPORT bool operator < (const UnregisterFilesForCodeCompletionCommand &first, const UnregisterFilesForCodeCompletionCommand &second);
 
 CMBIPC_EXPORT QDebug operator <<(QDebug debug, const UnregisterFilesForCodeCompletionCommand &command);
+#ifdef CODEMODELBACKEND_TESTS
 void PrintTo(const UnregisterFilesForCodeCompletionCommand &command, ::std::ostream* os);
+#endif
 } // namespace CodeModelBackEnd
 
 Q_DECLARE_METATYPE(CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand)

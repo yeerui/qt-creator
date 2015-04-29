@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,16 +28,28 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H
-#define CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H
+#ifndef CODEMODELBACKEND_TRANSLATIONUNITPARSEERROREXCEPTION_H
+#define CODEMODELBACKEND_TRANSLATIONUNITPARSEERROREXCEPTION_H
+
+#include <utf8string.h>
+
 
 
 namespace CodeModelBackEnd {
 
-class TranslationUnitIsNullException
+class TranslationUnitParseErrorException
 {
+public:
+    TranslationUnitParseErrorException(const Utf8String &filePath, const Utf8String &projectFilePath);
+
+    const Utf8String &filePath() const;
+    const Utf8String &projectFilePath() const;
+
+private:
+    Utf8String filePath_;
+    Utf8String projectFilePath_;
 };
 
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H
+#endif // CODEMODELBACKEND_TRANSLATIONUNITPARSEERROREXCEPTION_H

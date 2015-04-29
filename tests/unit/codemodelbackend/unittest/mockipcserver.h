@@ -28,16 +28,26 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H
-#define CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H
+#ifndef MOCKIPCSERVER_H
+#define MOCKIPCSERVER_H
 
+#include <ipcserverinterface.h>
 
-namespace CodeModelBackEnd {
-
-class TranslationUnitDoNotExistsException
-{
+class MockIpcServer : public CodeModelBackEnd::IpcServerInterface {
+ public:
+  MOCK_METHOD0(end,
+      void());
+  MOCK_METHOD1(registerFilesForCodeCompletion,
+      void(const CodeModelBackEnd::RegisterFilesForCodeCompletionCommand &command));
+  MOCK_METHOD1(unregisterFilesForCodeCompletion,
+      void(const CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand &command));
+  MOCK_METHOD1(registerProjectsForCodeCompletion,
+      void(const CodeModelBackEnd::RegisterProjectsForCodeCompletionCommand &command));
+  MOCK_METHOD1(unregisterProjectsForCodeCompletion,
+      void(const CodeModelBackEnd::UnregisterProjectsForCodeCompletionCommand &command));
+  MOCK_METHOD1(completeCode,
+      void(const CodeModelBackEnd::CompleteCodeCommand &command));
 };
 
-} // namespace CodeModelBackEnd
+#endif // MOCKIPCSERVER_H
 
-#endif // CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H

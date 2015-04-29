@@ -62,5 +62,11 @@ void IpcClientDispatcher::codeCompleted(const CodeCompletedCommand &command)
         client->codeCompleted(command);
 }
 
+void IpcClientDispatcher::translationUnitDoesNotExists(const TranslationUnitDoesNotExistsCommand &command)
+{
+    for (auto *client : clients)
+        client->translationUnitDoesNotExists(command);
+}
+
 } // namespace CodeModelBackEnd
 

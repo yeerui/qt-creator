@@ -39,6 +39,7 @@
 #include <cmbunregisterprojectsforcodecompletioncommand.h>
 #include <cmbcompletecodecommand.h>
 #include <cmbcodecompletedcommand.h>
+#include <translationunitdoesnotexistscommand.h>
 
 namespace CodeModelBackEnd {
 
@@ -90,6 +91,10 @@ void Commands::registerCommands()
     qRegisterMetaType<UnregisterProjectsForCodeCompletionCommand>();
     qRegisterMetaTypeStreamOperators<UnregisterProjectsForCodeCompletionCommand>();
     QMetaType::registerComparators<UnregisterProjectsForCodeCompletionCommand>();
+
+    qRegisterMetaType<TranslationUnitDoesNotExistsCommand>();
+    qRegisterMetaTypeStreamOperators<TranslationUnitDoesNotExistsCommand>();
+    QMetaType::registerComparators<TranslationUnitDoesNotExistsCommand>();
 }
 
 } // namespace CodeModelBackEnd

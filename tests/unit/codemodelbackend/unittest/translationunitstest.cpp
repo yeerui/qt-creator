@@ -42,7 +42,7 @@
 #include <filecontainer.h>
 #include <projectcontainer.h>
 #include <projects.h>
-#include <translationunitdonotexistsexception.h>
+#include <translationunitdoesnotexistsexception.h>
 #include <translationunitisnullexception.h>
 #include <translationunitfilenotexitsexception.h>
 
@@ -98,14 +98,14 @@ void TranslationUnits::SetUp()
 TEST_F(TranslationUnits, ThrowForGettingWithWrongFilePath)
 {
     ASSERT_THROW(translationUnits.translationUnit(Utf8StringLiteral("foo.cpp"), projectFilePath),
-                 CodeModelBackEnd::TranslationUnitDoNotExistsException);
+                 CodeModelBackEnd::TranslationUnitDoesNotExistsException);
 
 }
 
 TEST_F(TranslationUnits, ThrowForGettingWithWrongProjectFilePath)
 {
     ASSERT_THROW(translationUnits.translationUnit(filePath, Utf8StringLiteral("foo.pro")),
-                 CodeModelBackEnd::TranslationUnitDoNotExistsException);
+                 CodeModelBackEnd::TranslationUnitDoesNotExistsException);
 
 }
 
@@ -125,7 +125,7 @@ TEST_F(TranslationUnits, ThrowForRemovingWithWrongFilePath)
     CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), projectFilePath);
 
     ASSERT_THROW(translationUnits.remove({fileContainer}),
-                 CodeModelBackEnd::TranslationUnitDoNotExistsException);
+                 CodeModelBackEnd::TranslationUnitDoesNotExistsException);
 }
 
 TEST_F(TranslationUnits, ThrowForRemovingWithWrongProjectFilePath)
@@ -133,7 +133,7 @@ TEST_F(TranslationUnits, ThrowForRemovingWithWrongProjectFilePath)
     CodeModelBackEnd::FileContainer fileContainer(filePath, Utf8StringLiteral("foo.pro"));
 
     ASSERT_THROW(translationUnits.remove({fileContainer}),
-                 CodeModelBackEnd::TranslationUnitDoNotExistsException);
+                 CodeModelBackEnd::TranslationUnitDoesNotExistsException);
 }
 
 TEST_F(TranslationUnits, Remove)
@@ -144,7 +144,7 @@ TEST_F(TranslationUnits, Remove)
     translationUnits.remove({fileContainer});
 
     ASSERT_THROW(translationUnits.translationUnit(filePath, projectFilePath),
-                 CodeModelBackEnd::TranslationUnitDoNotExistsException);
+                 CodeModelBackEnd::TranslationUnitDoesNotExistsException);
 }
 
 }

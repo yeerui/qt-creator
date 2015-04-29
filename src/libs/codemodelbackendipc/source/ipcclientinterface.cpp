@@ -35,6 +35,7 @@
 
 #include "cmbechocommand.h"
 #include "cmbcodecompletedcommand.h"
+#include "translationunitdoesnotexistscommand.h"
 
 namespace CodeModelBackEnd {
 
@@ -44,6 +45,7 @@ void IpcClientInterface::dispatch(const QVariant &command)
     static const int aliveCommandType = QMetaType::type("CodeModelBackEnd::AliveCommand");
     static const int echoCommandType = QMetaType::type("CodeModelBackEnd::EchoCommand");
     static const int codeCompletedCommandType = QMetaType::type("CodeModelBackEnd::CodeCompletedCommand");
+    static const int translationUnitDoesNotExistsCommand = QMetaType::type("CodeModelBackEnd::TranslationUnitDoesNotExistsCommand");
 
     int type = command.userType();
 
@@ -53,6 +55,8 @@ void IpcClientInterface::dispatch(const QVariant &command)
         echo(command.value<EchoCommand>());
     else if (type == codeCompletedCommandType)
         codeCompleted(command.value<CodeCompletedCommand>());
+    else if (type == translationUnitDoesNotExistsCommand)
+        translationUnitDoesNotExists(command.value<TranslationUnitDoesNotExistsCommand>());
     else
         qWarning() << "Unknown IpcClientCommand";
 }

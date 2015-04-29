@@ -32,10 +32,6 @@
 
 namespace CodeModelBackEnd {
 
-TranslationUnitIsNullException::TranslationUnitIsNullException()
-{
-
-}
 
 } // namespace CodeModelBackEnd
 

@@ -44,10 +44,9 @@ public:
     void removeClient(IpcClientInterface *client);
 
     void alive() override;
-
     void echo(const EchoCommand &command) override;
-
     void codeCompleted(const CodeCompletedCommand &command) override;
+    void translationUnitDoesNotExists(const TranslationUnitDoesNotExistsCommand &command) override;
 
 private:
     QVector<IpcClientInterface*> clients;

@@ -32,5 +32,15 @@
 
 namespace CodeModelBackEnd {
 
+ProjectDoNotExistsException::ProjectDoNotExistsException(const Utf8String &projectFilePath)
+    : projectFilePath_(projectFilePath)
+{
+}
+
+const Utf8String ProjectDoNotExistsException::projectFilePath() const
+{
+    return projectFilePath_;
+}
+
 } // namespace CodeModelBackEnd
 

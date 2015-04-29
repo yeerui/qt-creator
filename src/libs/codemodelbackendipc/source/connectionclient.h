@@ -66,7 +66,7 @@ public:
     void sendCompleteCodeCommand(const Utf8String &fileName,
                                  quint32 line,
                                  quint32 column,
-                                 const Utf8String &commandLine);
+                                 const Utf8String &projectFilePath);
 
     void resetProcessAliveTimer();
     void setProcessAliveTimerInterval(int processTimerInterval);

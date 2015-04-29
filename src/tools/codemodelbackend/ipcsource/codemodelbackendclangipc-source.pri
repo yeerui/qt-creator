@@ -15,7 +15,8 @@ HEADERS += clangipcserver.h \
     $$PWD/projects.h \
     $$PWD/projectdonotexistsexception.h \
     $$PWD/translationunits.h \
-    $$PWD/translationunitdonotexistsexception.h
+    $$PWD/translationunitparseerrorexception.h \
+    $$PWD/translationunitdoesnotexistsexception.h
 
 SOURCES += clangipcserver.cpp \
            codecompleter.cpp \
@@ -31,4 +32,5 @@ SOURCES += clangipcserver.cpp \
     $$PWD/projects.cpp \
     $$PWD/projectdonotexistsexception.cpp \
     $$PWD/translationunits.cpp \
-    $$PWD/translationunitdonotexistsexception.cpp
+    $$PWD/translationunitparseerrorexception.cpp \
+    $$PWD/translationunitdoesnotexistsexception.cpp

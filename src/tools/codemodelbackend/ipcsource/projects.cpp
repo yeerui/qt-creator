@@ -52,7 +52,7 @@ void Projects::remove(const Utf8StringVector &projectFilePaths)
         });
 
         if (removeBeginIterator == lastRemoveBeginIterator)
-            throw ProjectDoNotExistsException();
+            throw ProjectDoNotExistsException(projectFilePath);
 
         lastRemoveBeginIterator = removeBeginIterator;
     }
@@ -66,7 +66,7 @@ const Project &Projects::project(const Utf8String &projectFilePath) const
     const auto findIterator = findProject(projectFilePath);
 
     if (findIterator == projects.cend())
-        throw ProjectDoNotExistsException();
+        throw ProjectDoNotExistsException(projectFilePath);
 
     return *findIterator;
 }

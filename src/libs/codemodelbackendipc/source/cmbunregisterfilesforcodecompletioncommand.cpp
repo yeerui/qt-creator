@@ -55,18 +55,18 @@ QDebug operator <<(QDebug debug, const UnregisterFilesForCodeCompletionCommand &
     return debug;
 }
 
-
+#ifdef CODEMODELBACKEND_TESTS
 void PrintTo(const UnregisterFilesForCodeCompletionCommand &command, ::std::ostream* os)
 {
     *os << "UnregisterFileForCodeCompletion(";
 
-#ifdef CODEMODELBACKEND_TESTS
     for (const FileContainer &fileContainer : command.fileContainers())
         *os << ::testing::PrintToString(fileContainer) << ", ";
-#endif
 
     *os << ")";
 }
+#endif
+
 
 } // namespace CodeModelBackEnd
 

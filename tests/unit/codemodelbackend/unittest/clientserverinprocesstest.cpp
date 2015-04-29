@@ -33,6 +33,7 @@
 #include "gmock/gmock.h"
 
 #include "gtest-qt-printing.h"
+#include "translationunitdoesnotexistscommand.h"
 
 #include <QString>
 #include <QBuffer>
@@ -55,34 +56,11 @@
 #include <ipcserverproxy.h>
 #include <ipcclientproxy.h>
 
+#include "mockipclient.h"
+#include "mockipcserver.h"
+
 using namespace CodeModelBackEnd;
 
-class MockIpcClient : public IpcClientInterface {
- public:
-  MOCK_METHOD0(alive,
-      void());
-  MOCK_METHOD1(echo,
-      void(const EchoCommand &command));
-  MOCK_METHOD1(codeCompleted,
-      void(const CodeCompletedCommand &command));
-};
-
-
-class MockIpcServer : public IpcServerInterface {
- public:
-  MOCK_METHOD0(end,
-      void());
-  MOCK_METHOD1(registerFilesForCodeCompletion,
-      void(const RegisterFilesForCodeCompletionCommand &command));
-  MOCK_METHOD1(unregisterFilesForCodeCompletion,
-      void(const UnregisterFilesForCodeCompletionCommand &command));
-  MOCK_METHOD1(registerProjectsForCodeCompletion,
-      void(const RegisterProjectsForCodeCompletionCommand &command));
-  MOCK_METHOD1(unregisterProjectsForCodeCompletion,
-      void(const UnregisterProjectsForCodeCompletionCommand &command));
-  MOCK_METHOD1(completeCode,
-      void(const CompleteCodeCommand &command));
-};
 
 class ClientServerInProcess : public ::testing::Test
 {
@@ -191,6 +169,19 @@ TEST_F(ClientServerInProcess, SendUnregisterProjectsForCodeCompletionCommand)
 
     serverProxy.unregisterProjectsForCodeCompletion(command);
     scheduleServerCommands();
+}
+
+TEST_F(ClientServerInProcess, SendTranslationUnitDoesNotExistsCommand)
+{
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("data/complete_extractor_function.cpp"),
+                                                  Utf8StringLiteral("pathToProject.pro"));
+    CodeModelBackEnd::TranslationUnitDoesNotExistsCommand command(fileContainer);
+
+    EXPECT_CALL(mockIpcClient, translationUnitDoesNotExists(command))
+        .Times(1);
+
+    clientProxy.translationUnitDoesNotExists(command);
+    scheduleClientCommands();
 }
 
 ClientServerInProcess::ClientServerInProcess()

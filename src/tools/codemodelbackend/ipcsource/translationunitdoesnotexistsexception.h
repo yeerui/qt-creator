@@ -28,10 +28,25 @@
 **
 ****************************************************************************/
 
-#include "translationunitdonotexistsexception.h"
+#ifndef CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H
+#define CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H
+
+#include <filecontainer.h>
 
 namespace CodeModelBackEnd {
 
+class TranslationUnitDoesNotExistsException
+{
+public:
+    TranslationUnitDoesNotExistsException(const FileContainer &fileContainer);
+    TranslationUnitDoesNotExistsException(const Utf8String filePath, const Utf8String projectFilePath);
+
+    const FileContainer fileContainer() const;
+
+private:
+    FileContainer fileContainer_;
+};
 
 } // namespace CodeModelBackEnd
 
+#endif // CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H

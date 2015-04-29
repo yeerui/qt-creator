@@ -38,6 +38,7 @@
 
 #include "translationunitisnullexception.h"
 #include "translationunitfilenotexitsexception.h"
+#include "translationunitparseerrorexception.h"
 #include "unsavedfiles.h"
 #include "project.h"
 
@@ -81,7 +82,7 @@ TranslationUnit::TranslationUnit(const Utf8String &filePath,
                                  const Project &project)
     : d(std::make_shared<TranslationUnitData>(filePath, unsavedFiles, project))
 {
-    checkIfFileNotExists();
+    checkIfFileExists();
 }
 
 bool TranslationUnit::isNull() const
@@ -108,24 +109,9 @@ CXTranslationUnit TranslationUnit::cxTranslationUnit() const
 {
     checkIfNull();
 
-    const auto options = CXTranslationUnit_DetailedPreprocessingRecord
-            | CXTranslationUnit_CacheCompletionResults
-            | CXTranslationUnit_PrecompiledPreamble
-            | CXTranslationUnit_SkipFunctionBodies;
-
     removeOutdatedTranslationUnit();
 
-    if (!d->translationUnit) {
-        d->translationUnit = clang_parseTranslationUnit(index(),
-                                                        d->filePath.constData(),
-                                                        d->project.cxArguments(),
-                                                        d->project.argumentCount(),
-                                                        d->unsavedFiles.cxUnsavedFiles(),
-                                                        d->unsavedFiles.count(),
-                                                        options);
-        updateLastChangeTimePoint();
-    }
-
+    createTranslationUnitIfNeeded();
 
     return d->translationUnit;
 }
@@ -155,7 +141,7 @@ void TranslationUnit::checkIfNull() const
         throw TranslationUnitIsNullException();
 }
 
-void TranslationUnit::checkIfFileNotExists() const
+void TranslationUnit::checkIfFileExists() const
 {
     if (!QFileInfo::exists(d->filePath.toString()))
         throw TranslationUnitFileNotExitsException();
@@ -171,6 +157,38 @@ void TranslationUnit::removeOutdatedTranslationUnit() const
     if (d->project.lastChangeTimePoint() > d->lastChangeTimePoint) {
         clang_disposeTranslationUnit(d->translationUnit);
         d->translationUnit = nullptr;
+    }
+}
+
+void TranslationUnit::createTranslationUnitIfNeeded() const
+{
+    const auto options = CXTranslationUnit_DetailedPreprocessingRecord
+            | CXTranslationUnit_CacheCompletionResults
+            | CXTranslationUnit_PrecompiledPreamble
+            | CXTranslationUnit_SkipFunctionBodies;
+
+    if (!d->translationUnit) {
+        d->translationUnit = CXTranslationUnit();
+        CXErrorCode errorCode = clang_parseTranslationUnit2(index(),
+                                                            d->filePath.constData(),
+                                                            d->project.cxArguments(),
+                                                            d->project.argumentCount(),
+                                                            d->unsavedFiles.cxUnsavedFiles(),
+                                                            d->unsavedFiles.count(),
+                                                            options,
+                                                            &d->translationUnit);
+
+        checkTranslationUnitErrorCode(errorCode);
+
+        updateLastChangeTimePoint();
+    }
+}
+
+void TranslationUnit::checkTranslationUnitErrorCode(CXErrorCode errorCode) const
+{
+    switch (errorCode) {
+        case CXError_Success: break;
+        default: throw TranslationUnitParseErrorException(d->filePath, d->project.projectFilePath());
     }
 }
 
