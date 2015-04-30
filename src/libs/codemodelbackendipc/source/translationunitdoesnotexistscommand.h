@@ -48,7 +48,7 @@ class CMBIPC_EXPORT TranslationUnitDoesNotExistsCommand
 public:
     TranslationUnitDoesNotExistsCommand() = default;
     TranslationUnitDoesNotExistsCommand(const FileContainer &fileContainer);
-    TranslationUnitDoesNotExistsCommand(const Utf8String filePath, const Utf8String projectFilePath);
+    TranslationUnitDoesNotExistsCommand(const Utf8String &filePath, const Utf8String &projectFilePath);
 
     const FileContainer &fileContainer() const;
     const Utf8String &filePath() const;

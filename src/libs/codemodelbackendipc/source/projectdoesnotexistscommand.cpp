@@ -28,19 +28,68 @@
 **
 ****************************************************************************/
 
-#include "projectdonotexistsexception.h"
+#include "projectdoesnotexistscommand.h"
+
+#include <QDebug>
 
 namespace CodeModelBackEnd {
 
-ProjectDoNotExistsException::ProjectDoNotExistsException(const Utf8String &projectFilePath)
+ProjectDoesNotExistsCommand::ProjectDoesNotExistsCommand(const Utf8String &projectFilePath)
     : projectFilePath_(projectFilePath)
 {
 }
 
-const Utf8String ProjectDoNotExistsException::projectFilePath() const
+
+const Utf8String &ProjectDoesNotExistsCommand::projectFilePath() const
 {
     return projectFilePath_;
 }
+
+QDataStream &operator<<(QDataStream &out, const ProjectDoesNotExistsCommand &command)
+{
+    out << command.projectFilePath_;
+
+    return out;
+}
+
+QDataStream &operator>>(QDataStream &in, ProjectDoesNotExistsCommand &command)
+{
+    in >> command.projectFilePath_;
+
+    return in;
+}
+
+bool operator == (const ProjectDoesNotExistsCommand &first, const ProjectDoesNotExistsCommand &second)
+{
+    return first.projectFilePath_ == second.projectFilePath_;
+}
+
+bool operator < (const ProjectDoesNotExistsCommand &first, const ProjectDoesNotExistsCommand &second)
+{
+    return first.projectFilePath_ < second.projectFilePath_;
+}
+
+QDebug operator <<(QDebug debug, const ProjectDoesNotExistsCommand &command)
+{
+    debug.nospace() << "ProjectDoesNotExistsCommand(";
+
+    debug.nospace() << command.projectFilePath_;
+
+    debug.nospace() << ")";
+
+    return debug;
+}
+
+void PrintTo(const ProjectDoesNotExistsCommand &command, ::std::ostream* os)
+{
+    QString output;
+    QDebug debug(&output);
+
+    debug << command;
+
+    *os << output.toUtf8().constData();
+}
+
 
 } // namespace CodeModelBackEnd
 

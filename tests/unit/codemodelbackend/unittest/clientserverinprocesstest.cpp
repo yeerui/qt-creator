@@ -55,6 +55,7 @@
 
 #include <ipcserverproxy.h>
 #include <ipcclientproxy.h>
+#include <projectdoesnotexistscommand.h>
 
 #include "mockipclient.h"
 #include "mockipcserver.h"
@@ -184,6 +185,18 @@ TEST_F(ClientServerInProcess, SendTranslationUnitDoesNotExistsCommand)
     scheduleClientCommands();
 }
 
+
+TEST_F(ClientServerInProcess, SendProjectDoesNotExistsCommand)
+{
+    CodeModelBackEnd::ProjectDoesNotExistsCommand command(Utf8StringLiteral("pathToProject.pro"));
+
+
+    EXPECT_CALL(mockIpcClient, projectDoesNotExists(command))
+        .Times(1);
+
+    clientProxy.projectDoesNotExists(command);
+    scheduleClientCommands();
+}
 ClientServerInProcess::ClientServerInProcess()
     : serverProxy(&mockIpcClient, &buffer),
       clientProxy(&mockIpcServer, &buffer)

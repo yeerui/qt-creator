@@ -57,6 +57,8 @@ private:
     void createOrUpdateTranslationUnit(const FileContainer &fileContainer);
     const std::vector<TranslationUnit>::iterator findTranslationUnit(const FileContainer &fileContainer);
     const std::vector<TranslationUnit>::const_iterator findTranslationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const;
+    void checkIfProjectExists(const Utf8String &projectFilePath) const;
+
 private:
     std::vector<TranslationUnit> translationUnits;
     Projects &projects;

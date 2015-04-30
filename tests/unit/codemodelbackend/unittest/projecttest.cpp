@@ -36,7 +36,7 @@
 #include <project.h>
 #include <utf8stringvector.h>
 #include <projects.h>
-#include <projectdonotexistsexception.h>
+#include <projectdoesnotexistsexception.h>
 
 #include <chrono>
 
@@ -100,7 +100,7 @@ TEST(Project, GetNonExistingPoject)
 {
     CodeModelBackEnd::Projects projects;
 
-    ASSERT_THROW(projects.project(Utf8StringLiteral("pathToProject.pro")), CodeModelBackEnd::ProjectDoNotExistsException);
+    ASSERT_THROW(projects.project(Utf8StringLiteral("pathToProject.pro")), CodeModelBackEnd::ProjectDoesNotExistsException);
 }
 
 TEST(Project, AddProjects)
@@ -135,7 +135,7 @@ TEST(Project, ThrowExceptionForAccesingRemovedProjects)
 
     projects.remove({projectContainer.filePath()});
 
-    ASSERT_THROW(projects.project(projectContainer.filePath()), CodeModelBackEnd::ProjectDoNotExistsException);
+    ASSERT_THROW(projects.project(projectContainer.filePath()), CodeModelBackEnd::ProjectDoesNotExistsException);
 }
 
 TEST(Project, ProjectFilePathIsEmptyfterRemoving)

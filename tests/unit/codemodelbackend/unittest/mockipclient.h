@@ -31,6 +31,9 @@
 #ifndef MOCKIPCLIENT_H
 #define MOCKIPCLIENT_H
 
+#include <ipcclientinterface.h>
+
+
 class MockIpcClient : public CodeModelBackEnd::IpcClientInterface {
  public:
   MOCK_METHOD0(alive,
@@ -41,6 +44,8 @@ class MockIpcClient : public CodeModelBackEnd::IpcClientInterface {
       void(const CodeModelBackEnd::CodeCompletedCommand &command));
   MOCK_METHOD1(translationUnitDoesNotExists,
       void(const CodeModelBackEnd::TranslationUnitDoesNotExistsCommand &command));
+  MOCK_METHOD1(projectDoesNotExists,
+      void(const CodeModelBackEnd::ProjectDoesNotExistsCommand &command));
 };
 
 #endif // MOCKIPCLIENT_H

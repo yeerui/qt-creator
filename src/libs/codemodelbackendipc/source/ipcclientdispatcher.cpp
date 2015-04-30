@@ -68,5 +68,11 @@ void IpcClientDispatcher::translationUnitDoesNotExists(const TranslationUnitDoes
         client->translationUnitDoesNotExists(command);
 }
 
+void IpcClientDispatcher::projectDoesNotExists(const ProjectDoesNotExistsCommand &command)
+{
+    for (auto *client : clients)
+        client->projectDoesNotExists(command);
+}
+
 } // namespace CodeModelBackEnd
 

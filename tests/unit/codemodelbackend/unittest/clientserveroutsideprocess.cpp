@@ -55,6 +55,7 @@
 #include <readcommandblock.h>
 #include <connectionclient.h>
 #include <translationunitdoesnotexistscommand.h>
+#include <projectdoesnotexistscommand.h>
 
 #include <mockipclient.h>
 

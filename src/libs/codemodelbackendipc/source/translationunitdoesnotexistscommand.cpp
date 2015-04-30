@@ -39,7 +39,7 @@ TranslationUnitDoesNotExistsCommand::TranslationUnitDoesNotExistsCommand(const F
 {
 }
 
-TranslationUnitDoesNotExistsCommand::TranslationUnitDoesNotExistsCommand(const Utf8String filePath, const Utf8String projectFilePath)
+TranslationUnitDoesNotExistsCommand::TranslationUnitDoesNotExistsCommand(const Utf8String &filePath, const Utf8String &projectFilePath)
     : fileContainer_(filePath, projectFilePath)
 {
 }

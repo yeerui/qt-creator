@@ -45,6 +45,7 @@
 #include <translationunitdoesnotexistsexception.h>
 #include <translationunitisnullexception.h>
 #include <translationunitfilenotexitsexception.h>
+#include <projectdoesnotexistsexception.h>
 
 using CodeModelBackEnd::TranslationUnit;
 using CodeModelBackEnd::UnsavedFiles;
@@ -105,7 +106,7 @@ TEST_F(TranslationUnits, ThrowForGettingWithWrongFilePath)
 TEST_F(TranslationUnits, ThrowForGettingWithWrongProjectFilePath)
 {
     ASSERT_THROW(translationUnits.translationUnit(filePath, Utf8StringLiteral("foo.pro")),
-                 CodeModelBackEnd::TranslationUnitDoesNotExistsException);
+                 CodeModelBackEnd::ProjectDoesNotExistsException);
 
 }
 
@@ -133,7 +134,7 @@ TEST_F(TranslationUnits, ThrowForRemovingWithWrongProjectFilePath)
     CodeModelBackEnd::FileContainer fileContainer(filePath, Utf8StringLiteral("foo.pro"));
 
     ASSERT_THROW(translationUnits.remove({fileContainer}),
-                 CodeModelBackEnd::TranslationUnitDoesNotExistsException);
+                 CodeModelBackEnd::ProjectDoesNotExistsException);
 }
 
 TEST_F(TranslationUnits, Remove)

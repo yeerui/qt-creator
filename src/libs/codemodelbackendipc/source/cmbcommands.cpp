@@ -30,16 +30,18 @@
 
 #include "cmbcommands.h"
 
-#include <cmbalivecommand.h>
-#include <cmbendcommand.h>
-#include <cmbechocommand.h>
-#include <cmbregisterfilesforcodecompletioncommand.h>
-#include <cmbunregisterfilesforcodecompletioncommand.h>
-#include <cmbregisterprojectsforcodecompletioncommand.h>
-#include <cmbunregisterprojectsforcodecompletioncommand.h>
-#include <cmbcompletecodecommand.h>
-#include <cmbcodecompletedcommand.h>
-#include <translationunitdoesnotexistscommand.h>
+#include "cmbalivecommand.h"
+#include "cmbendcommand.h"
+#include "cmbechocommand.h"
+#include "cmbregisterfilesforcodecompletioncommand.h"
+#include "cmbunregisterfilesforcodecompletioncommand.h"
+#include "cmbregisterprojectsforcodecompletioncommand.h"
+#include "cmbunregisterprojectsforcodecompletioncommand.h"
+#include "cmbcompletecodecommand.h"
+#include "cmbcodecompletedcommand.h"
+#include "projectdoesnotexistscommand.h"
+#include "translationunitdoesnotexistscommand.h"
+
 
 namespace CodeModelBackEnd {
 
@@ -95,6 +97,10 @@ void Commands::registerCommands()
     qRegisterMetaType<TranslationUnitDoesNotExistsCommand>();
     qRegisterMetaTypeStreamOperators<TranslationUnitDoesNotExistsCommand>();
     QMetaType::registerComparators<TranslationUnitDoesNotExistsCommand>();
+
+    qRegisterMetaType<ProjectDoesNotExistsCommand>();
+    qRegisterMetaTypeStreamOperators<ProjectDoesNotExistsCommand>();
+    QMetaType::registerComparators<ProjectDoesNotExistsCommand>();
 }
 
 } // namespace CodeModelBackEnd

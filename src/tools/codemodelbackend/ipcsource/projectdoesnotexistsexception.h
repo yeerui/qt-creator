@@ -35,10 +35,10 @@
 
 namespace CodeModelBackEnd {
 
-class ProjectDoNotExistsException
+class ProjectDoesNotExistsException
 {
 public:
-    ProjectDoNotExistsException(const Utf8String &projectFilePath);
+    ProjectDoesNotExistsException(const Utf8String &projectFilePath);
 
     const Utf8String projectFilePath() const;
 

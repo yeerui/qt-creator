@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,36 +28,19 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_IPCCLIENTINTERFACE_H
-#define CODEMODELBACKEND_IPCCLIENTINTERFACE_H
-
-#include "ipcinterface.h"
+#include "projectdoesnotexistsexception.h"
 
 namespace CodeModelBackEnd {
 
-class IpcServerInterface;
-class RegisterFilesForCodeCompletionCommand;
-class RegisterProjectsForCodeCompletionCommand;
-class UnregisterFilesForCodeCompletionCommand;
-class UnregisterProjectsForCodeCompletionCommand;
-class EchoCommand;
-class CompleteCodeCommand;
-class CodeCompletedCommand;
-class TranslationUnitDoesNotExistsCommand;
-class ProjectDoesNotExistsCommand;
-
-class CMBIPC_EXPORT IpcClientInterface : public IpcInterface
+ProjectDoesNotExistsException::ProjectDoesNotExistsException(const Utf8String &projectFilePath)
+    : projectFilePath_(projectFilePath)
 {
-public:
-    void dispatch(const QVariant &command) override;
+}
 
-    virtual void alive() = 0;
-    virtual void echo(const EchoCommand &command) = 0;
-    virtual void codeCompleted(const CodeCompletedCommand &command) = 0;
-    virtual void translationUnitDoesNotExists(const TranslationUnitDoesNotExistsCommand &command) = 0;
-    virtual void projectDoesNotExists(const ProjectDoesNotExistsCommand &command) = 0;
-};
+const Utf8String ProjectDoesNotExistsException::projectFilePath() const
+{
+    return projectFilePath_;
+}
 
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_IPCCLIENTINTERFACE_H
