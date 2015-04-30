@@ -45,8 +45,8 @@
 #include <cmbalivecommand.h>
 #include <cmbcommands.h>
 #include <cmbechocommand.h>
-#include <cmbregisterfilesforcodecompletioncommand.h>
-#include <cmbunregisterfilesforcodecompletioncommand.h>
+#include <cmbregistertranslationunitsforcodecompletioncommand.h>
+#include <cmbunregistertranslationunitsforcodecompletioncommand.h>
 #include <cmbregisterprojectsforcodecompletioncommand.h>
 #include <cmbunregisterprojectsforcodecompletioncommand.h>
 #include <cmbcodecompletedcommand.h>
@@ -96,27 +96,27 @@ TEST_F(ClientServerOutsideProcess, ResetAliveTimer)
     ASSERT_TRUE(clientSpy.wait(100000));
 }
 
-TEST_F(ClientServerOutsideProcess, SendRegisterFilesForCodeCompletionCommand)
+TEST_F(ClientServerOutsideProcess, SendRegisterTranslationUnitForCodeCompletionCommand)
 {
     CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo"), Utf8StringLiteral("pathToProject.pro"));
-    EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::RegisterFilesForCodeCompletionCommand({fileContainer})));
+    EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand({fileContainer})));
 
     EXPECT_CALL(mockIpcClient, echo(echoCommand))
             .Times(1);
 
-    client.sendRegisterFilesForCodeCompletionCommand({fileContainer});
+    client.sendRegisterTranslationUnitForCodeCompletionCommand({fileContainer});
     ASSERT_TRUE(client.waitForEcho());
 }
 
-TEST_F(ClientServerOutsideProcess, SendUnregisterFilesForCodeCompletionCommand)
+TEST_F(ClientServerOutsideProcess, SendUnregisterTranslationUnitsForCodeCompletionCommand)
 {
     FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), Utf8StringLiteral("bar.pro"));
-    EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand({fileContainer})));
+    EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::UnregisterTranslationUnitsForCodeCompletionCommand({fileContainer})));
 
     EXPECT_CALL(mockIpcClient, echo(echoCommand))
             .Times(1);
 
-    client.sendUnregisterFilesForCodeCompletionCommand({fileContainer});
+    client.sendUnregisterTranslationUnitsForCodeCompletionCommand({fileContainer});
     ASSERT_TRUE(client.waitForEcho());
 }
 

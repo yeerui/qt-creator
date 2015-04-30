@@ -33,8 +33,8 @@
 #include "cmbalivecommand.h"
 #include "cmbendcommand.h"
 #include "cmbechocommand.h"
-#include "cmbregisterfilesforcodecompletioncommand.h"
-#include "cmbunregisterfilesforcodecompletioncommand.h"
+#include "cmbregistertranslationunitsforcodecompletioncommand.h"
+#include "cmbunregistertranslationunitsforcodecompletioncommand.h"
 #include "cmbregisterprojectsforcodecompletioncommand.h"
 #include "cmbunregisterprojectsforcodecompletioncommand.h"
 #include "cmbcompletecodecommand.h"
@@ -58,17 +58,17 @@ void Commands::registerCommands()
     qRegisterMetaType<EchoCommand>();
     qRegisterMetaTypeStreamOperators<EchoCommand>();
 
-    qRegisterMetaType<RegisterFilesForCodeCompletionCommand>();
-    qRegisterMetaTypeStreamOperators<RegisterFilesForCodeCompletionCommand>();
-    QMetaType::registerComparators<RegisterFilesForCodeCompletionCommand>();
+    qRegisterMetaType<RegisterTranslationUnitForCodeCompletionCommand>();
+    qRegisterMetaTypeStreamOperators<RegisterTranslationUnitForCodeCompletionCommand>();
+    QMetaType::registerComparators<RegisterTranslationUnitForCodeCompletionCommand>();
 
     qRegisterMetaType<FileContainer>();
     qRegisterMetaTypeStreamOperators<FileContainer>();
     QMetaType::registerComparators<FileContainer>();
 
-    qRegisterMetaType<UnregisterFilesForCodeCompletionCommand>();
-    qRegisterMetaTypeStreamOperators<UnregisterFilesForCodeCompletionCommand>();
-    QMetaType::registerComparators<UnregisterFilesForCodeCompletionCommand>();
+    qRegisterMetaType<UnregisterTranslationUnitsForCodeCompletionCommand>();
+    qRegisterMetaTypeStreamOperators<UnregisterTranslationUnitsForCodeCompletionCommand>();
+    QMetaType::registerComparators<UnregisterTranslationUnitsForCodeCompletionCommand>();
 
     qRegisterMetaType<CompleteCodeCommand>();
     qRegisterMetaTypeStreamOperators<CompleteCodeCommand>();

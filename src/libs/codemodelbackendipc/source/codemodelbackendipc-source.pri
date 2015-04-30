@@ -22,9 +22,9 @@ SOURCES += ipcserverinterface.cpp \
     connectionclient.cpp \
     cmbechocommand.cpp \
     ipcclientdispatcher.cpp \
-    cmbregisterfilesforcodecompletioncommand.cpp \
+    cmbregistertranslationunitsforcodecompletioncommand.cpp \
     filecontainer.cpp \
-    cmbunregisterfilesforcodecompletioncommand.cpp \
+    cmbunregistertranslationunitsforcodecompletioncommand.cpp \
     cmbcompletecodecommand.cpp \
     cmbcodecompletedcommand.cpp \
     codecompletion.cpp \
@@ -52,9 +52,9 @@ HEADERS += codemodelbackendipc_global.h \
     connectionclient.h \
     cmbechocommand.h \
     ipcclientdispatcher.h \
-    cmbregisterfilesforcodecompletioncommand.h \
+    cmbregistertranslationunitsforcodecompletioncommand.h \
     filecontainer.h \
-    cmbunregisterfilesforcodecompletioncommand.h \
+    cmbunregistertranslationunitsforcodecompletioncommand.h \
     cmbcompletecodecommand.h \
     cmbcodecompletedcommand.h \
     codecompletion.h \

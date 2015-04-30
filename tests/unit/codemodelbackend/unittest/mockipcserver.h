@@ -37,10 +37,10 @@ class MockIpcServer : public CodeModelBackEnd::IpcServerInterface {
  public:
   MOCK_METHOD0(end,
       void());
-  MOCK_METHOD1(registerFilesForCodeCompletion,
-      void(const CodeModelBackEnd::RegisterFilesForCodeCompletionCommand &command));
-  MOCK_METHOD1(unregisterFilesForCodeCompletion,
-      void(const CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand &command));
+  MOCK_METHOD1(registerTranslationUnitsForCodeCompletion,
+      void(const CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand &command));
+  MOCK_METHOD1(unregisterTranslationUnitsForCodeCompletion,
+      void(const CodeModelBackEnd::UnregisterTranslationUnitsForCodeCompletionCommand &command));
   MOCK_METHOD1(registerProjectsForCodeCompletion,
       void(const CodeModelBackEnd::RegisterProjectsForCodeCompletionCommand &command));
   MOCK_METHOD1(unregisterProjectsForCodeCompletion,

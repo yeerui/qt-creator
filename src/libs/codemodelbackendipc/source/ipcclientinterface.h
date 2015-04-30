@@ -36,9 +36,9 @@
 namespace CodeModelBackEnd {
 
 class IpcServerInterface;
-class RegisterFilesForCodeCompletionCommand;
+class RegisterTranslationUnitForCodeCompletionCommand;
 class RegisterProjectsForCodeCompletionCommand;
-class UnregisterFilesForCodeCompletionCommand;
+class UnregisterTranslationUnitsForCodeCompletionCommand;
 class UnregisterProjectsForCodeCompletionCommand;
 class EchoCommand;
 class CompleteCodeCommand;

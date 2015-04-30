@@ -33,8 +33,8 @@
 #include <QVariant>
 #include <QtDebug>
 
-#include "cmbregisterfilesforcodecompletioncommand.h"
-#include "cmbunregisterfilesforcodecompletioncommand.h"
+#include "cmbregistertranslationunitsforcodecompletioncommand.h"
+#include "cmbunregistertranslationunitsforcodecompletioncommand.h"
 #include "cmbregisterprojectsforcodecompletioncommand.h"
 #include "cmbunregisterprojectsforcodecompletioncommand.h"
 #include "cmbcompletecodecommand.h"
@@ -44,8 +44,8 @@ namespace CodeModelBackEnd {
 void IpcServerInterface::dispatch(const QVariant &command)
 {
     static const int endCommandType = QMetaType::type("CodeModelBackEnd::EndCommand");
-    static const int registerFilesForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::RegisterFilesForCodeCompletionCommand");
-    static const int unregisterFilesForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand");
+    static const int registerTranslationUnitsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand");
+    static const int unregisterTranslationUnitsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::UnregisterTranslationUnitsForCodeCompletionCommand");
     static const int registerProjectsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::RegisterProjectsForCodeCompletionCommand");
     static const int unregisterProjectsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::UnregisterProjectsForCodeCompletionCommand");
     static const int completeCodeCommandType = QMetaType::type("CodeModelBackEnd::CompleteCodeCommand");
@@ -54,10 +54,10 @@ void IpcServerInterface::dispatch(const QVariant &command)
 
     if (type == endCommandType)
         end();
-    else if (type == registerFilesForCodeCompletionCommandType)
-        registerFilesForCodeCompletion(command.value<RegisterFilesForCodeCompletionCommand>());
-    else if (type == unregisterFilesForCodeCompletionCommandType)
-        unregisterFilesForCodeCompletion(command.value<UnregisterFilesForCodeCompletionCommand>());
+    else if (type == registerTranslationUnitsForCodeCompletionCommandType)
+        registerTranslationUnitsForCodeCompletion(command.value<RegisterTranslationUnitForCodeCompletionCommand>());
+    else if (type == unregisterTranslationUnitsForCodeCompletionCommandType)
+        unregisterTranslationUnitsForCodeCompletion(command.value<UnregisterTranslationUnitsForCodeCompletionCommand>());
     else if (type == registerProjectsForCodeCompletionCommandType)
         registerProjectsForCodeCompletion(command.value<RegisterProjectsForCodeCompletionCommand>());
     else if (type == unregisterProjectsForCodeCompletionCommandType)

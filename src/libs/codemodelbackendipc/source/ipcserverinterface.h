@@ -45,8 +45,8 @@ public:
     void dispatch(const QVariant &command) override;
 
     virtual void end() = 0;
-    virtual void registerFilesForCodeCompletion(const RegisterFilesForCodeCompletionCommand &command) = 0;
-    virtual void unregisterFilesForCodeCompletion(const UnregisterFilesForCodeCompletionCommand &command) = 0;
+    virtual void registerTranslationUnitsForCodeCompletion(const RegisterTranslationUnitForCodeCompletionCommand &command) = 0;
+    virtual void unregisterTranslationUnitsForCodeCompletion(const UnregisterTranslationUnitsForCodeCompletionCommand &command) = 0;
     virtual void registerProjectsForCodeCompletion(const RegisterProjectsForCodeCompletionCommand &command) = 0;
     virtual void unregisterProjectsForCodeCompletion(const UnregisterProjectsForCodeCompletionCommand &command) = 0;
     virtual void completeCode(const CompleteCodeCommand &command) = 0;

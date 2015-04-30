@@ -36,8 +36,8 @@
 
 #include <cmbendcommand.h>
 #include <cmbalivecommand.h>
-#include <cmbregisterfilesforcodecompletioncommand.h>
-#include <cmbunregisterfilesforcodecompletioncommand.h>
+#include <cmbregistertranslationunitsforcodecompletioncommand.h>
+#include <cmbunregistertranslationunitsforcodecompletioncommand.h>
 #include <cmbregisterprojectsforcodecompletioncommand.h>
 #include <cmbunregisterprojectsforcodecompletioncommand.h>
 #include <cmbcompletecodecommand.h>
@@ -71,12 +71,12 @@ void IpcServerProxy::end()
     writeCommandBlock.write(QVariant::fromValue(EndCommand()));
 }
 
-void IpcServerProxy::registerFilesForCodeCompletion(const RegisterFilesForCodeCompletionCommand &command)
+void IpcServerProxy::registerTranslationUnitsForCodeCompletion(const RegisterTranslationUnitForCodeCompletionCommand &command)
 {
     writeCommandBlock.write(QVariant::fromValue(command));
 }
 
-void IpcServerProxy::unregisterFilesForCodeCompletion(const UnregisterFilesForCodeCompletionCommand &command)
+void IpcServerProxy::unregisterTranslationUnitsForCodeCompletion(const UnregisterTranslationUnitsForCodeCompletionCommand &command)
 {
     writeCommandBlock.write(QVariant::fromValue(command));
 }

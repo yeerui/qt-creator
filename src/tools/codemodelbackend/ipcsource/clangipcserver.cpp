@@ -2,8 +2,8 @@
 
 #include <QCoreApplication>
 
-#include <cmbregisterfilesforcodecompletioncommand.h>
-#include <cmbunregisterfilesforcodecompletioncommand.h>
+#include <cmbregistertranslationunitsforcodecompletioncommand.h>
+#include <cmbunregistertranslationunitsforcodecompletioncommand.h>
 #include <cmbregisterprojectsforcodecompletioncommand.h>
 #include <cmbunregisterprojectsforcodecompletioncommand.h>
 #include <cmbcodecompletedcommand.h>
@@ -33,28 +33,28 @@ void ClangIpcServer::end()
     QCoreApplication::exit();
 }
 
-void ClangIpcServer::registerFilesForCodeCompletion(const CodeModelBackEnd::RegisterFilesForCodeCompletionCommand &command)
+void ClangIpcServer::registerTranslationUnitsForCodeCompletion(const CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand &command)
 {
     try {
         translationUnits.createOrUpdate(command.fileContainers());
         unsavedFiles.createOrUpdate(command.fileContainers());
     } catch (const TranslationUnitFileNotExitsException &exception) {
-        qWarning() << "Error in ClangIpcServer::registerFilesForCodeCompletion: Tried to access a null TranslationUnit!";
+        qWarning() << "Error in ClangIpcServer::registerTranslationUnitsForCodeCompletion: Tried to access a null TranslationUnit!";
     } catch (const TranslationUnitIsNullException &exception) {
-        qWarning() << "Error in ClangIpcServer::registerFilesForCodeCompletion: File for TranslationUnit doesn't exits!";
+        qWarning() << "Error in ClangIpcServer::registerTranslationUnitsForCodeCompletion: File for TranslationUnit doesn't exits!";
     } catch (const ProjectDoesNotExistsException &exception) {
         client()->projectDoesNotExists(ProjectDoesNotExistsCommand(exception.projectFilePath()));
     }
 }
 
-void ClangIpcServer::unregisterFilesForCodeCompletion(const CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand &command)
+void ClangIpcServer::unregisterTranslationUnitsForCodeCompletion(const CodeModelBackEnd::UnregisterTranslationUnitsForCodeCompletionCommand &command)
 {
     try {
         translationUnits.remove(command.fileContainers());
     } catch (const TranslationUnitDoesNotExistsException &exception) {
         client()->translationUnitDoesNotExists(TranslationUnitDoesNotExistsCommand(exception.fileContainer()));
     } catch(const TranslationUnitIsNullException &exception) {
-        qWarning() << "Error in ClangIpcServer::unregisterFilesForCodeCompletion: Tried to access a null TranslationUnit!";
+        qWarning() << "Error in ClangIpcServer::unregisterTranslationUnitsForCodeCompletion: Tried to access a null TranslationUnit!";
     } catch (const ProjectDoesNotExistsException &exception) {
         client()->projectDoesNotExists(ProjectDoesNotExistsCommand(exception.projectFilePath()));
     }

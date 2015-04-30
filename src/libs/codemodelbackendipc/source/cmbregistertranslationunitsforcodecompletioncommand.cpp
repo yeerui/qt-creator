@@ -28,47 +28,47 @@
 **
 ****************************************************************************/
 
-#include "cmbregisterfilesforcodecompletioncommand.h"
+#include "cmbregistertranslationunitsforcodecompletioncommand.h"
 
 #include <QtDebug>
 
 namespace CodeModelBackEnd {
 
-RegisterFilesForCodeCompletionCommand::RegisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
+RegisterTranslationUnitForCodeCompletionCommand::RegisterTranslationUnitForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
     : fileContainers_(fileContainers)
 {
 }
 
-const QVector<FileContainer> &RegisterFilesForCodeCompletionCommand::fileContainers() const
+const QVector<FileContainer> &RegisterTranslationUnitForCodeCompletionCommand::fileContainers() const
 {
     return fileContainers_;
 }
 
-QDataStream &operator<<(QDataStream &out, const RegisterFilesForCodeCompletionCommand &command)
+QDataStream &operator<<(QDataStream &out, const RegisterTranslationUnitForCodeCompletionCommand &command)
 {
     out << command.fileContainers_;
 
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, RegisterFilesForCodeCompletionCommand &command)
+QDataStream &operator>>(QDataStream &in, RegisterTranslationUnitForCodeCompletionCommand &command)
 {
     in >> command.fileContainers_;
 
     return in;
 }
 
-bool operator == (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second)
+bool operator == (const RegisterTranslationUnitForCodeCompletionCommand &first, const RegisterTranslationUnitForCodeCompletionCommand &second)
 {
     return first.fileContainers_ == second.fileContainers_;
 }
 
-bool operator < (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second)
+bool operator < (const RegisterTranslationUnitForCodeCompletionCommand &first, const RegisterTranslationUnitForCodeCompletionCommand &second)
 {
     return first.fileContainers_ < second.fileContainers_;
 }
 
-QDebug operator <<(QDebug debug, const RegisterFilesForCodeCompletionCommand &command)
+QDebug operator <<(QDebug debug, const RegisterTranslationUnitForCodeCompletionCommand &command)
 {
     debug.nospace() << "RegisterFileForCodeCompletion(";
 
@@ -80,7 +80,7 @@ QDebug operator <<(QDebug debug, const RegisterFilesForCodeCompletionCommand &co
     return debug;
 }
 
-void PrintTo(const RegisterFilesForCodeCompletionCommand &command, ::std::ostream* os)
+void PrintTo(const RegisterTranslationUnitForCodeCompletionCommand &command, ::std::ostream* os)
 {
     *os << "RegisterFileForCodeCompletion(";
 

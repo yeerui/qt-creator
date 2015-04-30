@@ -32,8 +32,8 @@
 
 #include "cmbendcommand.h"
 #include "cmbechocommand.h"
-#include "cmbregisterfilesforcodecompletioncommand.h"
-#include "cmbunregisterfilesforcodecompletioncommand.h"
+#include "cmbregistertranslationunitsforcodecompletioncommand.h"
+#include "cmbunregistertranslationunitsforcodecompletioncommand.h"
 #include "cmbregisterprojectsforcodecompletioncommand.h"
 #include "cmbunregisterprojectsforcodecompletioncommand.h"
 #include "cmbcompletecodecommand.h"
@@ -58,12 +58,12 @@ void EchoIpcServer::end()
     QCoreApplication::quit();
 }
 
-void EchoIpcServer::registerFilesForCodeCompletion(const RegisterFilesForCodeCompletionCommand &command)
+void EchoIpcServer::registerTranslationUnitsForCodeCompletion(const RegisterTranslationUnitForCodeCompletionCommand &command)
 {
     echoCommand(QVariant::fromValue(command));
 }
 
-void EchoIpcServer::unregisterFilesForCodeCompletion(const UnregisterFilesForCodeCompletionCommand &command)
+void EchoIpcServer::unregisterTranslationUnitsForCodeCompletion(const UnregisterTranslationUnitsForCodeCompletionCommand &command)
 {
     echoCommand(QVariant::fromValue(command));
 }

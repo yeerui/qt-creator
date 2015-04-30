@@ -61,8 +61,8 @@ public:
     bool isConnected() const;
 
     void sendEndCommand();
-    void sendRegisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers);
-    void sendUnregisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers);
+    void sendRegisterTranslationUnitForCodeCompletionCommand(const QVector<FileContainer> &fileContainers);
+    void sendUnregisterTranslationUnitsForCodeCompletionCommand(const QVector<FileContainer> &fileContainers);
     void sendCompleteCodeCommand(const Utf8String &fileName,
                                  quint32 line,
                                  quint32 column,

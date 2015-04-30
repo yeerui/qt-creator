@@ -39,8 +39,8 @@
 #include <cmbendcommand.h>
 #include <cmbalivecommand.h>
 #include <cmbcommands.h>
-#include <cmbregisterfilesforcodecompletioncommand.h>
-#include <cmbunregisterfilesforcodecompletioncommand.h>
+#include <cmbregistertranslationunitsforcodecompletioncommand.h>
+#include <cmbunregistertranslationunitsforcodecompletioncommand.h>
 #include <cmbcodecompletedcommand.h>
 #include <cmbcompletecodecommand.h>
 #include <writecommandblock.h>
@@ -127,19 +127,19 @@ TEST_F(ReadAndWriteCommandBlockTest, CompareAliveCommand)
     CompareCommand(CodeModelBackEnd::AliveCommand());
 }
 
-TEST_F(ReadAndWriteCommandBlockTest, CompareRegisterFilesForCodeCompletionCommand)
+TEST_F(ReadAndWriteCommandBlockTest, CompareRegisterTranslationUnitForCodeCompletionCommand)
 {
     CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), Utf8StringLiteral("pathToProject.pro"));
     QVector<CodeModelBackEnd::FileContainer> fileContainers({fileContainer});
 
-    CompareCommand(CodeModelBackEnd::RegisterFilesForCodeCompletionCommand(fileContainers));
+    CompareCommand(CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand(fileContainers));
 }
 
 TEST_F(ReadAndWriteCommandBlockTest, CompareUnregisterFileForCodeCompletionCommand)
 {
     CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), Utf8StringLiteral("pathToProject.pro"));
 
-    CompareCommand(CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand({fileContainer}));
+    CompareCommand(CodeModelBackEnd::UnregisterTranslationUnitsForCodeCompletionCommand({fileContainer}));
 }
 
 TEST_F(ReadAndWriteCommandBlockTest, CompareCompleteCodeCommand)

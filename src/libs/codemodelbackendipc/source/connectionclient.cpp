@@ -34,8 +34,8 @@
 #include <QThread>
 #include <QCoreApplication>
 
-#include "cmbregisterfilesforcodecompletioncommand.h"
-#include "cmbunregisterfilesforcodecompletioncommand.h"
+#include "cmbregistertranslationunitsforcodecompletioncommand.h"
+#include "cmbunregistertranslationunitsforcodecompletioncommand.h"
 #include "cmbcompletecodecommand.h"
 
 namespace CodeModelBackEnd {
@@ -88,14 +88,14 @@ void ConnectionClient::sendEndCommand()
     localSocket.flush();
 }
 
-void ConnectionClient::sendRegisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
+void ConnectionClient::sendRegisterTranslationUnitForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
 {
-    serverProxy_.registerFilesForCodeCompletion(RegisterFilesForCodeCompletionCommand(fileContainers));
+    serverProxy_.registerTranslationUnitsForCodeCompletion(RegisterTranslationUnitForCodeCompletionCommand(fileContainers));
 }
 
-void ConnectionClient::sendUnregisterFilesForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
+void ConnectionClient::sendUnregisterTranslationUnitsForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
 {
-    serverProxy_.unregisterFilesForCodeCompletion(UnregisterFilesForCodeCompletionCommand(fileContainers));
+    serverProxy_.unregisterTranslationUnitsForCodeCompletion(UnregisterTranslationUnitsForCodeCompletionCommand(fileContainers));
 }
 
 void ConnectionClient::sendCompleteCodeCommand(const Utf8String &fileName, quint32 line, quint32 column, const Utf8String &projectFilePath)

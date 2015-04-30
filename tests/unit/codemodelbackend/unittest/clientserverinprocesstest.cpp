@@ -44,8 +44,8 @@
 #include <cmbalivecommand.h>
 #include <cmbcommands.h>
 #include <cmbechocommand.h>
-#include <cmbregisterfilesforcodecompletioncommand.h>
-#include <cmbunregisterfilesforcodecompletioncommand.h>
+#include <cmbregistertranslationunitsforcodecompletioncommand.h>
+#include <cmbunregistertranslationunitsforcodecompletioncommand.h>
 #include <cmbcodecompletedcommand.h>
 #include <cmbregisterprojectsforcodecompletioncommand.h>
 #include <cmbunregisterprojectsforcodecompletioncommand.h>
@@ -101,28 +101,28 @@ TEST_F(ClientServerInProcess, SendAliveCommand)
     scheduleClientCommands();
 }
 
-TEST_F(ClientServerInProcess, SendRegisterFilesForCodeCompletionCommand)
+TEST_F(ClientServerInProcess, SendRegisterTranslationUnitForCodeCompletionCommand)
 {
     CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("data/complete_extractor_function.cpp"),
                                                   Utf8StringLiteral("pathToProject.pro"));
-    CodeModelBackEnd::RegisterFilesForCodeCompletionCommand command({fileContainer});
+    CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand command({fileContainer});
 
-    EXPECT_CALL(mockIpcServer, registerFilesForCodeCompletion(command))
+    EXPECT_CALL(mockIpcServer, registerTranslationUnitsForCodeCompletion(command))
         .Times(1);
 
-    serverProxy.registerFilesForCodeCompletion(command);
+    serverProxy.registerTranslationUnitsForCodeCompletion(command);
     scheduleServerCommands();
 }
 
-TEST_F(ClientServerInProcess, SendUnregisterFilesForCodeCompletionCommand)
+TEST_F(ClientServerInProcess, SendUnregisterTranslationUnitsForCodeCompletionCommand)
 {
     CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), Utf8StringLiteral("pathToProject.pro"));
-    CodeModelBackEnd::UnregisterFilesForCodeCompletionCommand command({fileContainer});
+    CodeModelBackEnd::UnregisterTranslationUnitsForCodeCompletionCommand command({fileContainer});
 
-    EXPECT_CALL(mockIpcServer, unregisterFilesForCodeCompletion(command))
+    EXPECT_CALL(mockIpcServer, unregisterTranslationUnitsForCodeCompletion(command))
         .Times(1);
 
-    serverProxy.unregisterFilesForCodeCompletion(command);
+    serverProxy.unregisterTranslationUnitsForCodeCompletion(command);
     scheduleServerCommands();
 }
 

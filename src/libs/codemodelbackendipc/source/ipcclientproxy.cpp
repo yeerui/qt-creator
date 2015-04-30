@@ -39,7 +39,7 @@
 
 #include "ipcserverinterface.h"
 #include "cmbechocommand.h"
-#include "cmbregisterfilesforcodecompletioncommand.h"
+#include "cmbregistertranslationunitsforcodecompletioncommand.h"
 #include "cmbcodecompletedcommand.h"
 #include "translationunitdoesnotexistscommand.h"
 #include "projectdoesnotexistscommand.h"
