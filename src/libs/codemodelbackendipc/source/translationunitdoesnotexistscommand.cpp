@@ -32,60 +32,62 @@
 
 #include <QDebug>
 
+#include <QDataStream>
+
 namespace CodeModelBackEnd {
 
-TranslationUnitDoesNotExistsCommand::TranslationUnitDoesNotExistsCommand(const FileContainer &fileContainer)
+TranslationUnitDoesNotExistCommand::TranslationUnitDoesNotExistCommand(const FileContainer &fileContainer)
     : fileContainer_(fileContainer)
 {
 }
 
-TranslationUnitDoesNotExistsCommand::TranslationUnitDoesNotExistsCommand(const Utf8String &filePath, const Utf8String &projectFilePath)
+TranslationUnitDoesNotExistCommand::TranslationUnitDoesNotExistCommand(const Utf8String &filePath, const Utf8String &projectFilePath)
     : fileContainer_(filePath, projectFilePath)
 {
 }
 
-const FileContainer &TranslationUnitDoesNotExistsCommand::fileContainer() const
+const FileContainer &TranslationUnitDoesNotExistCommand::fileContainer() const
 {
     return fileContainer_;
 }
 
-const Utf8String &TranslationUnitDoesNotExistsCommand::filePath() const
+const Utf8String &TranslationUnitDoesNotExistCommand::filePath() const
 {
     return fileContainer_.filePath();
 }
 
-const Utf8String &TranslationUnitDoesNotExistsCommand::projectFilePath() const
+const Utf8String &TranslationUnitDoesNotExistCommand::projectFilePath() const
 {
     return fileContainer_.projectFilePath();
 }
 
-QDataStream &operator<<(QDataStream &out, const TranslationUnitDoesNotExistsCommand &command)
+QDataStream &operator<<(QDataStream &out, const TranslationUnitDoesNotExistCommand &command)
 {
     out << command.fileContainer_;
 
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, TranslationUnitDoesNotExistsCommand &command)
+QDataStream &operator>>(QDataStream &in, TranslationUnitDoesNotExistCommand &command)
 {
     in >> command.fileContainer_;
 
     return in;
 }
 
-bool operator == (const TranslationUnitDoesNotExistsCommand &first, const TranslationUnitDoesNotExistsCommand &second)
+bool operator == (const TranslationUnitDoesNotExistCommand &first, const TranslationUnitDoesNotExistCommand &second)
 {
     return first.fileContainer_ == second.fileContainer_;
 }
 
-bool operator < (const TranslationUnitDoesNotExistsCommand &first, const TranslationUnitDoesNotExistsCommand &second)
+bool operator < (const TranslationUnitDoesNotExistCommand &first, const TranslationUnitDoesNotExistCommand &second)
 {
     return first.fileContainer_ < second.fileContainer_;
 }
 
-QDebug operator <<(QDebug debug, const TranslationUnitDoesNotExistsCommand &command)
+QDebug operator <<(QDebug debug, const TranslationUnitDoesNotExistCommand &command)
 {
-    debug.nospace() << "TranslationUnitDoesNotExistsCommand(";
+    debug.nospace() << "TranslationUnitDoesNotExistCommand(";
 
     debug.nospace() << command.fileContainer_;
 
@@ -94,7 +96,7 @@ QDebug operator <<(QDebug debug, const TranslationUnitDoesNotExistsCommand &comm
     return debug;
 }
 
-void PrintTo(const TranslationUnitDoesNotExistsCommand &command, ::std::ostream* os)
+void PrintTo(const TranslationUnitDoesNotExistCommand &command, ::std::ostream* os)
 {
     QString output;
     QDebug debug(&output);

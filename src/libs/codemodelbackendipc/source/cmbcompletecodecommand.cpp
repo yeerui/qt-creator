@@ -30,8 +30,9 @@
 
 #include "cmbcompletecodecommand.h"
 
-#include <QDataStream>
 #include <QDebug>
+
+#include <QDataStream>
 
 namespace CodeModelBackEnd {
 

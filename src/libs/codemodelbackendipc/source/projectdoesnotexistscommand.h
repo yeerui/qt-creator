@@ -39,18 +39,17 @@
 
 namespace CodeModelBackEnd {
 
-class CMBIPC_EXPORT ProjectDoesNotExistsCommand
+class CMBIPC_EXPORT ProjectDoesNotExistCommand
 {
-    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectDoesNotExistsCommand &command);
-    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, ProjectDoesNotExistsCommand &command);
-    friend CMBIPC_EXPORT bool operator == (const ProjectDoesNotExistsCommand &first, const ProjectDoesNotExistsCommand &second);
-    friend CMBIPC_EXPORT bool operator < (const ProjectDoesNotExistsCommand &first, const ProjectDoesNotExistsCommand &second);
-    friend CMBIPC_EXPORT QDebug operator <<(QDebug debug, const ProjectDoesNotExistsCommand &command);
-    friend void PrintTo(const ProjectDoesNotExistsCommand &command, ::std::ostream* os);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectDoesNotExistCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, ProjectDoesNotExistCommand &command);
+    friend CMBIPC_EXPORT bool operator == (const ProjectDoesNotExistCommand &first, const ProjectDoesNotExistCommand &second);
+    friend CMBIPC_EXPORT bool operator < (const ProjectDoesNotExistCommand &first, const ProjectDoesNotExistCommand &second);
+    friend CMBIPC_EXPORT QDebug operator <<(QDebug debug, const ProjectDoesNotExistCommand &command);
+    friend void PrintTo(const ProjectDoesNotExistCommand &command, ::std::ostream* os);
 public:
-    ProjectDoesNotExistsCommand() = default;
-    ProjectDoesNotExistsCommand(const Utf8String &projectFilePath);
-
+    ProjectDoesNotExistCommand() = default;
+    ProjectDoesNotExistCommand(const Utf8String &projectFilePath);
 
     const Utf8String &projectFilePath() const;
 
@@ -58,16 +57,16 @@ private:
     Utf8String projectFilePath_;
 };
 
-CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectDoesNotExistsCommand &command);
-CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, ProjectDoesNotExistsCommand &command);
-CMBIPC_EXPORT bool operator == (const ProjectDoesNotExistsCommand &first, const ProjectDoesNotExistsCommand &second);
-CMBIPC_EXPORT bool operator < (const ProjectDoesNotExistsCommand &first, const ProjectDoesNotExistsCommand &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectDoesNotExistCommand &command);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, ProjectDoesNotExistCommand &command);
+CMBIPC_EXPORT bool operator == (const ProjectDoesNotExistCommand &first, const ProjectDoesNotExistCommand &second);
+CMBIPC_EXPORT bool operator < (const ProjectDoesNotExistCommand &first, const ProjectDoesNotExistCommand &second);
 
-CMBIPC_EXPORT QDebug operator <<(QDebug debug, const ProjectDoesNotExistsCommand &command);
-void PrintTo(const ProjectDoesNotExistsCommand &command, ::std::ostream* os);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const ProjectDoesNotExistCommand &command);
+void PrintTo(const ProjectDoesNotExistCommand &command, ::std::ostream* os);
 
 } // namespace CodeModelBackEnd
 
-Q_DECLARE_METATYPE(CodeModelBackEnd::ProjectDoesNotExistsCommand)
+Q_DECLARE_METATYPE(CodeModelBackEnd::ProjectDoesNotExistCommand)
 
 #endif // CODEMODELBACKEND_PROJECTDOESNOTEXISTSCOMMAND_H

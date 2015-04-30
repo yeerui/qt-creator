@@ -100,7 +100,7 @@ TEST(Project, GetNonExistingPoject)
 {
     CodeModelBackEnd::Projects projects;
 
-    ASSERT_THROW(projects.project(Utf8StringLiteral("pathToProject.pro")), CodeModelBackEnd::ProjectDoesNotExistsException);
+    ASSERT_THROW(projects.project(Utf8StringLiteral("pathToProject.pro")), CodeModelBackEnd::ProjectDoesNotExistException);
 }
 
 TEST(Project, AddProjects)
@@ -135,7 +135,7 @@ TEST(Project, ThrowExceptionForAccesingRemovedProjects)
 
     projects.remove({projectContainer.filePath()});
 
-    ASSERT_THROW(projects.project(projectContainer.filePath()), CodeModelBackEnd::ProjectDoesNotExistsException);
+    ASSERT_THROW(projects.project(projectContainer.filePath()), CodeModelBackEnd::ProjectDoesNotExistException);
 }
 
 TEST(Project, ProjectFilePathIsEmptyfterRemoving)

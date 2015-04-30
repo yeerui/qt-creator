@@ -45,7 +45,9 @@ ConnectionServer::ConnectionServer()
 {
     connect(&localServer, &QLocalServer::newConnection, this, &ConnectionServer::handleNewConnection);
     std::atexit(&ConnectionServer::removeServer);
+#ifndef Q_OS_WIN
     std::at_quick_exit(&ConnectionServer::removeServer);
+#endif
     std::set_terminate(&ConnectionServer::removeServer);
 }
 

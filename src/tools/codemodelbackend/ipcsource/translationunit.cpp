@@ -144,7 +144,7 @@ void TranslationUnit::checkIfNull() const
 void TranslationUnit::checkIfFileExists() const
 {
     if (!QFileInfo::exists(d->filePath.toString()))
-        throw TranslationUnitFileNotExitsException();
+        throw TranslationUnitFileNotExitsException(d->filePath);
 }
 
 void TranslationUnit::updateLastChangeTimePoint() const

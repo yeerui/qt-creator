@@ -32,6 +32,8 @@
 
 #include <QtDebug>
 
+#include <QDataStream>
+
 namespace CodeModelBackEnd {
 
 ProjectContainer::ProjectContainer(const Utf8String &fileName,

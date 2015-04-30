@@ -30,6 +30,8 @@
 
 #include "translationunitparseerrorexception.h"
 
+
+
 namespace CodeModelBackEnd {
 
 TranslationUnitParseErrorException::TranslationUnitParseErrorException(const Utf8String &filePath, const Utf8String &projectFilePath)
@@ -46,6 +48,18 @@ const Utf8String &TranslationUnitParseErrorException::filePath() const
 const Utf8String &TranslationUnitParseErrorException::projectFilePath() const
 {
     return projectFilePath_;
+}
+
+const char *TranslationUnitParseErrorException::what() const Q_DECL_NOEXCEPT
+{
+    if (what_.isEmpty())
+        what_ += Utf8StringLiteral("Parse error for file ")
+                + filePath()
+                + Utf8StringLiteral(" in project ")
+                + projectFilePath()
+                + Utf8StringLiteral("!");
+
+    return what_.constData();
 }
 
 } // namespace CodeModelBackEnd

@@ -32,6 +32,8 @@
 
 #include <QtDebug>
 
+#include <QDataStream>
+
 namespace CodeModelBackEnd {
 
 EchoCommand::EchoCommand(const QVariant &command)

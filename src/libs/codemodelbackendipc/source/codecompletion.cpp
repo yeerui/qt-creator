@@ -32,6 +32,8 @@
 
 #include <QDebug>
 
+#include <QDataStream>
+
 namespace CodeModelBackEnd {
 
 CodeCompletion::CodeCompletion(const Utf8String &text,

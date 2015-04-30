@@ -32,6 +32,8 @@
 
 #include <QtDebug>
 
+#include <QDataStream>
+
 namespace CodeModelBackEnd {
 
 RegisterProjectsForCodeCompletionCommand::RegisterProjectsForCodeCompletionCommand(const QVector<ProjectContainer> &projectContainers)

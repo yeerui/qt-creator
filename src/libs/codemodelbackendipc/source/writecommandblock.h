@@ -44,7 +44,7 @@ namespace CodeModelBackEnd {
 class WriteCommandBlock
 {
 public:
-    WriteCommandBlock(QIODevice *ioDevice);
+    WriteCommandBlock(QIODevice *ioDevice = nullptr);
 
     void write(const QVariant &command);
 

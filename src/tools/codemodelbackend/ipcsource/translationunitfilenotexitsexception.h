@@ -31,13 +31,24 @@
 #ifndef CODEMODELBACKEND_TRANSLATIONUNITFILENOTEXITS_H
 #define CODEMODELBACKEND_TRANSLATIONUNITFILENOTEXITS_H
 
+#include <utf8string.h>
+
+#include <exception>
 
 namespace CodeModelBackEnd {
 
-class TranslationUnitFileNotExitsException
+class TranslationUnitFileNotExitsException : public std::exception
 {
 public:
-    TranslationUnitFileNotExitsException();
+    TranslationUnitFileNotExitsException(const Utf8String &filePath);
+
+    const Utf8String &filePath() const;
+
+    const char *what() const Q_DECL_NOEXCEPT override;
+
+private:
+    Utf8String filePath_;
+    mutable Utf8String what_;
 };
 
 } // namespace CodeModelBackEnd

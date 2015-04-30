@@ -32,46 +32,48 @@
 
 #include <QDebug>
 
+#include <QDataStream>
+
 namespace CodeModelBackEnd {
 
-ProjectDoesNotExistsCommand::ProjectDoesNotExistsCommand(const Utf8String &projectFilePath)
+ProjectDoesNotExistCommand::ProjectDoesNotExistCommand(const Utf8String &projectFilePath)
     : projectFilePath_(projectFilePath)
 {
 }
 
 
-const Utf8String &ProjectDoesNotExistsCommand::projectFilePath() const
+const Utf8String &ProjectDoesNotExistCommand::projectFilePath() const
 {
     return projectFilePath_;
 }
 
-QDataStream &operator<<(QDataStream &out, const ProjectDoesNotExistsCommand &command)
+QDataStream &operator<<(QDataStream &out, const ProjectDoesNotExistCommand &command)
 {
     out << command.projectFilePath_;
 
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, ProjectDoesNotExistsCommand &command)
+QDataStream &operator>>(QDataStream &in, ProjectDoesNotExistCommand &command)
 {
     in >> command.projectFilePath_;
 
     return in;
 }
 
-bool operator == (const ProjectDoesNotExistsCommand &first, const ProjectDoesNotExistsCommand &second)
+bool operator == (const ProjectDoesNotExistCommand &first, const ProjectDoesNotExistCommand &second)
 {
     return first.projectFilePath_ == second.projectFilePath_;
 }
 
-bool operator < (const ProjectDoesNotExistsCommand &first, const ProjectDoesNotExistsCommand &second)
+bool operator < (const ProjectDoesNotExistCommand &first, const ProjectDoesNotExistCommand &second)
 {
     return first.projectFilePath_ < second.projectFilePath_;
 }
 
-QDebug operator <<(QDebug debug, const ProjectDoesNotExistsCommand &command)
+QDebug operator <<(QDebug debug, const ProjectDoesNotExistCommand &command)
 {
-    debug.nospace() << "ProjectDoesNotExistsCommand(";
+    debug.nospace() << "ProjectDoesNotExistCommand(";
 
     debug.nospace() << command.projectFilePath_;
 
@@ -80,7 +82,7 @@ QDebug operator <<(QDebug debug, const ProjectDoesNotExistsCommand &command)
     return debug;
 }
 
-void PrintTo(const ProjectDoesNotExistsCommand &command, ::std::ostream* os)
+void PrintTo(const ProjectDoesNotExistCommand &command, ::std::ostream* os)
 {
     QString output;
     QDebug debug(&output);

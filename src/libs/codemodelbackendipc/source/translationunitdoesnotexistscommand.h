@@ -37,18 +37,18 @@
 
 namespace CodeModelBackEnd {
 
-class CMBIPC_EXPORT TranslationUnitDoesNotExistsCommand
+class CMBIPC_EXPORT TranslationUnitDoesNotExistCommand
 {
-    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const TranslationUnitDoesNotExistsCommand &command);
-    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, TranslationUnitDoesNotExistsCommand &command);
-    friend CMBIPC_EXPORT bool operator == (const TranslationUnitDoesNotExistsCommand &first, const TranslationUnitDoesNotExistsCommand &second);
-    friend CMBIPC_EXPORT bool operator < (const TranslationUnitDoesNotExistsCommand &first, const TranslationUnitDoesNotExistsCommand &second);
-    friend CMBIPC_EXPORT QDebug operator <<(QDebug debug, const TranslationUnitDoesNotExistsCommand &command);
-    friend void PrintTo(const TranslationUnitDoesNotExistsCommand &command, ::std::ostream* os);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const TranslationUnitDoesNotExistCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, TranslationUnitDoesNotExistCommand &command);
+    friend CMBIPC_EXPORT bool operator == (const TranslationUnitDoesNotExistCommand &first, const TranslationUnitDoesNotExistCommand &second);
+    friend CMBIPC_EXPORT bool operator < (const TranslationUnitDoesNotExistCommand &first, const TranslationUnitDoesNotExistCommand &second);
+    friend CMBIPC_EXPORT QDebug operator <<(QDebug debug, const TranslationUnitDoesNotExistCommand &command);
+    friend void PrintTo(const TranslationUnitDoesNotExistCommand &command, ::std::ostream* os);
 public:
-    TranslationUnitDoesNotExistsCommand() = default;
-    TranslationUnitDoesNotExistsCommand(const FileContainer &fileContainer);
-    TranslationUnitDoesNotExistsCommand(const Utf8String &filePath, const Utf8String &projectFilePath);
+    TranslationUnitDoesNotExistCommand() = default;
+    TranslationUnitDoesNotExistCommand(const FileContainer &fileContainer);
+    TranslationUnitDoesNotExistCommand(const Utf8String &filePath, const Utf8String &projectFilePath);
 
     const FileContainer &fileContainer() const;
     const Utf8String &filePath() const;
@@ -58,16 +58,16 @@ private:
     FileContainer fileContainer_;
 };
 
-CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const TranslationUnitDoesNotExistsCommand &command);
-CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, TranslationUnitDoesNotExistsCommand &command);
-CMBIPC_EXPORT bool operator == (const TranslationUnitDoesNotExistsCommand &first, const TranslationUnitDoesNotExistsCommand &second);
-CMBIPC_EXPORT bool operator < (const TranslationUnitDoesNotExistsCommand &first, const TranslationUnitDoesNotExistsCommand &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const TranslationUnitDoesNotExistCommand &command);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, TranslationUnitDoesNotExistCommand &command);
+CMBIPC_EXPORT bool operator == (const TranslationUnitDoesNotExistCommand &first, const TranslationUnitDoesNotExistCommand &second);
+CMBIPC_EXPORT bool operator < (const TranslationUnitDoesNotExistCommand &first, const TranslationUnitDoesNotExistCommand &second);
 
-CMBIPC_EXPORT QDebug operator <<(QDebug debug, const TranslationUnitDoesNotExistsCommand &command);
-void PrintTo(const TranslationUnitDoesNotExistsCommand &command, ::std::ostream* os);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const TranslationUnitDoesNotExistCommand &command);
+void PrintTo(const TranslationUnitDoesNotExistCommand &command, ::std::ostream* os);
 
 } // namespace CodeModelBackEnd
 
-Q_DECLARE_METATYPE(CodeModelBackEnd::TranslationUnitDoesNotExistsCommand)
+Q_DECLARE_METATYPE(CodeModelBackEnd::TranslationUnitDoesNotExistCommand)
 
 #endif // CODEMODELBACKEND_TRANSLATIONUNITDOESNOTEXISTSCOMMAND_H

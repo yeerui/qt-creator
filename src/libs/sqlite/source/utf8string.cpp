@@ -39,6 +39,8 @@
 #include <QTest>
 #endif
 
+#include <QDataStream>
+
 Utf8String::Utf8String(const char *utf8Text, int size)
     : byteArray(utf8Text, size)
 {

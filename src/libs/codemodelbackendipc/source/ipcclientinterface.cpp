@@ -46,8 +46,8 @@ void IpcClientInterface::dispatch(const QVariant &command)
     static const int aliveCommandType = QMetaType::type("CodeModelBackEnd::AliveCommand");
     static const int echoCommandType = QMetaType::type("CodeModelBackEnd::EchoCommand");
     static const int codeCompletedCommandType = QMetaType::type("CodeModelBackEnd::CodeCompletedCommand");
-    static const int translationUnitDoesNotExistsCommand = QMetaType::type("CodeModelBackEnd::TranslationUnitDoesNotExistsCommand");
-    static const int projectDoesNotExistsCommand = QMetaType::type("CodeModelBackEnd::ProjectDoesNotExistsCommand");
+    static const int translationUnitDoesNotExistCommand = QMetaType::type("CodeModelBackEnd::TranslationUnitDoesNotExistCommand");
+    static const int projectDoesNotExistCommand = QMetaType::type("CodeModelBackEnd::ProjectDoesNotExistCommand");
 
     int type = command.userType();
 
@@ -57,10 +57,10 @@ void IpcClientInterface::dispatch(const QVariant &command)
         echo(command.value<EchoCommand>());
     else if (type == codeCompletedCommandType)
         codeCompleted(command.value<CodeCompletedCommand>());
-    else if (type == translationUnitDoesNotExistsCommand)
-        translationUnitDoesNotExists(command.value<TranslationUnitDoesNotExistsCommand>());
-    else if (type == projectDoesNotExistsCommand)
-        projectDoesNotExists(command.value<ProjectDoesNotExistsCommand>());
+    else if (type == translationUnitDoesNotExistCommand)
+        translationUnitDoesNotExist(command.value<TranslationUnitDoesNotExistCommand>());
+    else if (type == projectDoesNotExistCommand)
+        projectDoesNotExist(command.value<ProjectDoesNotExistCommand>());
     else
         qWarning() << "Unknown IpcClientCommand";
 }

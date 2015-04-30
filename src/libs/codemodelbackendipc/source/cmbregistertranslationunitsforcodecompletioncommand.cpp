@@ -32,6 +32,8 @@
 
 #include <QtDebug>
 
+#include <QDataStream>
+
 namespace CodeModelBackEnd {
 
 RegisterTranslationUnitForCodeCompletionCommand::RegisterTranslationUnitForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)

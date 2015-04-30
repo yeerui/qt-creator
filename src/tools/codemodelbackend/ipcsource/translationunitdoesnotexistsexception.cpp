@@ -32,19 +32,31 @@
 
 namespace CodeModelBackEnd {
 
-TranslationUnitDoesNotExistsException::TranslationUnitDoesNotExistsException(const FileContainer &fileContainer)
+TranslationUnitDoesNotExistException::TranslationUnitDoesNotExistException(const FileContainer &fileContainer)
     : fileContainer_(fileContainer)
 {
 }
 
-TranslationUnitDoesNotExistsException::TranslationUnitDoesNotExistsException(const Utf8String filePath, const Utf8String projectFilePath)
+TranslationUnitDoesNotExistException::TranslationUnitDoesNotExistException(const Utf8String filePath, const Utf8String projectFilePath)
     : fileContainer_(filePath, projectFilePath)
 {
 }
 
-const FileContainer TranslationUnitDoesNotExistsException::fileContainer() const
+const FileContainer TranslationUnitDoesNotExistException::fileContainer() const
 {
     return fileContainer_;
+}
+
+const char *TranslationUnitDoesNotExistException::what() const Q_DECL_NOEXCEPT
+{
+    if (what_.isEmpty())
+        what_ += Utf8StringLiteral("Parse error for file ")
+                + fileContainer_.filePath()
+                + Utf8StringLiteral(" in project ")
+                + fileContainer_.projectFilePath()
+                + Utf8StringLiteral("!");
+
+    return what_.constData();
 }
 
 } // namespace CodeModelBackEnd

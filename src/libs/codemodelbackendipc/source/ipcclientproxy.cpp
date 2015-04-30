@@ -55,6 +55,20 @@ IpcClientProxy::IpcClientProxy(IpcServerInterface *server, QIODevice *ioDevice)
     QObject::connect(ioDevice, &QIODevice::readyRead, [this] () {IpcClientProxy::readCommands();});
 }
 
+IpcClientProxy::IpcClientProxy(IpcClientProxy &&other)
+{
+    using std::swap;
+    swap(*this, other);
+}
+
+IpcClientProxy &IpcClientProxy::operator =(IpcClientProxy &&other)
+{
+    using std::swap;
+    swap(*this, other);
+
+    return *this;
+}
+
 void IpcClientProxy::alive()
 {
     writeCommandBlock.write(QVariant::fromValue(AliveCommand()));
@@ -70,12 +84,12 @@ void IpcClientProxy::codeCompleted(const CodeCompletedCommand &command)
     writeCommandBlock.write(QVariant::fromValue(command));
 }
 
-void IpcClientProxy::translationUnitDoesNotExists(const TranslationUnitDoesNotExistsCommand &command)
+void IpcClientProxy::translationUnitDoesNotExist(const TranslationUnitDoesNotExistCommand &command)
 {
     writeCommandBlock.write(QVariant::fromValue(command));
 }
 
-void IpcClientProxy::projectDoesNotExists(const ProjectDoesNotExistsCommand &command)
+void IpcClientProxy::projectDoesNotExist(const ProjectDoesNotExistCommand &command)
 {
     writeCommandBlock.write(QVariant::fromValue(command));
 }

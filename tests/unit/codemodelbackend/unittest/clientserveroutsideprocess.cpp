@@ -99,24 +99,26 @@ TEST_F(ClientServerOutsideProcess, ResetAliveTimer)
 TEST_F(ClientServerOutsideProcess, SendRegisterTranslationUnitForCodeCompletionCommand)
 {
     CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo"), Utf8StringLiteral("pathToProject.pro"));
-    EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand({fileContainer})));
+    CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand registerTranslationUnitForCodeCompletionCommand({fileContainer});
+    EchoCommand echoCommand(QVariant::fromValue(registerTranslationUnitForCodeCompletionCommand));
 
     EXPECT_CALL(mockIpcClient, echo(echoCommand))
             .Times(1);
 
-    client.sendRegisterTranslationUnitForCodeCompletionCommand({fileContainer});
+    client.serverProxy().registerTranslationUnitsForCodeCompletion(registerTranslationUnitForCodeCompletionCommand);
     ASSERT_TRUE(client.waitForEcho());
 }
 
 TEST_F(ClientServerOutsideProcess, SendUnregisterTranslationUnitsForCodeCompletionCommand)
 {
     FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), Utf8StringLiteral("bar.pro"));
-    EchoCommand echoCommand(QVariant::fromValue(CodeModelBackEnd::UnregisterTranslationUnitsForCodeCompletionCommand({fileContainer})));
+    CodeModelBackEnd::UnregisterTranslationUnitsForCodeCompletionCommand unregisterTranslationUnitsForCodeCompletionCommand ({fileContainer});
+    EchoCommand echoCommand(QVariant::fromValue(unregisterTranslationUnitsForCodeCompletionCommand));
 
     EXPECT_CALL(mockIpcClient, echo(echoCommand))
             .Times(1);
 
-    client.sendUnregisterTranslationUnitsForCodeCompletionCommand({fileContainer});
+    client.serverProxy().unregisterTranslationUnitsForCodeCompletion(unregisterTranslationUnitsForCodeCompletionCommand);
     ASSERT_TRUE(client.waitForEcho());
 }
 
@@ -128,7 +130,7 @@ TEST_F(ClientServerOutsideProcess, SendCompleteCodeCommand)
     EXPECT_CALL(mockIpcClient, echo(echoCommand))
             .Times(1);
 
-    client.sendCompleteCodeCommand(Utf8StringLiteral("foo.cpp"), 24, 33, Utf8StringLiteral("do what I want"));
+    client.serverProxy().completeCode(codeCompleteCommand);
     ASSERT_TRUE(client.waitForEcho());
 }
 

@@ -32,6 +32,11 @@
 
 namespace CodeModelBackEnd {
 
+const char *TranslationUnitIsNullException::what() const Q_DECL_NOEXCEPT
+{
+    return "Tried to access a null TranslationUnit!";
+}
+
 
 } // namespace CodeModelBackEnd
 

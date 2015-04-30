@@ -88,21 +88,6 @@ void ConnectionClient::sendEndCommand()
     localSocket.flush();
 }
 
-void ConnectionClient::sendRegisterTranslationUnitForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
-{
-    serverProxy_.registerTranslationUnitsForCodeCompletion(RegisterTranslationUnitForCodeCompletionCommand(fileContainers));
-}
-
-void ConnectionClient::sendUnregisterTranslationUnitsForCodeCompletionCommand(const QVector<FileContainer> &fileContainers)
-{
-    serverProxy_.unregisterTranslationUnitsForCodeCompletion(UnregisterTranslationUnitsForCodeCompletionCommand(fileContainers));
-}
-
-void ConnectionClient::sendCompleteCodeCommand(const Utf8String &fileName, quint32 line, quint32 column, const Utf8String &projectFilePath)
-{
-    serverProxy_.completeCode(CompleteCodeCommand(fileName, line, column, projectFilePath));
-}
-
 void ConnectionClient::resetProcessAliveTimer()
 {
     processAliveTimer.start();

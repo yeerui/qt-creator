@@ -6,6 +6,8 @@
 #include <gtest/gtest-printers.h>
 #endif
 
+#include <QDataStream>
+
 namespace CodeModelBackEnd {
 
 

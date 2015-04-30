@@ -55,14 +55,14 @@ public:
     IpcClientProxy(const IpcClientProxy&) = delete;
     const IpcClientProxy &operator =(const IpcClientProxy&) = delete;
 
-    IpcClientProxy(IpcClientProxy&&) = default;
-    IpcClientProxy &operator =(IpcClientProxy&&) = default;
+    IpcClientProxy(IpcClientProxy&&other);
+    IpcClientProxy &operator =(IpcClientProxy&&other);
 
     void alive() override;
     void echo(const EchoCommand &command) override;
     void codeCompleted(const CodeCompletedCommand &command) override;
-    void translationUnitDoesNotExists(const TranslationUnitDoesNotExistsCommand &command) override;
-    void projectDoesNotExists(const ProjectDoesNotExistsCommand &command) override;
+    void translationUnitDoesNotExist(const TranslationUnitDoesNotExistCommand &command) override;
+    void projectDoesNotExist(const ProjectDoesNotExistCommand &command) override;
 
     void readCommands();
 

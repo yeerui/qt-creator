@@ -31,11 +31,16 @@
 #ifndef CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H
 #define CODEMODELBACKEND_TRANSLATIONUNITISNULLEXCEPTION_H
 
+#include <QtGlobal>
+
+#include <exception>
 
 namespace CodeModelBackEnd {
 
-class TranslationUnitIsNullException
+class TranslationUnitIsNullException : public std::exception
 {
+public:
+    const char *what() const Q_DECL_NOEXCEPT override;
 };
 
 } // namespace CodeModelBackEnd

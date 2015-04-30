@@ -35,16 +35,19 @@
 
 namespace CodeModelBackEnd {
 
-class TranslationUnitDoesNotExistsException
+class TranslationUnitDoesNotExistException : public std::exception
 {
 public:
-    TranslationUnitDoesNotExistsException(const FileContainer &fileContainer);
-    TranslationUnitDoesNotExistsException(const Utf8String filePath, const Utf8String projectFilePath);
+    TranslationUnitDoesNotExistException(const FileContainer &fileContainer);
+    TranslationUnitDoesNotExistException(const Utf8String filePath, const Utf8String projectFilePath);
 
     const FileContainer fileContainer() const;
 
+    const char *what() const Q_DECL_NOEXCEPT override;
+
 private:
     FileContainer fileContainer_;
+    mutable Utf8String what_;
 };
 
 } // namespace CodeModelBackEnd

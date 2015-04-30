@@ -33,17 +33,22 @@
 
 #include <utf8string.h>
 
+#include <exception>
+
 namespace CodeModelBackEnd {
 
-class ProjectDoesNotExistsException
+class ProjectDoesNotExistException : public std::exception
 {
 public:
-    ProjectDoesNotExistsException(const Utf8String &projectFilePath);
+    ProjectDoesNotExistException(const Utf8String &projectFilePath);
 
     const Utf8String projectFilePath() const;
 
+    const char *what() const Q_DECL_NOEXCEPT override;
+
 private:
     Utf8String projectFilePath_;
+    mutable Utf8String what_;
 };
 
 } // namespace CodeModelBackEnd

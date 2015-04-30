@@ -61,12 +61,6 @@ public:
     bool isConnected() const;
 
     void sendEndCommand();
-    void sendRegisterTranslationUnitForCodeCompletionCommand(const QVector<FileContainer> &fileContainers);
-    void sendUnregisterTranslationUnitsForCodeCompletionCommand(const QVector<FileContainer> &fileContainers);
-    void sendCompleteCodeCommand(const Utf8String &fileName,
-                                 quint32 line,
-                                 quint32 column,
-                                 const Utf8String &projectFilePath);
 
     void resetProcessAliveTimer();
     void setProcessAliveTimerInterval(int processTimerInterval);

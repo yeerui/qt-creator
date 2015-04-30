@@ -172,29 +172,28 @@ TEST_F(ClientServerInProcess, SendUnregisterProjectsForCodeCompletionCommand)
     scheduleServerCommands();
 }
 
-TEST_F(ClientServerInProcess, SendTranslationUnitDoesNotExistsCommand)
+TEST_F(ClientServerInProcess, SendTranslationUnitDoesNotExistCommand)
 {
     CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("data/complete_extractor_function.cpp"),
                                                   Utf8StringLiteral("pathToProject.pro"));
-    CodeModelBackEnd::TranslationUnitDoesNotExistsCommand command(fileContainer);
+    CodeModelBackEnd::TranslationUnitDoesNotExistCommand command(fileContainer);
 
-    EXPECT_CALL(mockIpcClient, translationUnitDoesNotExists(command))
+    EXPECT_CALL(mockIpcClient, translationUnitDoesNotExist(command))
         .Times(1);
 
-    clientProxy.translationUnitDoesNotExists(command);
+    clientProxy.translationUnitDoesNotExist(command);
     scheduleClientCommands();
 }
 
 
-TEST_F(ClientServerInProcess, SendProjectDoesNotExistsCommand)
+TEST_F(ClientServerInProcess, SendProjectDoesNotExistCommand)
 {
-    CodeModelBackEnd::ProjectDoesNotExistsCommand command(Utf8StringLiteral("pathToProject.pro"));
+    CodeModelBackEnd::ProjectDoesNotExistCommand command(Utf8StringLiteral("pathToProject.pro"));
 
-
-    EXPECT_CALL(mockIpcClient, projectDoesNotExists(command))
+    EXPECT_CALL(mockIpcClient, projectDoesNotExist(command))
         .Times(1);
 
-    clientProxy.projectDoesNotExists(command);
+    clientProxy.projectDoesNotExist(command);
     scheduleClientCommands();
 }
 ClientServerInProcess::ClientServerInProcess()

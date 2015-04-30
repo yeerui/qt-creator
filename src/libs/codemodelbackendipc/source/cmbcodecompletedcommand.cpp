@@ -32,6 +32,8 @@
 
 #include <QDebug>
 
+#include <QDataStream>
+
 namespace CodeModelBackEnd {
 
 CodeCompletedCommand::CodeCompletedCommand(const QVector<CodeCompletion> &codeCompletions)

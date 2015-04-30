@@ -59,7 +59,7 @@ void TranslationUnits::remove(const QVector<FileContainer> &fileContainers)
         });
 
         if (removeBeginIterator == lastRemoveBeginIterator)
-            throw TranslationUnitDoesNotExistsException(fileContainer);
+            throw TranslationUnitDoesNotExistException(fileContainer);
 
         lastRemoveBeginIterator = removeBeginIterator;
     }
@@ -74,7 +74,7 @@ const TranslationUnit &TranslationUnits::translationUnit(const Utf8String &fileP
     auto findIterator = findTranslationUnit(filePath, projectFilePath);
 
     if (findIterator == translationUnits.end())
-        throw TranslationUnitDoesNotExistsException(FileContainer(filePath, projectFilePath));
+        throw TranslationUnitDoesNotExistException(FileContainer(filePath, projectFilePath));
 
     return *findIterator;
 }

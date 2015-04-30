@@ -33,11 +33,11 @@
 
 #include <utf8string.h>
 
-
+#include <exception>
 
 namespace CodeModelBackEnd {
 
-class TranslationUnitParseErrorException
+class TranslationUnitParseErrorException : public std::exception
 {
 public:
     TranslationUnitParseErrorException(const Utf8String &filePath, const Utf8String &projectFilePath);
@@ -45,9 +45,12 @@ public:
     const Utf8String &filePath() const;
     const Utf8String &projectFilePath() const;
 
+    const char *what() const Q_DECL_NOEXCEPT override;
+
 private:
     Utf8String filePath_;
     Utf8String projectFilePath_;
+    mutable Utf8String what_;
 };
 
 } // namespace CodeModelBackEnd

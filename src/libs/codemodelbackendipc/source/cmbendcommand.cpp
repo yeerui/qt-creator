@@ -32,6 +32,8 @@
 
 #include <QtDebug>
 
+#include <QDataStream>
+
 namespace CodeModelBackEnd {
 
 QDataStream &operator<<(QDataStream &out, const EndCommand &/*command*/)

@@ -42,6 +42,7 @@
 #include "projectdoesnotexistscommand.h"
 #include "translationunitdoesnotexistscommand.h"
 
+#include <QDataStream>
 
 namespace CodeModelBackEnd {
 
@@ -94,13 +95,13 @@ void Commands::registerCommands()
     qRegisterMetaTypeStreamOperators<UnregisterProjectsForCodeCompletionCommand>();
     QMetaType::registerComparators<UnregisterProjectsForCodeCompletionCommand>();
 
-    qRegisterMetaType<TranslationUnitDoesNotExistsCommand>();
-    qRegisterMetaTypeStreamOperators<TranslationUnitDoesNotExistsCommand>();
-    QMetaType::registerComparators<TranslationUnitDoesNotExistsCommand>();
+    qRegisterMetaType<TranslationUnitDoesNotExistCommand>();
+    qRegisterMetaTypeStreamOperators<TranslationUnitDoesNotExistCommand>();
+    QMetaType::registerComparators<TranslationUnitDoesNotExistCommand>();
 
-    qRegisterMetaType<ProjectDoesNotExistsCommand>();
-    qRegisterMetaTypeStreamOperators<ProjectDoesNotExistsCommand>();
-    QMetaType::registerComparators<ProjectDoesNotExistsCommand>();
+    qRegisterMetaType<ProjectDoesNotExistCommand>();
+    qRegisterMetaTypeStreamOperators<ProjectDoesNotExistCommand>();
+    QMetaType::registerComparators<ProjectDoesNotExistCommand>();
 }
 
 } // namespace CodeModelBackEnd

@@ -44,7 +44,7 @@ namespace CodeModelBackEnd {
 class ReadCommandBlock
 {
 public:
-    ReadCommandBlock(QIODevice *ioDevice);
+    ReadCommandBlock(QIODevice *ioDevice = nullptr);
 
     const QVariant read();
     const QVector<QVariant> readAll();

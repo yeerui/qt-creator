@@ -32,9 +32,24 @@
 
 namespace CodeModelBackEnd {
 
-TranslationUnitFileNotExitsException::TranslationUnitFileNotExitsException()
+TranslationUnitFileNotExitsException::TranslationUnitFileNotExitsException(const Utf8String &filePath)
+    : filePath_(filePath)
 {
+}
 
+const Utf8String &TranslationUnitFileNotExitsException::filePath() const
+{
+    return filePath_;
+}
+
+const char *TranslationUnitFileNotExitsException::what() const Q_DECL_NOEXCEPT
+{
+    if (what_.isEmpty())
+        what_ += Utf8StringLiteral("File ")
+                + filePath()
+                + Utf8StringLiteral(" in project does not exist!");
+
+    return what_.constData();
 }
 
 } // namespace CodeModelBackEnd

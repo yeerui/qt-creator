@@ -46,8 +46,8 @@ public:
     void alive() override;
     void echo(const EchoCommand &command) override;
     void codeCompleted(const CodeCompletedCommand &command) override;
-    void translationUnitDoesNotExists(const TranslationUnitDoesNotExistsCommand &command) override;
-    void projectDoesNotExists(const ProjectDoesNotExistsCommand &command) override;
+    void translationUnitDoesNotExist(const TranslationUnitDoesNotExistCommand &command) override;
+    void projectDoesNotExist(const ProjectDoesNotExistCommand &command) override;
 
 private:
     QVector<IpcClientInterface*> clients;
