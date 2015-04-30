@@ -40,11 +40,11 @@ namespace CodeModelBackEnd {
 
 class CMBIPC_EXPORT CodeCompletedCommand
 {
-    friend QDataStream &operator<<(QDataStream &out, const CodeCompletedCommand &command);
-    friend QDataStream &operator>>(QDataStream &in, CodeCompletedCommand &command);
-    friend bool operator == (const CodeCompletedCommand &first, const CodeCompletedCommand &second);
-    friend bool operator < (const CodeCompletedCommand &first, const CodeCompletedCommand &second);
-    friend QDebug operator <<(QDebug debug, const CodeCompletedCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const CodeCompletedCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, CodeCompletedCommand &command);
+    friend CMBIPC_EXPORT bool operator == (const CodeCompletedCommand &first, const CodeCompletedCommand &second);
+    friend CMBIPC_EXPORT bool operator < (const CodeCompletedCommand &first, const CodeCompletedCommand &second);
+    friend CMBIPC_EXPORT QDebug operator <<(QDebug debug, const CodeCompletedCommand &command);
     friend void PrintTo(const CodeCompletedCommand &command, ::std::ostream* os);
 public:
     CodeCompletedCommand() = default;

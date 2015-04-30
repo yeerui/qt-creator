@@ -41,10 +41,10 @@ namespace CodeModelBackEnd {
 
 class CMBIPC_EXPORT ProjectContainer
 {
-    friend QDataStream &operator<<(QDataStream &out, const ProjectContainer &container);
-    friend QDataStream &operator>>(QDataStream &in, ProjectContainer &container);
-    friend bool operator == (const ProjectContainer &first, const ProjectContainer &second);
-    friend bool operator < (const ProjectContainer &first, const ProjectContainer &second);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectContainer &container);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, ProjectContainer &container);
+    friend CMBIPC_EXPORT bool operator == (const ProjectContainer &first, const ProjectContainer &second);
+    friend CMBIPC_EXPORT bool operator < (const ProjectContainer &first, const ProjectContainer &second);
 public:
     ProjectContainer() = default;
     ProjectContainer(const Utf8String &filePath,

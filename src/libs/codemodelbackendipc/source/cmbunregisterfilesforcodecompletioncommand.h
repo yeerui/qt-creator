@@ -12,10 +12,10 @@ namespace CodeModelBackEnd {
 
 class CMBIPC_EXPORT UnregisterFilesForCodeCompletionCommand
 {
-    friend QDataStream &operator<<(QDataStream &out, const UnregisterFilesForCodeCompletionCommand &command);
-    friend QDataStream &operator>>(QDataStream &in, UnregisterFilesForCodeCompletionCommand &command);
-    friend bool operator == (const UnregisterFilesForCodeCompletionCommand &first, const UnregisterFilesForCodeCompletionCommand &second);
-    friend bool operator < (const UnregisterFilesForCodeCompletionCommand &first, const UnregisterFilesForCodeCompletionCommand &second);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const UnregisterFilesForCodeCompletionCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, UnregisterFilesForCodeCompletionCommand &command);
+    friend CMBIPC_EXPORT bool operator == (const UnregisterFilesForCodeCompletionCommand &first, const UnregisterFilesForCodeCompletionCommand &second);
+    friend CMBIPC_EXPORT bool operator < (const UnregisterFilesForCodeCompletionCommand &first, const UnregisterFilesForCodeCompletionCommand &second);
     friend void PrintTo(const UnregisterFilesForCodeCompletionCommand &command, ::std::ostream* os);
 
 public:

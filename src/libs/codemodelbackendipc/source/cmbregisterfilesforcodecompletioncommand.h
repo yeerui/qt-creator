@@ -40,10 +40,10 @@ namespace CodeModelBackEnd {
 
 class CMBIPC_EXPORT RegisterFilesForCodeCompletionCommand
 {
-    friend QDataStream &operator<<(QDataStream &out, const RegisterFilesForCodeCompletionCommand &command);
-    friend QDataStream &operator>>(QDataStream &in, RegisterFilesForCodeCompletionCommand &command);
-    friend bool operator == (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second);
-    friend bool operator < (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const RegisterFilesForCodeCompletionCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, RegisterFilesForCodeCompletionCommand &command);
+    friend CMBIPC_EXPORT bool operator == (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second);
+    friend CMBIPC_EXPORT bool operator < (const RegisterFilesForCodeCompletionCommand &first, const RegisterFilesForCodeCompletionCommand &second);
     friend void PrintTo(const RegisterFilesForCodeCompletionCommand &command, ::std::ostream* os);
 public:
     RegisterFilesForCodeCompletionCommand() = default;

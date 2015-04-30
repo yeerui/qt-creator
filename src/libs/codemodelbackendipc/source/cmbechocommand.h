@@ -40,9 +40,9 @@ namespace CodeModelBackEnd {
 
 class CMBIPC_EXPORT EchoCommand
 {
-    friend QDataStream &operator>>(QDataStream &in, EchoCommand &command);
-    friend bool operator == (const EchoCommand &first, const EchoCommand &second);
-    friend bool operator < (const EchoCommand &first, const EchoCommand &second);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, EchoCommand &command);
+    friend CMBIPC_EXPORT bool operator == (const EchoCommand &first, const EchoCommand &second);
+    friend CMBIPC_EXPORT bool operator < (const EchoCommand &first, const EchoCommand &second);
 public:
     EchoCommand() = default;
     explicit EchoCommand(const QVariant &command);

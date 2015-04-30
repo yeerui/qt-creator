@@ -39,11 +39,11 @@ namespace CodeModelBackEnd {
 
 class CMBIPC_EXPORT TranslationUnitDoesNotExistsCommand
 {
-    friend QDataStream &operator<<(QDataStream &out, const TranslationUnitDoesNotExistsCommand &command);
-    friend QDataStream &operator>>(QDataStream &in, TranslationUnitDoesNotExistsCommand &command);
-    friend bool operator == (const TranslationUnitDoesNotExistsCommand &first, const TranslationUnitDoesNotExistsCommand &second);
-    friend bool operator < (const TranslationUnitDoesNotExistsCommand &first, const TranslationUnitDoesNotExistsCommand &second);
-    friend QDebug operator <<(QDebug debug, const TranslationUnitDoesNotExistsCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const TranslationUnitDoesNotExistsCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, TranslationUnitDoesNotExistsCommand &command);
+    friend CMBIPC_EXPORT bool operator == (const TranslationUnitDoesNotExistsCommand &first, const TranslationUnitDoesNotExistsCommand &second);
+    friend CMBIPC_EXPORT bool operator < (const TranslationUnitDoesNotExistsCommand &first, const TranslationUnitDoesNotExistsCommand &second);
+    friend CMBIPC_EXPORT QDebug operator <<(QDebug debug, const TranslationUnitDoesNotExistsCommand &command);
     friend void PrintTo(const TranslationUnitDoesNotExistsCommand &command, ::std::ostream* os);
 public:
     TranslationUnitDoesNotExistsCommand() = default;

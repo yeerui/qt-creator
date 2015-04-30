@@ -55,8 +55,8 @@ public:
     IpcClientProxy(const IpcClientProxy&) = delete;
     const IpcClientProxy &operator =(const IpcClientProxy&) = delete;
 
-    IpcClientProxy(IpcClientProxy&&) noexcept = default;
-    IpcClientProxy &operator =(IpcClientProxy&&) noexcept = default;
+    IpcClientProxy(IpcClientProxy&&) = default;
+    IpcClientProxy &operator =(IpcClientProxy&&) = default;
 
     void alive() override;
     void echo(const EchoCommand &command) override;

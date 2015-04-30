@@ -41,10 +41,10 @@ namespace CodeModelBackEnd {
 
 class CMBIPC_EXPORT UnregisterProjectsForCodeCompletionCommand
 {
-    friend QDataStream &operator<<(QDataStream &out, const UnregisterProjectsForCodeCompletionCommand &command);
-    friend QDataStream &operator>>(QDataStream &in, UnregisterProjectsForCodeCompletionCommand &command);
-    friend bool operator == (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second);
-    friend bool operator < (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const UnregisterProjectsForCodeCompletionCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, UnregisterProjectsForCodeCompletionCommand &command);
+    friend CMBIPC_EXPORT bool operator == (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second);
+    friend CMBIPC_EXPORT bool operator < (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second);
     friend void PrintTo(const UnregisterProjectsForCodeCompletionCommand &command, ::std::ostream* os);
 
 public:
