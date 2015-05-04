@@ -1,6 +1,6 @@
 void Function();
 template<class T> void TemplateFunction();
-
+void FunctionWithOptional(int x = 5);
 #define FunctionMacro(X, Y) X + Y
 
 class base {

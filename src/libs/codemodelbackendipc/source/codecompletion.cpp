@@ -82,6 +82,16 @@ CodeCompletion::Kind CodeCompletion::completionKind() const
     return completionKind_;
 }
 
+void CodeCompletion::setChunks(const QVector<CodeCompletionChunk> &chunks)
+{
+    chunks_ = chunks;
+}
+
+const QVector<CodeCompletionChunk> &CodeCompletion::chunks() const
+{
+    return chunks_;
+}
+
 void CodeCompletion::setAvailability(CodeCompletion::Availability availability)
 {
     availability_ = availability;
@@ -115,9 +125,9 @@ quint32 CodeCompletion::priority() const
 QDataStream &operator<<(QDataStream &out, const CodeCompletion &command)
 {
     out << command.text_;
-    out << command.text_;
     out << command.hint_;
     out << command.snippet_;
+    out << command.chunks_;
     out << command.priority_;
     out << command.completionKindAsInt;
     out << command.availabilityAsInt;
@@ -128,11 +138,10 @@ QDataStream &operator<<(QDataStream &out, const CodeCompletion &command)
 
 QDataStream &operator>>(QDataStream &in, CodeCompletion &command)
 {
-
-    in >> command.text_;
     in >> command.text_;
     in >> command.hint_;
     in >> command.snippet_;
+    in >> command.chunks_;
     in >> command.priority_;
     in >> command.completionKindAsInt;
     in >> command.availabilityAsInt;
@@ -155,23 +164,23 @@ bool operator < (const CodeCompletion &first, const CodeCompletion &second)
 static const char *completionKindToString(CodeCompletion::Kind kind)
 {
     switch (kind) {
-    case CodeCompletion::Other: return "Other";
-    case CodeCompletion::FunctionCompletionKind: return "Function";
-    case CodeCompletion::TemplateFunctionCompletionKind: return "TemplateFunction";
-    case CodeCompletion::ConstructorCompletionKind: return "Constructor";
-    case CodeCompletion::DestructorCompletionKind: return "Destructor";
-    case CodeCompletion::VariableCompletionKind: return "Variable";
-    case CodeCompletion::ClassCompletionKind: return "Class";
-    case CodeCompletion::TemplateClassCompletionKind: return "TemplateClass";
-    case CodeCompletion::EnumerationCompletionKind: return "Enumeration";
-    case CodeCompletion::EnumeratorCompletionKind: return "Enumerator";
-    case CodeCompletion::NamespaceCompletionKind: return "Namespace";
-    case CodeCompletion::PreProcessorCompletionKind: return "PreProcessor";
-    case CodeCompletion::SignalCompletionKind: return "Signal";
-    case CodeCompletion::SlotCompletionKind: return "Slot";
-    case CodeCompletion::ObjCMessageCompletionKind: return "ObjCMessage";
-    case CodeCompletion::KeywordCompletionKind: return "Keyword";
-    case CodeCompletion::ClangSnippetKind: return "ClangSnippet";
+        case CodeCompletion::Other: return "Other";
+        case CodeCompletion::FunctionCompletionKind: return "Function";
+        case CodeCompletion::TemplateFunctionCompletionKind: return "TemplateFunction";
+        case CodeCompletion::ConstructorCompletionKind: return "Constructor";
+        case CodeCompletion::DestructorCompletionKind: return "Destructor";
+        case CodeCompletion::VariableCompletionKind: return "Variable";
+        case CodeCompletion::ClassCompletionKind: return "Class";
+        case CodeCompletion::TemplateClassCompletionKind: return "TemplateClass";
+        case CodeCompletion::EnumerationCompletionKind: return "Enumeration";
+        case CodeCompletion::EnumeratorCompletionKind: return "Enumerator";
+        case CodeCompletion::NamespaceCompletionKind: return "Namespace";
+        case CodeCompletion::PreProcessorCompletionKind: return "PreProcessor";
+        case CodeCompletion::SignalCompletionKind: return "Signal";
+        case CodeCompletion::SlotCompletionKind: return "Slot";
+        case CodeCompletion::ObjCMessageCompletionKind: return "ObjCMessage";
+        case CodeCompletion::KeywordCompletionKind: return "Keyword";
+        case CodeCompletion::ClangSnippetKind: return "ClangSnippet";
     }
 
     return nullptr;

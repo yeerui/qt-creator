@@ -34,6 +34,8 @@
 #include <QMetaType>
 #include <utf8string.h>
 
+#include "codecompletionchunk.h"
+
 #include "codemodelbackendipc_global.h"
 
 namespace CodeModelBackEnd {
@@ -94,6 +96,9 @@ public:
     void setCompletionKind(Kind completionKind);
     Kind completionKind() const;
 
+    void setChunks(const QVector<CodeCompletionChunk> &chunks);
+    const QVector<CodeCompletionChunk> &chunks() const;
+
     void setAvailability(Availability availability);
     Availability availability() const;
 
@@ -107,6 +112,7 @@ private:
     Utf8String text_;
     Utf8String hint_;
     Utf8String snippet_;
+    QVector<CodeCompletionChunk> chunks_;
     quint32 priority_ = 0;
     union {
         Kind completionKind_;

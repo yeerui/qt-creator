@@ -33,7 +33,8 @@ SOURCES += ipcserverinterface.cpp \
     $$PWD/cmbregisterprojectsforcodecompletioncommand.cpp \
     $$PWD/cmbunregisterprojectsforcodecompletioncommand.cpp \
     translationunitdoesnotexistscommand.cpp \
-    $$PWD/projectdoesnotexistscommand.cpp
+    $$PWD/projectdoesnotexistscommand.cpp \
+    $$PWD/codecompletionchunk.cpp
 
 
 HEADERS += codemodelbackendipc_global.h \
@@ -62,4 +63,5 @@ HEADERS += codemodelbackendipc_global.h \
     $$PWD/cmbregisterprojectsforcodecompletioncommand.h \
     $$PWD/cmbunregisterprojectsforcodecompletioncommand.h \
     translationunitdoesnotexistscommand.h \
-    $$PWD/projectdoesnotexistscommand.h
+    $$PWD/projectdoesnotexistscommand.h \
+    $$PWD/codecompletionchunk.h

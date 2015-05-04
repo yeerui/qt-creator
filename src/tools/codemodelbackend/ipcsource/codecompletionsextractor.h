@@ -44,29 +44,40 @@ class CodeCompletionsExtractor
 public:
     CodeCompletionsExtractor(CXCodeCompleteResults *cxCodeCompleteResults);
 
-    bool next() const;
-    bool peek(const Utf8String &name) const;
+    CodeCompletionsExtractor(CodeCompletionsExtractor&) = delete;
+    CodeCompletionsExtractor &operator =(CodeCompletionsExtractor&) = delete;
 
-    const QVector<CodeCompletion> extractAll() const;
+    CodeCompletionsExtractor(CodeCompletionsExtractor&&) = delete;
+    CodeCompletionsExtractor &operator =(CodeCompletionsExtractor&&) = delete;
 
-    const CodeCompletion currentCodeCompletion() const;
+    bool next();
+    bool peek(const Utf8String &name);
+
+    QVector<CodeCompletion> extractAll();
+
+    const CodeCompletion &currentCodeCompletion() const;
 
 private:
-    void extractCompletionKind() const;
-    void extractText() const;
-    void extractMethodCompletionKind() const;
-    void extractMacroCompletionKind() const;
-    void extractPriority() const;
-    void extractAvailability() const;
-    void extractHasParameters() const;
+    void extractCompletionKind();
+    void extractText();
+    void extractMethodCompletionKind();
+    void extractMacroCompletionKind();
+    void extractPriority();
+    void extractAvailability();
+    void extractHasParameters();
+    void extractCompletionChunks();
+    QVector<CodeCompletionChunk> extractCompletionChunksFromCompletionString(CXCompletionString completionString);
+    Utf8String chunkText(CXCompletionString completionString, uint chunkIndex);
+    CodeCompletionChunk::Kind chunkKind(CXCompletionString completionString, uint chunkIndex);
+    QVector<CodeCompletionChunk>  optionalChunks(CXCompletionString completionString, uint chunkIndex);
 
     bool hasText(const Utf8String &text, CXCompletionString cxCompletionString) const;
 
 private:
-    mutable CodeCompletion currentCodeCompletion_;
-    mutable CXCompletionResult currentCxCodeCompleteResult;
+    CodeCompletion currentCodeCompletion_;
+    CXCompletionResult currentCxCodeCompleteResult;
     CXCodeCompleteResults *cxCodeCompleteResults;
-    mutable uint cxCodeCompleteResultIndex = -1;
+    uint cxCodeCompleteResultIndex = -1;
 };
 
 #ifdef CODEMODELBACKEND_TESTS
