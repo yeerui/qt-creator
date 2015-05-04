@@ -162,7 +162,7 @@ int SqliteStatement::columnCount() const
     return columnCount_;
 }
 
-const Utf8StringVector SqliteStatement::columnNames() const
+Utf8StringVector SqliteStatement::columnNames() const
 {
     Utf8StringVector columnNames;
     int columnCount = SqliteStatement::columnCount();
@@ -293,7 +293,7 @@ void SqliteStatement::setBindingColumnNames(const Utf8StringVector &bindingColum
     bindingColumnNames_ = bindingColumnNames;
 }
 
-const Utf8StringVector SqliteStatement::bindingColumnNames() const
+const Utf8StringVector &SqliteStatement::bindingColumnNames() const
 {
     return bindingColumnNames_;
 }
@@ -416,7 +416,7 @@ void SqliteStatement::setBindingParameterCount()
     bindingParameterCount = sqlite3_bind_parameter_count(compiledStatement.get());
 }
 
-const Utf8String chopFirstLetter(const char *rawBindingName)
+Utf8String chopFirstLetter(const char *rawBindingName)
 {
     QByteArray bindingName(rawBindingName);
     bindingName = bindingName.mid(1);
@@ -453,7 +453,7 @@ void SqliteStatement::throwException(const char *whatHasHappened)
     throw SqliteException(whatHasHappened, sqlite3_errmsg(sqliteDatabaseHandle()));
 }
 
-const QString SqliteStatement::columnName(int column) const
+QString SqliteStatement::columnName(int column) const
 {
     return QString::fromUtf8(sqlite3_column_name(compiledStatement.get(), column));
 }
@@ -463,7 +463,7 @@ static bool columnIsBlob(sqlite3_stmt *sqlStatment, int column)
     return sqlite3_column_type(sqlStatment, column) == SQLITE_BLOB;
 }
 
-static const QByteArray byteArrayForColumn(sqlite3_stmt *sqlStatment, int column)
+static QByteArray byteArrayForColumn(sqlite3_stmt *sqlStatment, int column)
 {
     if (columnIsBlob(sqlStatment, column)) {
         const char *blob =  static_cast<const char*>(sqlite3_column_blob(sqlStatment, column));
@@ -475,7 +475,7 @@ static const QByteArray byteArrayForColumn(sqlite3_stmt *sqlStatment, int column
     return QByteArray();
 }
 
-static const QString textForColumn(sqlite3_stmt *sqlStatment, int column)
+static QString textForColumn(sqlite3_stmt *sqlStatment, int column)
 {
     const QChar *text =  static_cast<const QChar*>(sqlite3_column_text16(sqlStatment, column));
     int size = sqlite3_column_bytes16(sqlStatment, column) / 2;
@@ -483,7 +483,7 @@ static const QString textForColumn(sqlite3_stmt *sqlStatment, int column)
     return QString(text, size);
 }
 
-static const Utf8String utf8TextForColumn(sqlite3_stmt *sqlStatment, int column)
+static Utf8String utf8TextForColumn(sqlite3_stmt *sqlStatment, int column)
 {
     const char *text =  reinterpret_cast<const char*>(sqlite3_column_text(sqlStatment, column));
     int size = sqlite3_column_bytes(sqlStatment, column);
@@ -492,7 +492,7 @@ static const Utf8String utf8TextForColumn(sqlite3_stmt *sqlStatment, int column)
 }
 
 
-static const Utf8String convertedToUtf8StringForColumn(sqlite3_stmt *sqlStatment, int column)
+static Utf8String convertedToUtf8StringForColumn(sqlite3_stmt *sqlStatment, int column)
 {
     int dataType = sqlite3_column_type(sqlStatment, column);
     switch (dataType) {
@@ -507,7 +507,7 @@ static const Utf8String convertedToUtf8StringForColumn(sqlite3_stmt *sqlStatment
 }
 
 
-static const QVariant variantForColumn(sqlite3_stmt *sqlStatment, int column)
+static QVariant variantForColumn(sqlite3_stmt *sqlStatment, int column)
 {
     int dataType = sqlite3_column_type(sqlStatment, column);
     switch (dataType) {
@@ -522,7 +522,7 @@ static const QVariant variantForColumn(sqlite3_stmt *sqlStatment, int column)
 }
 
 template<>
-const int SqliteStatement::value<int>(int column) const
+int SqliteStatement::value<int>(int column) const
 {
     checkIfIsReadyToFetchValues();
     checkColumnIsValid(column);
@@ -530,7 +530,7 @@ const int SqliteStatement::value<int>(int column) const
 }
 
 template<>
-const qint64 SqliteStatement::value<qint64>(int column) const
+qint64 SqliteStatement::value<qint64>(int column) const
 {
     checkIfIsReadyToFetchValues();
     checkColumnIsValid(column);
@@ -538,7 +538,7 @@ const qint64 SqliteStatement::value<qint64>(int column) const
 }
 
 template<>
-const double SqliteStatement::value<double>(int column) const
+double SqliteStatement::value<double>(int column) const
 {
     checkIfIsReadyToFetchValues();
     checkColumnIsValid(column);
@@ -546,7 +546,7 @@ const double SqliteStatement::value<double>(int column) const
 }
 
 template<>
-const QByteArray SqliteStatement::value<QByteArray>(int column) const
+QByteArray SqliteStatement::value<QByteArray>(int column) const
 {
     checkIfIsReadyToFetchValues();
     checkColumnIsValid(column);
@@ -554,7 +554,7 @@ const QByteArray SqliteStatement::value<QByteArray>(int column) const
 }
 
 template<>
-const Utf8String SqliteStatement::value<Utf8String>(int column) const
+Utf8String SqliteStatement::value<Utf8String>(int column) const
 {
     checkIfIsReadyToFetchValues();
     checkColumnIsValid(column);
@@ -562,7 +562,7 @@ const Utf8String SqliteStatement::value<Utf8String>(int column) const
 }
 
 template<>
-const QString SqliteStatement::value<QString>(int column) const
+QString SqliteStatement::value<QString>(int column) const
 {
     checkIfIsReadyToFetchValues();
     checkColumnIsValid(column);
@@ -570,7 +570,7 @@ const QString SqliteStatement::value<QString>(int column) const
 }
 
 template<>
-const QVariant SqliteStatement::value<QVariant>(int column) const
+QVariant SqliteStatement::value<QVariant>(int column) const
 {
     checkIfIsReadyToFetchValues();
     checkColumnIsValid(column);
@@ -578,7 +578,7 @@ const QVariant SqliteStatement::value<QVariant>(int column) const
 }
 
 template <typename ContainerType>
- const ContainerType SqliteStatement::columnValues(const QVector<int> &columnIndices) const
+ ContainerType SqliteStatement::columnValues(const QVector<int> &columnIndices) const
 {
     typedef typename ContainerType::value_type ElementType;
     ContainerType valueContainer;
@@ -589,7 +589,7 @@ template <typename ContainerType>
     return valueContainer;
 }
 
-const QMap<QString, QVariant> SqliteStatement::rowColumnValueMap() const
+QMap<QString, QVariant> SqliteStatement::rowColumnValueMap() const
 {
     QMap<QString, QVariant> values;
 
@@ -603,7 +603,7 @@ const QMap<QString, QVariant> SqliteStatement::rowColumnValueMap() const
     return values;
 }
 
-const QMap<QString, QVariant> SqliteStatement::twoColumnValueMap() const
+QMap<QString, QVariant> SqliteStatement::twoColumnValueMap() const
 {
     QMap<QString, QVariant> values;
 
@@ -616,7 +616,7 @@ const QMap<QString, QVariant> SqliteStatement::twoColumnValueMap() const
 }
 
 template <typename ContainerType>
-const ContainerType SqliteStatement::values(const QVector<int> &columns, int size) const
+ContainerType SqliteStatement::values(const QVector<int> &columns, int size) const
 {
     checkColumnsAreValid(columns);
 
@@ -632,11 +632,11 @@ const ContainerType SqliteStatement::values(const QVector<int> &columns, int siz
     return resultValues;
 }
 
-template SQLITE_EXPORT const QVector<QVariant> SqliteStatement::values<QVector<QVariant>>(const QVector<int> &columnIndices, int size) const;
-template SQLITE_EXPORT const QVector<Utf8String> SqliteStatement::values<QVector<Utf8String>>(const QVector<int> &columnIndices, int size) const;
+template SQLITE_EXPORT QVector<QVariant> SqliteStatement::values<QVector<QVariant>>(const QVector<int> &columnIndices, int size) const;
+template SQLITE_EXPORT QVector<Utf8String> SqliteStatement::values<QVector<Utf8String>>(const QVector<int> &columnIndices, int size) const;
 
 template <typename ContainerType>
-const ContainerType SqliteStatement::values(int column) const
+ContainerType SqliteStatement::values(int column) const
 {
     typedef typename ContainerType::value_type ElementType;
     ContainerType resultValues;
@@ -650,14 +650,14 @@ const ContainerType SqliteStatement::values(int column) const
     return resultValues;
 }
 
-template SQLITE_EXPORT const QVector<qint64> SqliteStatement::values<QVector<qint64>>(int column) const;
-template SQLITE_EXPORT const QVector<double> SqliteStatement::values<QVector<double>>(int column) const;
-template SQLITE_EXPORT const QVector<QByteArray> SqliteStatement::values<QVector<QByteArray>>(int column) const;
-template SQLITE_EXPORT const Utf8StringVector SqliteStatement::values<Utf8StringVector>(int column) const;
-template SQLITE_EXPORT const QVector<QString> SqliteStatement::values<QVector<QString>>(int column) const;
+template SQLITE_EXPORT QVector<qint64> SqliteStatement::values<QVector<qint64>>(int column) const;
+template SQLITE_EXPORT QVector<double> SqliteStatement::values<QVector<double>>(int column) const;
+template SQLITE_EXPORT QVector<QByteArray> SqliteStatement::values<QVector<QByteArray>>(int column) const;
+template SQLITE_EXPORT Utf8StringVector SqliteStatement::values<Utf8StringVector>(int column) const;
+template SQLITE_EXPORT QVector<QString> SqliteStatement::values<QVector<QString>>(int column) const;
 
 template <typename Type>
-const Type SqliteStatement::toValue(const Utf8String &sqlStatementUtf8)
+Type SqliteStatement::toValue(const Utf8String &sqlStatementUtf8)
 {
     SqliteStatement statement(sqlStatementUtf8);
 
@@ -666,11 +666,11 @@ const Type SqliteStatement::toValue(const Utf8String &sqlStatementUtf8)
     return statement.value<Type>(0);
 }
 
-template SQLITE_EXPORT const int SqliteStatement::toValue<int>(const Utf8String &sqlStatementUtf8);
-template SQLITE_EXPORT const qint64 SqliteStatement::toValue<qint64>(const Utf8String &sqlStatementUtf8);
-template SQLITE_EXPORT const double SqliteStatement::toValue<double>(const Utf8String &sqlStatementUtf8);
-template SQLITE_EXPORT const QString SqliteStatement::toValue<QString>(const Utf8String &sqlStatementUtf8);
-template SQLITE_EXPORT const QByteArray SqliteStatement::toValue<QByteArray>(const Utf8String &sqlStatementUtf8);
-template SQLITE_EXPORT const Utf8String SqliteStatement::toValue<Utf8String>(const Utf8String &sqlStatementUtf8);
-template SQLITE_EXPORT const QVariant SqliteStatement::toValue<QVariant>(const Utf8String &sqlStatementUtf8);
+template SQLITE_EXPORT int SqliteStatement::toValue<int>(const Utf8String &sqlStatementUtf8);
+template SQLITE_EXPORT qint64 SqliteStatement::toValue<qint64>(const Utf8String &sqlStatementUtf8);
+template SQLITE_EXPORT double SqliteStatement::toValue<double>(const Utf8String &sqlStatementUtf8);
+template SQLITE_EXPORT QString SqliteStatement::toValue<QString>(const Utf8String &sqlStatementUtf8);
+template SQLITE_EXPORT QByteArray SqliteStatement::toValue<QByteArray>(const Utf8String &sqlStatementUtf8);
+template SQLITE_EXPORT Utf8String SqliteStatement::toValue<Utf8String>(const Utf8String &sqlStatementUtf8);
+template SQLITE_EXPORT QVariant SqliteStatement::toValue<QVariant>(const Utf8String &sqlStatementUtf8);
 

@@ -52,7 +52,7 @@ public:
     void clear();
     void clearColumns();
 
-    const Utf8String sqlStatement() const;
+    Utf8String sqlStatement() const;
 
     bool isValid() const;
 

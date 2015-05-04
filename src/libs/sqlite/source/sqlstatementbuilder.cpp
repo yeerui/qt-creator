@@ -141,7 +141,7 @@ void SqlStatementBuilder::sortBindings() const
     });
 }
 
-const Utf8String SqlStatementBuilder::sqlStatement() const
+Utf8String SqlStatementBuilder::sqlStatement() const
 {
     if (!isBuild())
         generateSqlStatement();

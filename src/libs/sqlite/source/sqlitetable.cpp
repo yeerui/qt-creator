@@ -44,7 +44,7 @@ void SqliteTable::setName(const Utf8String &name)
     tableName = name;
 }
 
-const Utf8String SqliteTable::name() const
+const Utf8String &SqliteTable::name() const
 {
     return tableName;
 }
@@ -64,7 +64,7 @@ void SqliteTable::addColumn(SqliteColumn *newColumn)
     sqliteColumns.append(newColumn);
 }
 
-const QVector<SqliteColumn *> SqliteTable::columns() const
+const QVector<SqliteColumn *> &SqliteTable::columns() const
 {
     return sqliteColumns;
 }
@@ -92,7 +92,7 @@ void SqliteTable::handleTableCreated()
     emit tableIsReady();
 }
 
-const Internal::CreateTableCommand SqliteTable::createTableCommand() const
+Internal::CreateTableCommand SqliteTable::createTableCommand() const
 {
     Internal::CreateTableCommand createTableCommand;
 
@@ -103,7 +103,7 @@ const Internal::CreateTableCommand SqliteTable::createTableCommand() const
     return createTableCommand;
 }
 
-const QVector<Internal::ColumnDefinition> SqliteTable::createColumnDefintions() const
+QVector<Internal::ColumnDefinition> SqliteTable::createColumnDefintions() const
 {
     QVector<Internal::ColumnDefinition> columnDefintions;
 

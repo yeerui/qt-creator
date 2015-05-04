@@ -51,13 +51,13 @@ public:
     SqliteTable();
 
     void setName(const Utf8String &name);
-    const Utf8String name() const;
+    const Utf8String &name() const;
 
     void setUseWithoutRowId(bool useWithoutWorId);
     bool useWithoutRowId() const;
 
     void addColumn(SqliteColumn *newColumn);
-    const QVector<SqliteColumn*> columns() const;
+    const QVector<SqliteColumn *> &columns() const;
 
     void setSqliteDatabase(SqliteDatabase *database);
 
@@ -69,8 +69,8 @@ signals:
 
 private:
     void handleTableCreated();
-    const Internal::CreateTableCommand createTableCommand() const;
-    const QVector<Internal::ColumnDefinition> createColumnDefintions() const;
+    Internal::CreateTableCommand createTableCommand() const;
+    QVector<Internal::ColumnDefinition> createColumnDefintions() const;
 
 private:
     Internal::TableWriteWorkerProxy writeWorker;

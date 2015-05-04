@@ -37,7 +37,7 @@ ProjectDoesNotExistException::ProjectDoesNotExistException(const Utf8String &pro
 {
 }
 
-const Utf8String ProjectDoesNotExistException::projectFilePath() const
+const Utf8String &ProjectDoesNotExistException::projectFilePath() const
 {
     return projectFilePath_;
 }

@@ -40,11 +40,11 @@ class ColumnDefinition
 {
 public:
     void setName(const Utf8String &name);
-    const Utf8String name() const;
+    const Utf8String &name() const;
 
     void setType(ColumnType type);
     ColumnType type() const;
-    const Utf8String typeString() const;
+    Utf8String typeString() const;
 
     void setIsPrimaryKey(bool isPrimaryKey);
     bool isPrimaryKey() const;

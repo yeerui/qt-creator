@@ -67,7 +67,7 @@ Utf8StringVector::Utf8StringVector(int size, const Utf8String &text)
 {
 }
 
-const Utf8String Utf8StringVector::join(const Utf8String &separator) const
+Utf8String Utf8StringVector::join(const Utf8String &separator) const
 {
     Utf8String joindedString;
 
@@ -85,7 +85,7 @@ const Utf8String Utf8StringVector::join(const Utf8String &separator) const
     return joindedString;
 }
 
-const Utf8StringVector Utf8StringVector::fromIntegerVector(const QVector<int> &integerVector)
+Utf8StringVector Utf8StringVector::fromIntegerVector(const QVector<int> &integerVector)
 {
     Utf8StringVector utf8StringVector;
     utf8StringVector.reserve(integerVector.count());

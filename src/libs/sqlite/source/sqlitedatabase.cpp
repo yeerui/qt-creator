@@ -70,7 +70,7 @@ void SqliteDatabase::addTable(SqliteTable *newSqliteTable)
     sqliteTables.append(newSqliteTable);
 }
 
-const QVector<SqliteTable *> SqliteDatabase::tables() const
+const QVector<SqliteTable *> &SqliteDatabase::tables() const
 {
     return sqliteTables;
 }
@@ -80,7 +80,7 @@ void SqliteDatabase::setDatabaseFilePath(const QString &databaseFilePath)
     databaseFilePath_ = databaseFilePath;
 }
 
-const QString SqliteDatabase::databaseFilePath() const
+const QString &SqliteDatabase::databaseFilePath() const
 {
     return databaseFilePath_;
 }

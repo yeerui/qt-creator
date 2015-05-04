@@ -42,7 +42,7 @@ TranslationUnitDoesNotExistException::TranslationUnitDoesNotExistException(const
 {
 }
 
-const FileContainer TranslationUnitDoesNotExistException::fileContainer() const
+const FileContainer &TranslationUnitDoesNotExistException::fileContainer() const
 {
     return fileContainer_;
 }

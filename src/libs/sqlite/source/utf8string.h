@@ -62,16 +62,16 @@ public:
 
     int byteSize() const;
 
-    static const Utf8String fromUtf8(const char *utf8Text);
-    static const Utf8String fromByteArray(const QByteArray &utf8ByteArray);
+    static Utf8String fromUtf8(const char *utf8Text);
+    static Utf8String fromByteArray(const QByteArray &utf8ByteArray);
     const QByteArray &toByteArray() const;
 
-    static const Utf8String fromString(const QString &text);
-    const QString toString() const;
+    static Utf8String fromString(const QString &text);
+    QString toString() const;
 
-    const Utf8String mid(int position, int length = -1) const;
+    Utf8String mid(int position, int length = -1) const;
     void replace(const Utf8String &before, const Utf8String &after);
-    const Utf8StringVector split(char separator) const;
+    Utf8StringVector split(char separator) const;
 
     void clear();
 
@@ -87,9 +87,9 @@ public:
 
     void reserve(int reserveSize);
 
-    static const Utf8String number(int number, int base=10);
+    static Utf8String number(int number, int base=10);
 
-    Utf8String &operator+=(const Utf8String &text);
+    const Utf8String &operator+=(const Utf8String &text);
 
     static void registerType();
 

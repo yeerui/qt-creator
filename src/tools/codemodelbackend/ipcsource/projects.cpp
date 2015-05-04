@@ -71,14 +71,14 @@ const Project &Projects::project(const Utf8String &projectFilePath) const
     return *findIterator;
 }
 
-const std::vector<Project>::const_iterator Projects::findProject(const Utf8String &projectFilePath) const
+std::vector<Project>::const_iterator Projects::findProject(const Utf8String &projectFilePath) const
 {
     return std::find_if(projects.begin(), projects.end(), [projectFilePath] (const Project &project) {
         return project.projectFilePath() == projectFilePath;
     });
 }
 
-const std::vector<Project>::iterator Projects::findProject(const Utf8String &projectFilePath)
+std::vector<Project>::iterator Projects::findProject(const Utf8String &projectFilePath)
 {
     return std::find_if(projects.begin(), projects.end(), [projectFilePath] (const Project &project) {
         return project.projectFilePath() == projectFilePath;

@@ -72,7 +72,7 @@ public:
     const time_point &lastChangeTimePoint() const;
 
 private:
-    const CXUnsavedFile createCxUnsavedFile(const Utf8String &filePath, const Utf8String &fileContent);
+    CXUnsavedFile createCxUnsavedFile(const Utf8String &filePath, const Utf8String &fileContent);
     static void deleteCXUnsavedFile(const CXUnsavedFile &cxUnsavedFile);
     void updateCXUnsavedFileWithFileContainer(const FileContainer &fileContainer);
     void removeCXUnsavedFile(const FileContainer &fileContainer);

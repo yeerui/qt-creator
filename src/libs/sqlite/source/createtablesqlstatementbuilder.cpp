@@ -87,7 +87,7 @@ void CreateTableSqlStatementBuilder::clearColumns()
     columnDefinitions.clear();
 }
 
-const Utf8String CreateTableSqlStatementBuilder::sqlStatement() const
+Utf8String CreateTableSqlStatementBuilder::sqlStatement() const
 {
     if (!sqlStatementBuilder.isBuild())
         bindAll();

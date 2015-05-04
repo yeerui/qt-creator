@@ -61,7 +61,7 @@ int Utf8String::byteSize() const
     return byteArray.size();
 }
 
-const Utf8String Utf8String::fromUtf8(const char *utf8Text)
+Utf8String Utf8String::fromUtf8(const char *utf8Text)
 {
     return Utf8String(utf8Text, -1);
 }
@@ -71,7 +71,7 @@ Utf8String::Utf8String(const QByteArray &utf8ByteArray)
 {
 }
 
-const Utf8String Utf8String::fromByteArray(const QByteArray &utf8ByteArray)
+Utf8String Utf8String::fromByteArray(const QByteArray &utf8ByteArray)
 {
     return Utf8String(utf8ByteArray);
 }
@@ -81,17 +81,17 @@ const QByteArray &Utf8String::toByteArray() const
     return byteArray;
 }
 
-const Utf8String Utf8String::fromString(const QString &text)
+Utf8String Utf8String::fromString(const QString &text)
 {
     return Utf8String::fromByteArray(text.toUtf8());
 }
 
-const QString Utf8String::toString() const
+QString Utf8String::toString() const
 {
     return QString::fromUtf8(byteArray, byteArray.size());
 }
 
-const Utf8String Utf8String::mid(int position, int length) const
+Utf8String Utf8String::mid(int position, int length) const
 {
     return Utf8String(byteArray.mid(position, length));
 }
@@ -101,7 +101,7 @@ void Utf8String::replace(const Utf8String &before, const Utf8String &after)
     byteArray.replace(before.byteArray, after.byteArray);
 }
 
-const Utf8StringVector Utf8String::split(char separator) const
+Utf8StringVector Utf8String::split(char separator) const
 {
     Utf8StringVector utf8Vector;
 
@@ -166,12 +166,12 @@ void Utf8String::reserve(int reserveSize)
     byteArray.reserve(reserveSize);
 }
 
-const Utf8String Utf8String::number(int number, int base)
+Utf8String Utf8String::number(int number, int base)
 {
     return Utf8String::fromByteArray(QByteArray::number(number, base));
 }
 
-Utf8String &Utf8String::operator+=(const Utf8String &text)
+const Utf8String &Utf8String::operator+=(const Utf8String &text)
 {
     byteArray += text.byteArray;
 

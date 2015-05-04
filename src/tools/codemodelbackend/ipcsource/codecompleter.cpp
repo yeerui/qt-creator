@@ -48,7 +48,7 @@ CodeCompleter::CodeCompleter(TranslationUnit translationUnit)
 {
 }
 
-const QVector<CodeCompletion> CodeCompleter::complete(uint line, uint column) const
+QVector<CodeCompletion> CodeCompleter::complete(uint line, uint column)
 {
     ClangCodeCompleteResults completeResults(clang_codeCompleteAt(translationUnit.cxTranslationUnit(),
                                                                   translationUnit.filePath().constData(),
@@ -63,7 +63,7 @@ const QVector<CodeCompletion> CodeCompleter::complete(uint line, uint column) co
     return extractor.extractAll();
 }
 
-const Utf8String CodeCompleter::filePath() const
+Utf8String CodeCompleter::filePath() const
 {
     return translationUnit.filePath();
 }

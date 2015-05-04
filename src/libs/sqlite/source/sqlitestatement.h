@@ -60,9 +60,9 @@ protected:
     void reset() const;
 
     template<typename Type>
-    const Type value(int column) const;
+    Type value(int column) const;
     int columnCount() const;
-    const Utf8StringVector columnNames() const;
+    Utf8StringVector columnNames() const;
 
     void bind(int index, int value);
     void bind(int index, qint64 value);
@@ -80,21 +80,21 @@ protected:
     void bindUnchecked(const RowDictionary &rowDictionary);
 
     void setBindingColumnNames(const Utf8StringVector &bindingColumnNames);
-    const Utf8StringVector bindingColumnNames() const;
+    const Utf8StringVector &bindingColumnNames() const;
 
     template <typename ContainerType>
-    const ContainerType values(const QVector<int> &columns, int size = 0) const;
+    ContainerType values(const QVector<int> &columns, int size = 0) const;
 
     template <typename ContainerType>
-    const ContainerType values(int column = 0) const;
+    ContainerType values(int column = 0) const;
 
-    const QMap<QString, QVariant> rowColumnValueMap() const;
-    const QMap<QString, QVariant> twoColumnValueMap() const;
+    QMap<QString, QVariant> rowColumnValueMap() const;
+    QMap<QString, QVariant> twoColumnValueMap() const;
 
     static void execute(const Utf8String &sqlStatementUtf8);
 
     template <typename Type>
-    static const Type toValue(const Utf8String &sqlStatementUtf8);
+    static Type toValue(const Utf8String &sqlStatementUtf8);
 
     void prepare(const Utf8String &sqlStatementUtf8);
     void waitForUnlockNotify() const;
@@ -123,9 +123,9 @@ protected:
     Q_NORETURN static void throwException(const char *whatHasHappened);
 
     template <typename ContainerType>
-    const ContainerType columnValues(const QVector<int> &columnIndices) const;
+    ContainerType columnValues(const QVector<int> &columnIndices) const;
 
-    const QString columnName(int column) const;
+    QString columnName(int column) const;
 
 private:
     std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> compiledStatement;

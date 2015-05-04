@@ -86,14 +86,14 @@ void TranslationUnits::createOrUpdateTranslationUnit(const FileContainer &fileCo
         translationUnits.push_back(TranslationUnit(fileContainer.filePath(), unsavedFiles, projects.project(fileContainer.projectFilePath())));
 }
 
-const std::vector<TranslationUnit>::iterator TranslationUnits::findTranslationUnit(const FileContainer &fileContainer)
+std::vector<TranslationUnit>::iterator TranslationUnits::findTranslationUnit(const FileContainer &fileContainer)
 {
     return std::find_if(translationUnits.begin(), translationUnits.end(), [fileContainer] (const TranslationUnit &translationUnit) {
         return fileContainer.filePath() == translationUnit.filePath() && fileContainer.projectFilePath() == translationUnit.projectFilePath();
     });
 }
 
-const std::vector<TranslationUnit>::const_iterator TranslationUnits::findTranslationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const
+std::vector<TranslationUnit>::const_iterator TranslationUnits::findTranslationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const
 {
     return std::find_if(translationUnits.begin(), translationUnits.end(), [filePath, projectFilePath] (const TranslationUnit &translationUnit) {
         return filePath == translationUnit.filePath() && projectFilePath == translationUnit.projectFilePath();

@@ -47,9 +47,9 @@ public:
     explicit Utf8StringVector(const QStringList &stringList);
     explicit Utf8StringVector(int size, const Utf8String &text);
 
-    const Utf8String join(const Utf8String &separator) const;
+    Utf8String join(const Utf8String &separator) const;
 
-    static const Utf8StringVector fromIntegerVector(const QVector<int> &integerVector);
+    static Utf8StringVector fromIntegerVector(const QVector<int> &integerVector);
 
     static void registerType();
 

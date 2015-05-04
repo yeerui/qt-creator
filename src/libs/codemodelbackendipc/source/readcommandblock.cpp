@@ -59,7 +59,7 @@ void ReadCommandBlock::checkIfCommandIsLost(QDataStream &in)
     commandCounter = currentCommandCounter;
 }
 
-const QVariant ReadCommandBlock::read()
+QVariant ReadCommandBlock::read()
 {
     QDataStream in(ioDevice);
 
@@ -73,7 +73,7 @@ const QVariant ReadCommandBlock::read()
     return command;
 }
 
-const QVector<QVariant> ReadCommandBlock::readAll()
+QVector<QVariant> ReadCommandBlock::readAll()
 {
     QVector<QVariant> commands;
 

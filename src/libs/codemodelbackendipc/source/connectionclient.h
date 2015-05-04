@@ -65,7 +65,7 @@ public:
     void resetProcessAliveTimer();
     void setProcessAliveTimerInterval(int processTimerInterval);
 
-    const QString processPath() const;
+    const QString &processPath() const;
     void setProcessPath(const QString &processPath);
 
     void startProcess();

@@ -37,7 +37,7 @@ void ColumnDefinition::setName(const Utf8String &name)
     name_ = name;
 }
 
-const Utf8String ColumnDefinition::name() const
+const Utf8String &ColumnDefinition::name() const
 {
     return name_;
 }
@@ -52,7 +52,7 @@ ColumnType ColumnDefinition::type() const
     return type_;
 }
 
-const Utf8String ColumnDefinition::typeString() const
+Utf8String ColumnDefinition::typeString() const
 {
     switch (type_) {
         case ColumnType::None: return Utf8String();

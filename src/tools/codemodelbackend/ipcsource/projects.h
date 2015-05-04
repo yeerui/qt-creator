@@ -47,8 +47,8 @@ public:
 
     const Project &project(const Utf8String &projectFilePath) const;
 
-    const std::vector<Project>::const_iterator findProject(const Utf8String &projectFilePath) const;
-    const std::vector<Project>::iterator findProject(const Utf8String &projectFilePath);
+    std::vector<Project>::const_iterator findProject(const Utf8String &projectFilePath) const;
+    std::vector<Project>::iterator findProject(const Utf8String &projectFilePath);
 
 private:
     void createOrUpdateProject(const ProjectContainer &projectConainer);

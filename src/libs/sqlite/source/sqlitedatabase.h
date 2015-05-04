@@ -53,10 +53,10 @@ public:
     bool isOpen() const;
 
     void addTable(SqliteTable *newSqliteTable);
-    const QVector<SqliteTable*> tables() const;
+    const QVector<SqliteTable *> &tables() const;
 
     void setDatabaseFilePath(const QString &databaseFilePath);
-    const QString databaseFilePath() const;
+    const QString &databaseFilePath() const;
 
     void setJournalMode(JournalMode journalMode);
     JournalMode journalMode() const;

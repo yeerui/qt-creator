@@ -126,7 +126,7 @@ const time_point &UnsavedFiles::lastChangeTimePoint() const
     return d->lastChangeTimePoint;
 }
 
-const CXUnsavedFile UnsavedFiles::createCxUnsavedFile(const Utf8String &filePath, const Utf8String &fileContent)
+CXUnsavedFile UnsavedFiles::createCxUnsavedFile(const Utf8String &filePath, const Utf8String &fileContent)
 {
     char *cxUnsavedFilePath = new char[filePath.byteSize() + 1];
     char *cxUnsavedFileContent = new char[fileContent.byteSize() + 1];

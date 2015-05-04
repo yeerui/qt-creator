@@ -68,7 +68,7 @@ public:
 
 
 
-    static const Utf8StringVector columnNames(const Utf8String &tableName);
+    static Utf8StringVector columnNames(const Utf8String &tableName);
 
     static int changesCount();
     static int totalChangesCount();
@@ -77,7 +77,7 @@ protected:
     bool databaseIsOpen() const;
 
     void setPragmaValue(const Utf8String &pragma, const Utf8String &value);
-    const Utf8String pragmaValue(const Utf8String &pragma) const;
+    Utf8String pragmaValue(const Utf8String &pragma) const;
 
     void registerBusyHandler();
     void registerRankingFunction();
@@ -102,7 +102,7 @@ protected:
     static int indexOfPragma(const Utf8String pragma, const Utf8String pragmas[], size_t pragmaCount);
     static const Utf8String &journalModeToPragma(JournalMode journalMode);
     static JournalMode pragmaToJournalMode(const Utf8String &pragma);
-    static const Utf8String textEncodingToPragma(TextEncoding textEncoding);
+    static const Utf8String &textEncodingToPragma(TextEncoding textEncoding);
     static TextEncoding pragmaToTextEncoding(const Utf8String &pragma);
 
     Q_NORETURN static void throwException(const char *whatHasHappens);

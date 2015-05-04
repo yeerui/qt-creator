@@ -46,8 +46,8 @@ class ReadCommandBlock
 public:
     ReadCommandBlock(QIODevice *ioDevice = nullptr);
 
-    const QVariant read();
-    const QVector<QVariant> readAll();
+    QVariant read();
+    QVector<QVariant> readAll();
 
     void resetCounter();
 

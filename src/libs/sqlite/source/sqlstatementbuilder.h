@@ -52,7 +52,7 @@ public:
     void bindWithUpdateTemplateNames(const Utf8String &name, const Utf8StringVector &columns);
     void clear();
 
-    const Utf8String sqlStatement() const;
+    Utf8String sqlStatement() const;
 
     bool isBuild() const;
 

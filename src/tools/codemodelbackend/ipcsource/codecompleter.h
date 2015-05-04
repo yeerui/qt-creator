@@ -46,10 +46,10 @@ public:
     CodeCompleter() = default;
     CodeCompleter(TranslationUnit translationUnit);
 
-    const QVector<CodeCompletion> complete(uint line, uint column) const;
+    QVector<CodeCompletion> complete(uint line, uint column);
 
 private:
-    const Utf8String filePath() const;
+    Utf8String filePath() const;
     static void checkCodeCompleteResult(CXCodeCompleteResults *completeResults);
 
 private:

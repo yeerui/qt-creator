@@ -42,7 +42,7 @@ class ProjectDoesNotExistException : public std::exception
 public:
     ProjectDoesNotExistException(const Utf8String &projectFilePath);
 
-    const Utf8String projectFilePath() const;
+    const Utf8String &projectFilePath() const;
 
     const char *what() const Q_DECL_NOEXCEPT override;
 

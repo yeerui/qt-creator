@@ -199,7 +199,7 @@ QProcess *ConnectionClient::process() const
     return process_.get();
 }
 
-const QString ConnectionClient::processPath() const
+const QString &ConnectionClient::processPath() const
 {
     return processPath_;
 }

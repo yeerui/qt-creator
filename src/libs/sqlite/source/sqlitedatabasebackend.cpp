@@ -141,7 +141,7 @@ void SqliteDatabaseBackend::setPragmaValue(const Utf8String &pragmaKey, const Ut
     checkPragmaValue(pragmeValueInDatabase, newPragmaValue);
 }
 
-const Utf8String SqliteDatabaseBackend::pragmaValue(const Utf8String &pragma) const
+Utf8String SqliteDatabaseBackend::pragmaValue(const Utf8String &pragma) const
 {
     return SqliteReadWriteStatement::toValue<Utf8String>(Utf8StringLiteral("PRAGMA ") + pragma);
 }
@@ -168,7 +168,7 @@ TextEncoding SqliteDatabaseBackend::textEncoding()
 }
 
 
-const Utf8StringVector SqliteDatabaseBackend::columnNames(const Utf8String &tableName)
+Utf8StringVector SqliteDatabaseBackend::columnNames(const Utf8String &tableName)
 {
     SqliteReadStatement statement(Utf8StringLiteral("SELECT * FROM ") + tableName);
     return statement.columnNames();
@@ -373,7 +373,7 @@ static const Utf8String textEncodingStrings[] = {
     Utf8StringLiteral("UTF-16be")
 };
 
-const Utf8String SqliteDatabaseBackend::textEncodingToPragma(TextEncoding textEncoding)
+const Utf8String &SqliteDatabaseBackend::textEncodingToPragma(TextEncoding textEncoding)
 {
     return textEncodingStrings[textEncoding];
 }
