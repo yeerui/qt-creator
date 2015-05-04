@@ -207,9 +207,17 @@ TranslationUnit::~TranslationUnit() = default;
 TranslationUnit::TranslationUnit(const TranslationUnit &) = default;
 TranslationUnit &TranslationUnit::operator =(const TranslationUnit &) = default;
 
-TranslationUnit::TranslationUnit(TranslationUnit &&) = default;
-TranslationUnit &TranslationUnit::operator =(TranslationUnit &&) = default;
+TranslationUnit::TranslationUnit(TranslationUnit &&other)
+    : d(std::move(other.d))
+{
+}
 
+TranslationUnit &TranslationUnit::operator =(TranslationUnit &&other)
+{
+    d = std::move(other.d);
+
+    return *this;
+}
 
 } // namespace CodeModelBackEnd
 

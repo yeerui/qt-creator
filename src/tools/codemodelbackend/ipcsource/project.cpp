@@ -70,8 +70,17 @@ Project::~Project() = default;
 Project::Project(const Project &) = default;
 Project &Project::operator =(const Project &) = default;
 
-Project::Project(Project &&) = default;
-Project &Project::operator =(Project &&) = default;
+Project::Project(Project &&other)
+    : d(std::move(other.d))
+{
+}
+
+Project &Project::operator =(Project &&other)
+{
+    d = std::move(other.d);
+
+    return *this;
+}
 
 void Project::clearProjectFilePath()
 {

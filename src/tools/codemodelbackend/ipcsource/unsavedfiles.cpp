@@ -69,8 +69,17 @@ UnsavedFiles::~UnsavedFiles() = default;
 UnsavedFiles::UnsavedFiles(const UnsavedFiles &) = default;
 UnsavedFiles &UnsavedFiles::operator =(const UnsavedFiles &) = default;
 
-UnsavedFiles::UnsavedFiles(UnsavedFiles &&) = default;
-UnsavedFiles &UnsavedFiles::operator =(UnsavedFiles &&) = default;
+UnsavedFiles::UnsavedFiles(UnsavedFiles &&other)
+    : d(std::move(other.d))
+{
+}
+
+UnsavedFiles &UnsavedFiles::operator =(UnsavedFiles &&other)
+{
+    d = std::move(other.d);
+
+    return *this;
+}
 
 void UnsavedFiles::createOrUpdate(const QVector<FileContainer> &fileContainers)
 {

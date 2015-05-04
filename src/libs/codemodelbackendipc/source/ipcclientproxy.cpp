@@ -56,15 +56,20 @@ IpcClientProxy::IpcClientProxy(IpcServerInterface *server, QIODevice *ioDevice)
 }
 
 IpcClientProxy::IpcClientProxy(IpcClientProxy &&other)
+    : writeCommandBlock(std::move(other.writeCommandBlock)),
+      readCommandBlock(std::move(other.readCommandBlock)),
+      server(std::move(other.server)),
+      ioDevice(std::move(other.ioDevice))
 {
-    using std::swap;
-    swap(*this, other);
+
 }
 
 IpcClientProxy &IpcClientProxy::operator =(IpcClientProxy &&other)
 {
-    using std::swap;
-    swap(*this, other);
+    writeCommandBlock = std::move(other.writeCommandBlock);
+    readCommandBlock = std::move(other.readCommandBlock);
+    server = std::move(other.server);
+    ioDevice = std::move(other.ioDevice);
 
     return *this;
 }

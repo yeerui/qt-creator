@@ -71,8 +71,8 @@ public:
 private:
     CodeModelBackEnd::WriteCommandBlock writeCommandBlock;
     CodeModelBackEnd::ReadCommandBlock readCommandBlock;
-    IpcServerInterface *server;
-    QIODevice *ioDevice;
+    IpcServerInterface *server = nullptr;
+    QIODevice *ioDevice = nullptr;
 };
 
 } // namespace CodeModelBackEnd
