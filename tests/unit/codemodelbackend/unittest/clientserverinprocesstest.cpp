@@ -62,6 +62,11 @@
 
 using namespace CodeModelBackEnd;
 
+namespace {
+
+using ::testing::Args;
+using ::testing::Property;
+using ::testing::Eq;
 
 class ClientServerInProcess : public ::testing::Test
 {
@@ -140,7 +145,7 @@ TEST_F(ClientServerInProcess, SendCompleteCodeCommand)
 TEST_F(ClientServerInProcess, SendCodeCompletedCommand)
 {
     QVector<CodeModelBackEnd::CodeCompletion> codeCompletions({Utf8StringLiteral("newFunction()")});
-    CodeModelBackEnd::CodeCompletedCommand command(codeCompletions);
+    CodeModelBackEnd::CodeCompletedCommand command(codeCompletions, 1);
 
     EXPECT_CALL(mockIpcClient, codeCompleted(command))
         .Times(1);
@@ -224,4 +229,6 @@ void ClientServerInProcess::scheduleClientCommands()
     buffer.seek(0);
     serverProxy.readCommands();
     buffer.buffer().clear();
+}
+
 }

@@ -36,8 +36,9 @@
 
 namespace CodeModelBackEnd {
 
-CodeCompletedCommand::CodeCompletedCommand(const QVector<CodeCompletion> &codeCompletions)
-    : codeCompletions_(codeCompletions)
+CodeCompletedCommand::CodeCompletedCommand(const QVector<CodeCompletion> &codeCompletions, quint64 ticketNumber)
+    : codeCompletions_(codeCompletions),
+      ticketNumber_(ticketNumber)
 {
 }
 
@@ -46,9 +47,15 @@ const QVector<CodeCompletion> &CodeCompletedCommand::codeCompletions() const
     return codeCompletions_;
 }
 
+quint64 CodeCompletedCommand::ticketNumber() const
+{
+    return ticketNumber_;
+}
+
 QDataStream &operator<<(QDataStream &out, const CodeCompletedCommand &command)
 {
     out << command.codeCompletions_;
+    out << command.ticketNumber_;
 
     return out;
 }
@@ -56,25 +63,27 @@ QDataStream &operator<<(QDataStream &out, const CodeCompletedCommand &command)
 QDataStream &operator>>(QDataStream &in, CodeCompletedCommand &command)
 {
     in >> command.codeCompletions_;
+    in >> command.ticketNumber_;
 
     return in;
 }
 
 bool operator == (const CodeCompletedCommand &first, const CodeCompletedCommand &second)
 {
-    return first.codeCompletions_ == second.codeCompletions_;
+    return first.ticketNumber_ == second.ticketNumber_
+            && first.codeCompletions_ == second.codeCompletions_;
 }
 
 bool operator < (const CodeCompletedCommand &first, const CodeCompletedCommand &second)
 {
-    return first.codeCompletions_ < second.codeCompletions_;
+    return first.ticketNumber_ < second.ticketNumber_;
 }
 
 QDebug operator <<(QDebug debug, const CodeCompletedCommand &command)
 {
     debug.nospace() << "CodeCompletedCommand(";
 
-    debug.nospace() << command.codeCompletions_;
+    debug.nospace() << command.codeCompletions_ << ", " << command.ticketNumber_;
 
     debug.nospace() << ")";
 

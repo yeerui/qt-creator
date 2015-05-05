@@ -60,9 +60,13 @@ public:
     quint32 line() const;
     quint32 column() const;
 
+    quint64 ticketNumber() const;
+
 private:
     Utf8String filePath_;
     Utf8String projectFilePath_;
+    static quint64 ticketCounter;
+    quint64 ticketNumber_;
     quint32 line_ = 0;
     quint32 column_ = 0;
 };

@@ -59,6 +59,7 @@
 using testing::Property;
 using testing::Contains;
 using testing::Not;
+using testing::Eq;
 
 namespace {
 
@@ -361,16 +362,21 @@ TEST_F(ClangIpcServer, GetProjectDoesNotExistForCompletingUnregisteredFile)
     clangServer.completeCode(completeCodeCommand);
 }
 
+TEST_F(ClangIpcServer, TicketNumberIsForwarded)
+{
+    CompleteCodeCommand completeCodeCommand(functionTestFilePath,
+                                            20,
+                                            1,
+                                            projectFilePath);
+    CodeCompletion codeCompletion(Utf8StringLiteral("Function"),
+                                  Utf8String(),
+                                  Utf8String(),
+                                  34,
+                                  CodeCompletion::FunctionCompletionKind);
 
-//TEST_F(ClangIpcServer, ThrowForTranslationUnitParsingError)
-//{
-//    changeProjectArgumentsToWrongValues();
+    EXPECT_CALL(mockIpcClient, codeCompleted(Property(&CodeCompletedCommand::ticketNumber, Eq(completeCodeCommand.ticketNumber()))))
+        .Times(1);
 
-//    CompleteCodeCommand completeCodeCommand(functionTestFilePath,
-//                                            20,
-//                                            1,
-//                                            projectFilePath);
-
-//    ASSERT_THROW(clangServer.completeCode(completeCodeCommand), CodeModelBackEnd::TranslationUnitParseErrorException);
-//}
+    clangServer.completeCode(completeCodeCommand);
+}
 }

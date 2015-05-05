@@ -151,7 +151,7 @@ TEST_F(ReadAndWriteCommandBlockTest, CompareCodeCompletedCommand)
 {
     QVector<CodeModelBackEnd::CodeCompletion> codeCompletions({Utf8StringLiteral("newFunction()")});
 
-    CompareCommand(CodeModelBackEnd::CodeCompletedCommand(codeCompletions));
+    CompareCommand(CodeModelBackEnd::CodeCompletedCommand(codeCompletions, 1));
 }
 
 template<class Type>
