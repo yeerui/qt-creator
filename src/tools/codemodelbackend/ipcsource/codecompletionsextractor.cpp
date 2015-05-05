@@ -159,8 +159,7 @@ void CodeCompletionsExtractor::extractText()
     for (uint chunkIndex = 0; chunkIndex < completionChunkCount; ++chunkIndex) {
         const CXCompletionChunkKind chunkKind = clang_getCompletionChunkKind(currentCxCodeCompleteResult.CompletionString, chunkIndex);
         if (chunkKind == CXCompletionChunk_TypedText) {
-            const ClangString text(clang_getCompletionChunkText(currentCxCodeCompleteResult.CompletionString, chunkIndex));
-            currentCodeCompletion_.setText(text);
+            currentCodeCompletion_.setText(chunkText(currentCxCodeCompleteResult.CompletionString, chunkIndex));
             break;
         }
     }
