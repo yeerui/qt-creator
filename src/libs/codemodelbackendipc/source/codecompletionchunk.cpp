@@ -65,9 +65,14 @@ const QVector<CodeCompletionChunk> &CodeCompletionChunk::optionalChunks() const
     return optionalChunks_;
 }
 
+quint32 &CodeCompletionChunk::kindAsInt()
+{
+    return reinterpret_cast<quint32&>(kind_);
+}
+
 QDataStream &operator <<(QDataStream &out, const CodeCompletionChunk &chunk)
 {
-    out << chunk.kindAsInt;
+    out << chunk.kind_;
     out << chunk.text_;
 
     if (chunk.kind() == CodeCompletionChunk::Optional)
@@ -78,7 +83,7 @@ QDataStream &operator <<(QDataStream &out, const CodeCompletionChunk &chunk)
 
 QDataStream &operator >>(QDataStream &in, CodeCompletionChunk &chunk)
 {
-    in >> chunk.kindAsInt;
+    in >> chunk.kindAsInt();
     in >> chunk.text_;
 
     if (chunk.kind_ == CodeCompletionChunk::Optional)

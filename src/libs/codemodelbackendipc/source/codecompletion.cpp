@@ -122,6 +122,16 @@ quint32 CodeCompletion::priority() const
     return priority_;
 }
 
+quint32 &CodeCompletion::completionKindAsInt()
+{
+    return reinterpret_cast<quint32&>(completionKind_);
+}
+
+quint32 &CodeCompletion::availabilityAsInt()
+{
+    return reinterpret_cast<quint32&>(availability_);
+}
+
 QDataStream &operator<<(QDataStream &out, const CodeCompletion &command)
 {
     out << command.text_;
@@ -129,8 +139,8 @@ QDataStream &operator<<(QDataStream &out, const CodeCompletion &command)
     out << command.snippet_;
     out << command.chunks_;
     out << command.priority_;
-    out << command.completionKindAsInt;
-    out << command.availabilityAsInt;
+    out << command.completionKind_;
+    out << command.availability_;
     out << command.hasParameters_;
 
     return out;
@@ -143,8 +153,8 @@ QDataStream &operator>>(QDataStream &in, CodeCompletion &command)
     in >> command.snippet_;
     in >> command.chunks_;
     in >> command.priority_;
-    in >> command.completionKindAsInt;
-    in >> command.availabilityAsInt;
+    in >> command.completionKindAsInt();
+    in >> command.availabilityAsInt();
     in >> command.hasParameters_;
 
     return in;

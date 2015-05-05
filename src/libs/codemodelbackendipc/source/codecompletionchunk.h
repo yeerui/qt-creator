@@ -80,12 +80,13 @@ public:
     const QVector<CodeCompletionChunk> &optionalChunks() const;
 
 private:
+    quint32 &kindAsInt();
+
+private:
     Utf8String text_;
     QVector<CodeCompletionChunk> optionalChunks_;
-    union {
-        Kind kind_;
-        quint32 kindAsInt;
-    };
+    Kind kind_ = Invalid;
+
 };
 
 CMBIPC_EXPORT QDataStream &operator <<(QDataStream &out, const CodeCompletionChunk &chunk);

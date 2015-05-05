@@ -50,7 +50,7 @@ class CMBIPC_EXPORT CodeCompletion
     friend void PrintTo(const CodeCompletion &command, ::std::ostream* os);
 
 public:
-    enum Kind {
+    enum Kind : quint32 {
         Other = 0,
         FunctionCompletionKind,
         TemplateFunctionCompletionKind,
@@ -70,7 +70,7 @@ public:
         ClangSnippetKind
     };
 
-    enum Availability {
+    enum Availability : quint32 {
         Available,
         Deprecated,
         NotAvailable,
@@ -109,19 +109,17 @@ public:
     quint32 priority() const;
 
 private:
+    quint32 &completionKindAsInt();
+    quint32 &availabilityAsInt();
+
+private:
     Utf8String text_;
     Utf8String hint_;
     Utf8String snippet_;
     QVector<CodeCompletionChunk> chunks_;
     quint32 priority_ = 0;
-    union {
-        Kind completionKind_;
-        qint32 completionKindAsInt;
-    };
-    union {
-        Availability availability_;
-        qint32 availabilityAsInt;
-    };
+    Kind completionKind_ = Other;
+    Availability availability_ = NotAvailable;
     bool hasParameters_ = false;
 };
 
