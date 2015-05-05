@@ -36,6 +36,8 @@
 #include <chrono>
 #include <memory>
 
+#include <QtGlobal>
+
 class Utf8String;
 
 namespace CodeModelBackEnd {

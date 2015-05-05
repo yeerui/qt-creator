@@ -51,16 +51,18 @@ bool ClangString::isNull() const
 
 ClangString &ClangString::operator =(ClangString &&clangString)
 {
-    using std::swap;
-    swap(cxString, clangString.cxString);
+    cxString = std::move(clangString.cxString);
+    clangString.cxString.data = nullptr;
+    clangString.cxString.private_flags = 0;
 
     return *this;
 }
 
 ClangString::ClangString(ClangString &&clangString)
+    : cxString(std::move(clangString.cxString))
 {
-    using std::swap;
-    swap(cxString, clangString.cxString);
+    clangString.cxString.data = nullptr;
+    clangString.cxString.private_flags = 0;
 }
 
 ClangString::operator Utf8String() const

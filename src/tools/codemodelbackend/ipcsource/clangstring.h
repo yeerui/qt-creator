@@ -54,7 +54,7 @@ public:
     bool isNull() const;
 
 private:
-    CXString cxString = { nullptr, 0 };
+    CXString cxString;
 };
 
 } // namespace CodeModelBackEnd
