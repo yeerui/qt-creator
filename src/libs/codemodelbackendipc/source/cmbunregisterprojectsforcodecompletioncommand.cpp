@@ -73,7 +73,7 @@ bool operator < (const UnregisterProjectsForCodeCompletionCommand &first, const 
 
 QDebug operator <<(QDebug debug, const UnregisterProjectsForCodeCompletionCommand &command)
 {
-    debug.nospace() << "UnregisterFileForCodeCompletion(";
+    debug.nospace() << "UnregisterProjectsForCodeCompletionCommand(";
 
     for (const Utf8String &fileNames_ : command.filePaths())
         debug.nospace() << fileNames_ << ", ";
@@ -85,7 +85,7 @@ QDebug operator <<(QDebug debug, const UnregisterProjectsForCodeCompletionComman
 
 void PrintTo(const UnregisterProjectsForCodeCompletionCommand &command, ::std::ostream* os)
 {
-    *os << "UnregisterFileForCodeCompletion(";
+    *os << "UnregisterProjectsForCodeCompletionCommand(";
 
     for (const Utf8String &fileNames_ : command.filePaths())
         *os << fileNames_.constData() << ", ";

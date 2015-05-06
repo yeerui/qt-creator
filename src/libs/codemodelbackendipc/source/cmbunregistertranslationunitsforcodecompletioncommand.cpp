@@ -47,7 +47,7 @@ bool operator < (const UnregisterTranslationUnitsForCodeCompletionCommand &first
 
 QDebug operator <<(QDebug debug, const UnregisterTranslationUnitsForCodeCompletionCommand &command)
 {
-    debug.nospace() << "UnregisterFileForCodeCompletion(";
+    debug.nospace() << "UnregisterTranslationUnitsForCodeCompletionCommand(";
 
     for (const FileContainer &fileContainer : command.fileContainers())
         debug.nospace() << fileContainer << ", ";
@@ -60,7 +60,7 @@ QDebug operator <<(QDebug debug, const UnregisterTranslationUnitsForCodeCompleti
 #ifdef CODEMODELBACKEND_TESTS
 void PrintTo(const UnregisterTranslationUnitsForCodeCompletionCommand &command, ::std::ostream* os)
 {
-    *os << "UnregisterFileForCodeCompletion(";
+    *os << "UnregisterTranslationUnitsForCodeCompletionCommand(";
 
     for (const FileContainer &fileContainer : command.fileContainers())
         *os << ::testing::PrintToString(fileContainer) << ", ";
