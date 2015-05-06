@@ -84,6 +84,8 @@ QDebug operator <<(QDebug debug, const ProjectContainer &container)
 {
     debug.nospace() << "ProjectContainer("
                     << container.filePath()
+                    << ","
+                    << container.arguments()
                     << ")";
 
     return debug;
@@ -93,6 +95,8 @@ void PrintTo(const ProjectContainer &container, ::std::ostream* os)
 {
     *os << "ProjectContainer("
         << container.filePath().constData()
+        << ","
+        << container.arguments().constData()
         << ")";
 }
 
