@@ -71,14 +71,11 @@ Utf8String Utf8StringVector::join(const Utf8String &separator) const
 {
     Utf8String joindedString;
 
-    int separatorCount = count() - 1;
-    int byteSizeOfTheJoinedString = totalByteSize() + separator.byteSize() * separatorCount;
+    joindedString.reserve(totalByteSize() + separator.byteSize() * count());
 
-    joindedString.reserve(byteSizeOfTheJoinedString);
-
-    for (int index = 0; index < count(); index++) {
-        joindedString.append(at(index));
-        if (index < separatorCount)
+    for (auto position = begin(); position != end(); ++position) {
+        joindedString.append(*position);
+        if (std::next(position) != end())
             joindedString.append(separator);
     }
 
@@ -105,7 +102,7 @@ int Utf8StringVector::totalByteSize() const
 {
     int totalSize = 0;
 
-    foreach (const Utf8String &utf8String, *this)
+    for (const Utf8String &utf8String : *this)
         totalSize +=  utf8String.byteSize();
 
     return totalSize;
