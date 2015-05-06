@@ -152,6 +152,7 @@ void PrintTo(const CodeCompletionChunk &chunk, ::std::ostream* os)
     if (chunk.kind() == CodeCompletionChunk::Optional) {
         const auto optionalChunks = chunk.optionalChunks();
         *os << ", {";
+
         for (auto optionalChunkPosition = optionalChunks.cbegin();
              optionalChunkPosition != optionalChunks.cend();
              ++optionalChunkPosition) {
@@ -159,6 +160,7 @@ void PrintTo(const CodeCompletionChunk &chunk, ::std::ostream* os)
             if (std::next(optionalChunkPosition) != optionalChunks.cend())
                 *os << ", ";
         }
+
         *os << "}";
     }
 
