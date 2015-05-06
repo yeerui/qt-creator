@@ -58,8 +58,8 @@ ConnectionServer::~ConnectionServer()
 
 void ConnectionServer::start()
 {
-    QLocalServer::removeServer(QStringLiteral("blahxxxxxy"));
-    localServer.listen(QStringLiteral("blahxxxxxy"));
+    QLocalServer::removeServer(QStringLiteral("CodeModelBackEnd"));
+    localServer.listen(QStringLiteral("CodeModelBackEnd"));
 }
 
 void ConnectionServer::setIpcServer(IpcServerInterface *ipcServer)
@@ -127,7 +127,7 @@ QLocalSocket *ConnectionServer::nextPendingConnection()
 
 void ConnectionServer::removeServer()
 {
-    QLocalServer::removeServer(QStringLiteral("blahxxxxxy"));
+    QLocalServer::removeServer(QStringLiteral("CodeModelBackEnd"));
 }
 
 void ConnectionServer::delayedExitApplicationIfNoSockedIsConnected()

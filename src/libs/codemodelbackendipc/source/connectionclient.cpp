@@ -55,7 +55,7 @@ ConnectionClient::~ConnectionClient()
 }
 
 bool ConnectionClient::connectToServer()
-{localSocket.connectToServer(QStringLiteral("blahxxxxxy"));
+{localSocket.connectToServer(QStringLiteral("CodeModelBackEnd"));
     isInConnectedMode = true;
     bool isConnected = localSocket.waitForConnected();
     if (!isConnected) {
@@ -122,7 +122,7 @@ void ConnectionClient::restartProcess()
 bool ConnectionClient::retryToConnectToServer()
 {
     for (int counter = 0; counter < 1000; counter++) {
-        localSocket.connectToServer(QStringLiteral("blahxxxxxy"));
+        localSocket.connectToServer(QStringLiteral("CodeModelBackEnd"));
         bool isConnected = localSocket.waitForConnected(20);
 
         if (isConnected)
