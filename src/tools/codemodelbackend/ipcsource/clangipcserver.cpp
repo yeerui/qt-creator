@@ -39,7 +39,7 @@ void ClangIpcServer::registerTranslationUnitsForCodeCompletion(const CodeModelBa
         translationUnits.createOrUpdate(command.fileContainers());
         unsavedFiles.createOrUpdate(command.fileContainers());
     } catch (const ProjectDoesNotExistException &exception) {
-        client()->projectDoesNotExist(ProjectDoesNotExistCommand(exception.projectFilePath()));
+        client()->projectDoesNotExist(ProjectDoesNotExistCommand(exception.projectFilePaths()));
     } catch (const std::exception &exception) {
         qWarning() << "Error in ClangIpcServer::registerTranslationUnitsForCodeCompletion:" << exception.what();
     }
@@ -52,7 +52,7 @@ void ClangIpcServer::unregisterTranslationUnitsForCodeCompletion(const CodeModel
     } catch (const TranslationUnitDoesNotExistException &exception) {
         client()->translationUnitDoesNotExist(TranslationUnitDoesNotExistCommand(exception.fileContainer()));
     } catch (const ProjectDoesNotExistException &exception) {
-        client()->projectDoesNotExist(ProjectDoesNotExistCommand(exception.projectFilePath()));
+        client()->projectDoesNotExist(ProjectDoesNotExistCommand(exception.projectFilePaths()));
     } catch (const std::exception &exception) {
         qWarning() << "Error in ClangIpcServer::unregisterTranslationUnitsForCodeCompletion:" << exception.what();
     }
@@ -72,7 +72,7 @@ void ClangIpcServer::unregisterProjectsForCodeCompletion(const UnregisterProject
     try {
         projects.remove(command.filePaths());
     } catch (const ProjectDoesNotExistException &exception) {
-        client()->projectDoesNotExist(ProjectDoesNotExistCommand(exception.projectFilePath()));
+        client()->projectDoesNotExist(ProjectDoesNotExistCommand(exception.projectFilePaths()));
     } catch (const std::exception &exception) {
         qWarning() << "Error in ClangIpcServer::unregisterProjectsForCodeCompletion:" << exception.what();
     }
@@ -89,7 +89,7 @@ void ClangIpcServer::completeCode(const CodeModelBackEnd::CompleteCodeCommand &c
     } catch (const TranslationUnitDoesNotExistException &exception) {
         client()->translationUnitDoesNotExist(TranslationUnitDoesNotExistCommand(exception.fileContainer()));
     } catch (const ProjectDoesNotExistException &exception) {
-        client()->projectDoesNotExist(ProjectDoesNotExistCommand(exception.projectFilePath()));
+        client()->projectDoesNotExist(ProjectDoesNotExistCommand(exception.projectFilePaths()));
     }  catch (const std::exception &exception) {
         qWarning() << "Error in ClangIpcServer::unregisterProjectsForCodeCompletion:" << exception.what();
     }

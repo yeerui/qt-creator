@@ -299,7 +299,7 @@ TEST_F(ClangIpcServer, UnregisterTranslationUnitAndTestFailingCompletion)
 
 TEST_F(ClangIpcServer, GetProjectDoesNotExistUnregisterProjectInexistingProject)
 {
-    Utf8String inexistingProjectFilePath = Utf8StringLiteral("projectdoesnotexists.pro");
+    Utf8StringVector inexistingProjectFilePath = {Utf8StringLiteral("projectdoesnotexists.pro"), Utf8StringLiteral("project2doesnotexists.pro")};
     UnregisterProjectsForCodeCompletionCommand unregisterProjectsForCodeCompletionCommand({inexistingProjectFilePath});
     ProjectDoesNotExistCommand projectDoesNotExistCommand(inexistingProjectFilePath);
 
@@ -313,7 +313,7 @@ TEST_F(ClangIpcServer, GetProjectDoesNotExistRegisterTranslationUnitWithInexisti
 {
     Utf8String inexistingProjectFilePath = Utf8StringLiteral("projectdoesnotexists.pro");
     RegisterTranslationUnitForCodeCompletionCommand registerFileForCodeCompletionCommand({FileContainer(variableTestFilePath, inexistingProjectFilePath)});
-    ProjectDoesNotExistCommand projectDoesNotExistCommand(inexistingProjectFilePath);
+    ProjectDoesNotExistCommand projectDoesNotExistCommand({inexistingProjectFilePath});
 
     EXPECT_CALL(mockIpcClient, projectDoesNotExist(projectDoesNotExistCommand))
         .Times(1);
@@ -325,7 +325,7 @@ TEST_F(ClangIpcServer, GetProjectDoesNotExistUnregisterTranslationUnitWithInexis
 {
     Utf8String inexistingProjectFilePath = Utf8StringLiteral("projectdoesnotexists.pro");
     UnregisterTranslationUnitsForCodeCompletionCommand unregisterFileForCodeCompletionCommand({FileContainer(variableTestFilePath, inexistingProjectFilePath)});
-    ProjectDoesNotExistCommand projectDoesNotExistCommand(inexistingProjectFilePath);
+    ProjectDoesNotExistCommand projectDoesNotExistCommand({inexistingProjectFilePath});
 
     EXPECT_CALL(mockIpcClient, projectDoesNotExist(projectDoesNotExistCommand))
         .Times(1);
@@ -340,7 +340,7 @@ TEST_F(ClangIpcServer, GetProjectDoesNotExistForCompletingProjectFile)
                                             20,
                                             1,
                                             inexistingProjectFilePath);
-    ProjectDoesNotExistCommand projectDoesNotExistCommand(inexistingProjectFilePath);
+    ProjectDoesNotExistCommand projectDoesNotExistCommand({inexistingProjectFilePath});
 
     EXPECT_CALL(mockIpcClient, projectDoesNotExist(projectDoesNotExistCommand))
         .Times(1);

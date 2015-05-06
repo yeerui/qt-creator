@@ -31,7 +31,7 @@
 #ifndef CODEMODELBACKEND_PROJECTDONOTEXISTSEXCEPTION_H
 #define CODEMODELBACKEND_PROJECTDONOTEXISTSEXCEPTION_H
 
-#include <utf8string.h>
+#include <utf8stringvector.h>
 
 #include <exception>
 
@@ -40,14 +40,14 @@ namespace CodeModelBackEnd {
 class ProjectDoesNotExistException : public std::exception
 {
 public:
-    ProjectDoesNotExistException(const Utf8String &projectFilePath);
+    ProjectDoesNotExistException(const Utf8StringVector &projectFilePaths);
 
-    const Utf8String &projectFilePath() const;
+    const Utf8StringVector &projectFilePaths() const;
 
     const char *what() const Q_DECL_NOEXCEPT override;
 
 private:
-    Utf8String projectFilePath_;
+    Utf8StringVector projectFilePaths_;
     mutable Utf8String what_;
 };
 

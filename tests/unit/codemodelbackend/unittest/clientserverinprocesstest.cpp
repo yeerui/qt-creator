@@ -193,7 +193,7 @@ TEST_F(ClientServerInProcess, SendTranslationUnitDoesNotExistCommand)
 
 TEST_F(ClientServerInProcess, SendProjectDoesNotExistCommand)
 {
-    CodeModelBackEnd::ProjectDoesNotExistCommand command(Utf8StringLiteral("pathToProject.pro"));
+    CodeModelBackEnd::ProjectDoesNotExistCommand command({Utf8StringLiteral("pathToProject.pro")});
 
     EXPECT_CALL(mockIpcClient, projectDoesNotExist(command))
         .Times(1);

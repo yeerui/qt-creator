@@ -36,46 +36,46 @@
 
 namespace CodeModelBackEnd {
 
-ProjectDoesNotExistCommand::ProjectDoesNotExistCommand(const Utf8String &projectFilePath)
-    : projectFilePath_(projectFilePath)
+ProjectDoesNotExistCommand::ProjectDoesNotExistCommand(const Utf8StringVector &projectFilePaths)
+    : projectFilePaths_(projectFilePaths)
 {
 }
 
 
-const Utf8String &ProjectDoesNotExistCommand::projectFilePath() const
+const Utf8StringVector &ProjectDoesNotExistCommand::projectFilePaths() const
 {
-    return projectFilePath_;
+    return projectFilePaths_;
 }
 
 QDataStream &operator<<(QDataStream &out, const ProjectDoesNotExistCommand &command)
 {
-    out << command.projectFilePath_;
+    out << command.projectFilePaths_;
 
     return out;
 }
 
 QDataStream &operator>>(QDataStream &in, ProjectDoesNotExistCommand &command)
 {
-    in >> command.projectFilePath_;
+    in >> command.projectFilePaths_;
 
     return in;
 }
 
 bool operator == (const ProjectDoesNotExistCommand &first, const ProjectDoesNotExistCommand &second)
 {
-    return first.projectFilePath_ == second.projectFilePath_;
+    return first.projectFilePaths_ == second.projectFilePaths_;
 }
 
 bool operator < (const ProjectDoesNotExistCommand &first, const ProjectDoesNotExistCommand &second)
 {
-    return first.projectFilePath_ < second.projectFilePath_;
+    return first.projectFilePaths_ < second.projectFilePaths_;
 }
 
 QDebug operator <<(QDebug debug, const ProjectDoesNotExistCommand &command)
 {
     debug.nospace() << "ProjectDoesNotExistCommand(";
 
-    debug.nospace() << command.projectFilePath_;
+    debug.nospace() << command.projectFilePaths_;
 
     debug.nospace() << ")";
 

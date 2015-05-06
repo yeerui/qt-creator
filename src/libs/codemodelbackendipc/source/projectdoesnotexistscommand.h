@@ -33,7 +33,7 @@
 
 #include <QMetaType>
 
-#include <utf8string.h>
+#include <utf8stringvector.h>
 
 #include "codemodelbackendipc_global.h"
 
@@ -49,12 +49,12 @@ class CMBIPC_EXPORT ProjectDoesNotExistCommand
     friend void PrintTo(const ProjectDoesNotExistCommand &command, ::std::ostream* os);
 public:
     ProjectDoesNotExistCommand() = default;
-    ProjectDoesNotExistCommand(const Utf8String &projectFilePath);
+    ProjectDoesNotExistCommand(const Utf8StringVector &projectFilePaths);
 
-    const Utf8String &projectFilePath() const;
+    const Utf8StringVector &projectFilePaths() const;
 
 private:
-    Utf8String projectFilePath_;
+    Utf8StringVector projectFilePaths_;
 };
 
 CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectDoesNotExistCommand &command);

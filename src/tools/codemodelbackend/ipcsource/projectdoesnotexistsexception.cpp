@@ -32,21 +32,21 @@
 
 namespace CodeModelBackEnd {
 
-ProjectDoesNotExistException::ProjectDoesNotExistException(const Utf8String &projectFilePath)
-    : projectFilePath_(projectFilePath)
+ProjectDoesNotExistException::ProjectDoesNotExistException(const Utf8StringVector &projectFilePaths)
+    : projectFilePaths_(projectFilePaths)
 {
 }
 
-const Utf8String &ProjectDoesNotExistException::projectFilePath() const
+const Utf8StringVector &ProjectDoesNotExistException::projectFilePaths() const
 {
-    return projectFilePath_;
+    return projectFilePaths_;
 }
 
 const char *ProjectDoesNotExistException::what() const Q_DECL_NOEXCEPT
 {
     if (what_.isEmpty())
-        what_ += Utf8StringLiteral("Project file ")
-                + projectFilePath()
+        what_ += Utf8StringLiteral("Project files ")
+                + projectFilePaths().join(Utf8StringLiteral(", "))
                 + Utf8StringLiteral(" does not exist!");
 
     return what_.constData();
