@@ -300,7 +300,7 @@ TEST_F(ClangIpcServer, UnregisterTranslationUnitAndTestFailingCompletion)
 TEST_F(ClangIpcServer, GetProjectDoesNotExistUnregisterProjectInexistingProject)
 {
     Utf8StringVector inexistingProjectFilePath = {Utf8StringLiteral("projectdoesnotexists.pro"), Utf8StringLiteral("project2doesnotexists.pro")};
-    UnregisterProjectsForCodeCompletionCommand unregisterProjectsForCodeCompletionCommand({inexistingProjectFilePath});
+    UnregisterProjectsForCodeCompletionCommand unregisterProjectsForCodeCompletionCommand(inexistingProjectFilePath);
     ProjectDoesNotExistCommand projectDoesNotExistCommand(inexistingProjectFilePath);
 
     EXPECT_CALL(mockIpcClient, projectDoesNotExist(projectDoesNotExistCommand))
