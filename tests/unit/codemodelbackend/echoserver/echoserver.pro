@@ -2,7 +2,7 @@ QT       += core network
 
 QT       -= gui
 
-TARGET = codemodelbackendserver
+TARGET = echoserver
 CONFIG   += console c++14
 CONFIG   -= app_bundle
 
@@ -14,8 +14,8 @@ include(../../../../src/libs/codemodelbackendipc/codemodelbackendipc-lib.pri)
 include(../../../../src/libs/sqlite/sqlite-lib.pri)
 
 SOURCES += \
-    codemodelbackendserverprocessmain.cpp \
-    echoipcserver.cpp
+    echoipcserver.cpp \
+    echoserverprocessmain.cpp
 
 HEADERS += \
     echoipcserver.h

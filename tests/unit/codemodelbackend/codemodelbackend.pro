@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
 
-SUBDIRS = process unittest
+SUBDIRS = echoserver unittest
 
-unittest.depends = process
+unittest.depends = echoserver

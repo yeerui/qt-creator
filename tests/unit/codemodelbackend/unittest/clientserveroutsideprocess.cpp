@@ -161,7 +161,8 @@ TEST_F(ClientServerOutsideProcess, SendUnregisterProjectPartsForCodeCompletionCo
 
 void ClientServerOutsideProcess::SetUpTestCase()
 {
-    client.setProcessPath(QStringLiteral("../process/codemodelbackendserver"));
+    client.setProcessPath(QStringLiteral("../echoserver/echoserver"));
+
     ASSERT_TRUE(client.connectToServer());
 }
 
