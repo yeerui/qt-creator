@@ -242,3 +242,31 @@ TEST(Utf8, RemoveFastFromVector)
     ASSERT_TRUE(removed);
     ASSERT_THAT(values, Not(Contains(Utf8StringLiteral("b"))));
 }
+
+TEST(Utf8, ConverteAutomaticallyFromQString)
+{
+    QString text(QStringLiteral("foo"));
+
+    Utf8String utf8Text(text);
+
+    ASSERT_THAT(utf8Text, Utf8StringLiteral("foo"));
+}
+
+TEST(Utf8, ConverteAutomaticallyToQString)
+{
+    Utf8String utf8Text(Utf8StringLiteral("foo"));
+
+    QString text = utf8Text;
+
+    ASSERT_THAT(text, QStringLiteral("foo"));
+}
+
+TEST(Utf8, ConverteAutomaticallyToQByteArray)
+{
+    Utf8String utf8Text(Utf8StringLiteral("foo"));
+
+    QByteArray bytes = utf8Text;
+
+    ASSERT_THAT(bytes, QByteArrayLiteral("foo"));
+}
+

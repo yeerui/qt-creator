@@ -185,6 +185,16 @@ void Utf8String::registerType()
     qRegisterMetaType<Utf8String>("Utf8String");
 }
 
+Utf8String::operator const QByteArray &() const
+{
+    return byteArray;
+}
+
+Utf8String::operator QString() const
+{
+    return toString();
+}
+
 const Utf8String operator +(const Utf8String &first, const Utf8String &second)
 {
     return Utf8String(first.byteArray + second.byteArray);

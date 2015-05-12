@@ -56,7 +56,7 @@ class SQLITE_EXPORT Utf8String
 public:
     Utf8String() = default;
     explicit Utf8String(const char *utf8Text, int size);
-    explicit Utf8String(const QString &text);
+    Utf8String(const QString &text);
 
     const char *constData() const;
 
@@ -92,6 +92,9 @@ public:
     const Utf8String &operator+=(const Utf8String &text);
 
     static void registerType();
+
+    operator QString () const;
+    operator const QByteArray & () const;
 
 protected:
     explicit Utf8String(const QByteArray &utf8ByteArray);
