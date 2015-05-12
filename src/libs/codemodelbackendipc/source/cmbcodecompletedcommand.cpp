@@ -34,6 +34,8 @@
 
 #include <QDataStream>
 
+#include <ostream>
+
 namespace CodeModelBackEnd {
 
 CodeCompletedCommand::CodeCompletedCommand(const QVector<CodeCompletion> &codeCompletions, quint64 ticketNumber)

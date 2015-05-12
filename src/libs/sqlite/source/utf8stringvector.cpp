@@ -33,6 +33,8 @@
 #include <QStringList>
 #include <QDebug>
 
+#include <ostream>
+
 Utf8StringVector::Utf8StringVector()
 {
 }

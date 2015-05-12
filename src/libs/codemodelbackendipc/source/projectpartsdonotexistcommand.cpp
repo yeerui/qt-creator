@@ -34,6 +34,8 @@
 
 #include <QDataStream>
 
+#include <ostream>
+
 namespace CodeModelBackEnd {
 
 ProjectPartsDoNotExistCommand::ProjectPartsDoNotExistCommand(const Utf8StringVector &projectPartIds)

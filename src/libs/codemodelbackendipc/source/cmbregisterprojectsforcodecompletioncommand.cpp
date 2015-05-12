@@ -34,6 +34,8 @@
 
 #include <QDataStream>
 
+#include <ostream>
+
 namespace CodeModelBackEnd {
 
 RegisterProjectPartsForCodeCompletionCommand::RegisterProjectPartsForCodeCompletionCommand(const QVector<ProjectPartContainer> &projectContainers)

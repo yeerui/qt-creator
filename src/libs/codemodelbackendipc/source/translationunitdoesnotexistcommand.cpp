@@ -34,6 +34,8 @@
 
 #include <QDataStream>
 
+#include <ostream>
+
 namespace CodeModelBackEnd {
 
 TranslationUnitDoesNotExistCommand::TranslationUnitDoesNotExistCommand(const FileContainer &fileContainer)

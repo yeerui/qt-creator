@@ -34,6 +34,8 @@
 
 #include <QDebug>
 
+#include <ostream>
+
 namespace CodeModelBackEnd {
 
 CodeCompletionChunk::CodeCompletionChunk()
