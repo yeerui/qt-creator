@@ -3,15 +3,21 @@ import qbs 1.0
 QtcLibrary {
     name: "Sqlite"
 
-    cpp.includePaths: base.concat("../3rdparty/sqlite")
+    cpp.includePaths: base.concat(["../3rdparty/sqlite", "source"])
     cpp.defines: base.concat([
-        "CPLUSPLUS_BUILD_LIB"
+        "BUILD_SQLITE_LIBRARY",
+        "SQLITE_THREADSAFE=2",
+        "SQLITE_ENABLE_FTS4",
+        "SQLITE_ENABLE_FTS3_PARENTHESIS",
+        "SQLITE_ENABLE_UNLOCK_NOTIFY",
+        "SQLITE_ENABLE_COLUMN_METADATA"
     ])
     cpp.optimization: "fast"
+    cpp.dynamicLibraries: base.concat("dl")
 
 
     Group {
-        name: "ThirdSqlite"
+        name: "ThirdPartySqlite"
         prefix: "../3rdparty/sqlite/"
         files: [
             "sqlite3.c",
@@ -20,9 +26,18 @@ QtcLibrary {
         ]
     }
 
-    Export {
-        cpp.includePaths: [
-            "../3rdparty/sqlite"
+    Group {
+        prefix: "source/"
+        files: [
+            "*.h",
+            "*.cpp"
         ]
+    }
+
+    Export {
+        cpp.includePaths: base.concat([
+            "../3rdparty/sqlite",
+            "source"
+        ])
     }
 }
