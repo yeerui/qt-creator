@@ -34,7 +34,7 @@
 
 #include <utf8stringvector.h>
 
-#include <projectcontainer.h>
+#include <projectpartcontainer.h>
 
 namespace CodeModelBackEnd {
 
