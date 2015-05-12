@@ -10,6 +10,8 @@ TEMPLATE = app
 
 unix:LIBS += -ldl
 
+osx:QMAKE_CXXFLAGS = -stdlib=libc++
+
 include(../../../../src/libs/codemodelbackendipc/codemodelbackendipc-lib.pri)
 include(../../../../src/libs/sqlite/sqlite-lib.pri)
 

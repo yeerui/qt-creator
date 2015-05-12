@@ -31,6 +31,8 @@ LIBS += $$LLVM_LIBS
 INCLUDEPATH += $$LLVM_INCLUDEPATH
 INCLUDEPATH += ../../../../src/libs/utils
 
+osx:QMAKE_CXXFLAGS = -stdlib=libc++
+
 SOURCES += main.cpp \
     $$GTEST_DIR/src/gtest-all.cc \
     $$GMOCK_DIR/src/gmock-all.cc \
