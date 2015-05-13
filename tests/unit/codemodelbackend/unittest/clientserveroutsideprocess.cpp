@@ -59,6 +59,12 @@
 
 #include <mockipclient.h>
 
+#ifdef Q_OS_WIN
+#define QTC_HOST_EXE_SUFFIX L".exe"
+#else
+#define QTC_HOST_EXE_SUFFIX ""
+#endif
+
 using namespace CodeModelBackEnd;
 
 using ::testing::Eq;
@@ -161,7 +167,7 @@ TEST_F(ClientServerOutsideProcess, SendUnregisterProjectPartsForCodeCompletionCo
 
 void ClientServerOutsideProcess::SetUpTestCase()
 {
-    client.setProcessPath(QStringLiteral("../echoserver/echoserver"));
+    client.setProcessPath(QStringLiteral(ECHOSERVER QTC_HOST_EXE_SUFFIX));
 
     ASSERT_TRUE(client.connectToServer());
 }

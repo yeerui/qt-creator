@@ -2,7 +2,7 @@ QT       += core network
 
 QT       -= gui
 
-TARGET = echoserver
+TARGET = echo
 CONFIG   += console c++14
 CONFIG   -= app_bundle
 

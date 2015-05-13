@@ -81,3 +81,5 @@ DEFINES += DONT_CHECK_COMMAND_COUNTER
 DEFINES += GTEST_HAS_STD_INITIALIZER_LIST_ GTEST_LANG_CXX11
 
 DEFINES += TESTDATA_DIR=\"R\\\"xxx($$PWD/data)xxx\\\"\"
+win32:DEFINES += ECHOSERVER=\"R\\\"xxx($$OUT_PWD/../echo)xxx\\\"\"
+unix:DEFINES += ECHOSERVER=\"R\\\"xxx($$OUT_PWD/../echoserver/echo)xxx\\\"\"
