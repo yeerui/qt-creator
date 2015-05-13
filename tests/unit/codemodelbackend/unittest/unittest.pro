@@ -27,6 +27,8 @@ include(../../../../src/libs/codemodelbackendipc/codemodelbackendipc-lib.pri)
 include(../../../../src/tools/codemodelbackend/ipcsource/codemodelbackendclangipc-source.pri)
 include(../../../../src/tools/codemodelbackend/clang_installation.pri)
 
+requires(!isEmpty(LLVM_LIBS))
+
 LIBS += $$LLVM_LIBS
 INCLUDEPATH += $$LLVM_INCLUDEPATH
 INCLUDEPATH += ../../../../src/libs/utils
