@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -39,6 +39,7 @@
 #include <projectpartsdonotexistexception.h>
 
 #include <chrono>
+#include <thread>
 
 using testing::ElementsAre;
 using testing::StrEq;
@@ -90,6 +91,7 @@ TEST(ProjectPart, TimeStampIsUpdatedAsArgumentChanged)
 {
     CodeModelBackEnd::ProjectPart project(Utf8StringLiteral("/tmp/blah.pro"));
     auto lastChangeTimePoint = project.lastChangeTimePoint();
+    std::this_thread::sleep_for(std::chrono::steady_clock::duration(1));
 
     project.setArguments(Utf8StringVector({Utf8StringLiteral("-O"), Utf8StringLiteral("-fast")}));
 

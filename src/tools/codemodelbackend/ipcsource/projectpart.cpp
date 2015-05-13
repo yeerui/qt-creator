@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -49,7 +49,7 @@ public:
 };
 
 ProjectPartData::ProjectPartData(const Utf8String &projectPartId)
-    : lastChangeTimePoint(std::chrono::high_resolution_clock::now()),
+    : lastChangeTimePoint(std::chrono::steady_clock::now()),
       projectPartId(projectPartId)
 {
 }
@@ -129,7 +129,7 @@ const time_point &ProjectPart::lastChangeTimePoint() const
 
 void ProjectPart::updateLastChangeTimePoint()
 {
-    d->lastChangeTimePoint = std::chrono::high_resolution_clock::now();
+    d->lastChangeTimePoint = std::chrono::steady_clock::now();
 }
 
 bool operator ==(const ProjectPart &first, const ProjectPart &second)

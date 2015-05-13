@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -47,7 +47,7 @@ public:
 };
 
 UnsavedFilesData::UnsavedFilesData()
-    : lastChangeTimePoint(std::chrono::high_resolution_clock::now())
+    : lastChangeTimePoint(std::chrono::steady_clock::now())
 {
 }
 
@@ -179,7 +179,7 @@ void UnsavedFiles::addOrUpdateCXUnsavedFile(const FileContainer &fileContainer)
 
 void UnsavedFiles::updateLastChangeTimePoint()
 {
-    d->lastChangeTimePoint = std::chrono::high_resolution_clock::now();
+    d->lastChangeTimePoint = std::chrono::steady_clock::now();
 }
 
 

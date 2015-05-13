@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -43,7 +43,7 @@ namespace CodeModelBackEnd {
 class ProjectPartContainer;
 class ProjectPartData;
 
-using time_point = std::chrono::high_resolution_clock::time_point;
+using time_point = std::chrono::steady_clock::time_point;
 
 class ProjectPart
 {

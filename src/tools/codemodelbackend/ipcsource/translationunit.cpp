@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
@@ -64,7 +64,7 @@ public:
 TranslationUnitData::TranslationUnitData(const Utf8String &filePath,
                                          const UnsavedFiles &unsavedFiles,
                                          const ProjectPart &projectPart)
-    : lastChangeTimePoint(std::chrono::high_resolution_clock::now()),
+    : lastChangeTimePoint(std::chrono::steady_clock::now()),
       projectPart(projectPart),
       filePath(filePath),
       unsavedFiles(unsavedFiles)
@@ -149,12 +149,12 @@ void TranslationUnit::checkIfFileExists() const
 
 void TranslationUnit::updateLastChangeTimePoint() const
 {
-    d->lastChangeTimePoint = std::chrono::high_resolution_clock::now();
+    d->lastChangeTimePoint = std::chrono::steady_clock::now();
 }
 
 void TranslationUnit::removeOutdatedTranslationUnit() const
 {
-    if (d->projectPart.lastChangeTimePoint() > d->lastChangeTimePoint) {
+    if (d->projectPart.lastChangeTimePoint() >= d->lastChangeTimePoint) {
         clang_disposeTranslationUnit(d->translationUnit);
         d->translationUnit = nullptr;
     }

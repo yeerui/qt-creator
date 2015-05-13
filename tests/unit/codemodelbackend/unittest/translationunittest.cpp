@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -45,6 +45,9 @@
 #include <translationunitisnullexception.h>
 #include <translationunitfilenotexitexception.h>
 #include <translationunitparseerrorexception.h>
+
+#include <chrono>
+#include <thread>
 
 using CodeModelBackEnd::TranslationUnit;
 using CodeModelBackEnd::UnsavedFiles;
@@ -125,6 +128,7 @@ TEST(TranslationUnit, TimeStampIsUpdatedAsNewCxTranslationUnitIsGenerated)
 {
     TranslationUnit translationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_testfile_1.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
     auto lastChangeTimePoint = translationUnit.lastChangeTimePoint();
+    std::this_thread::sleep_for(std::chrono::steady_clock::duration(1));
 
     translationUnit.cxTranslationUnit();
 

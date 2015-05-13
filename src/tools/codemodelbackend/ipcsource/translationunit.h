@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing
@@ -47,7 +47,7 @@ class CodeCompleter;
 class UnsavedFiles;
 class ProjectPart;
 
-using time_point = std::chrono::high_resolution_clock::time_point;
+using time_point = std::chrono::steady_clock::time_point;
 
 class TranslationUnit
 {
