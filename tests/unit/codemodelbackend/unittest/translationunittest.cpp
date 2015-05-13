@@ -70,7 +70,7 @@ TEST(TranslationUnit, ThrowExceptionForNonExistingFilePath)
 
 TEST(TranslationUnit, TranslationUnitIsValid)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
+    TranslationUnit translationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_testfile_1.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
 
     ASSERT_FALSE(translationUnit.isNull());
 }
@@ -85,7 +85,7 @@ TEST(TranslationUnit, ThrowExceptionForGettingIndexForInvalidUnit)
 
 TEST(TranslationUnit, IndexGetterIsNonNullForValidUnit)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
+    TranslationUnit translationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_testfile_1.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
 
     ASSERT_THAT(translationUnit.index(), NotNull());
 }
@@ -100,7 +100,7 @@ TEST(TranslationUnit, ThrowExceptionForGettingCxTranslationUnitForInvalidUnit)
 TEST(TranslationUnit, CxTranslationUnitGetterIsNonNullForValidUnit)
 {
     UnsavedFiles unsavedFiles;
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), unsavedFiles, ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
+    TranslationUnit translationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_testfile_1.cpp"), unsavedFiles, ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
 
     ASSERT_THAT(translationUnit.cxTranslationUnit(), NotNull());
 }
@@ -114,7 +114,7 @@ TEST(TranslationUnit, ThrowExceptionIfGettingFilePathForNullUnit)
 
 TEST(TranslationUnit, ResetedTranslationUnitIsNull)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
+    TranslationUnit translationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_testfile_1.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
 
     translationUnit.reset();
 
@@ -123,7 +123,7 @@ TEST(TranslationUnit, ResetedTranslationUnitIsNull)
 
 TEST(TranslationUnit, TimeStampIsUpdatedAsNewCxTranslationUnitIsGenerated)
 {
-    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
+    TranslationUnit translationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_testfile_1.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile")));
     auto lastChangeTimePoint = translationUnit.lastChangeTimePoint();
 
     translationUnit.cxTranslationUnit();
@@ -136,7 +136,7 @@ TEST(TranslationUnit, TimeStampIsUpdatedAsNewCxTranslationUnitIsGenerated)
 //{
 //    ProjectPart project(Utf8StringLiteral("/path/to/projectfile"));
 //    project.setArguments({Utf8StringLiteral("-fblah")});
-//    TranslationUnit translationUnit(Utf8StringLiteral("data/complete_testfile_1.cpp"), UnsavedFiles(), project);
+//    TranslationUnit translationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_testfile_1.cpp"), UnsavedFiles(), project);
 
 //    ASSERT_THROW(translationUnit.cxTranslationUnit(), CodeModelBackEnd::TranslationUnitParseErrorException);
 //}

@@ -87,7 +87,7 @@ protected:
     CodeModelBackEnd::ProjectParts projects;
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
     CodeModelBackEnd::TranslationUnits translationUnits = CodeModelBackEnd::TranslationUnits(projects, unsavedFiles);
-    const Utf8String filePath = Utf8StringLiteral("data/complete_testfile_1.cpp");
+    const Utf8String filePath = Utf8StringLiteral(TESTDATA_DIR"/complete_testfile_1.cpp");
     const Utf8String projectPartId = Utf8StringLiteral("/path/to/projectfile");
 
 };

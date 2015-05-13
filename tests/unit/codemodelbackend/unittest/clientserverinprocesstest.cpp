@@ -108,7 +108,7 @@ TEST_F(ClientServerInProcess, SendAliveCommand)
 
 TEST_F(ClientServerInProcess, SendRegisterTranslationUnitForCodeCompletionCommand)
 {
-    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("data/complete_extractor_function.cpp"),
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_function.cpp"),
                                                   Utf8StringLiteral("pathToProjectPart.pro"));
     CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand command({fileContainer});
 
@@ -156,7 +156,7 @@ TEST_F(ClientServerInProcess, SendCodeCompletedCommand)
 
 TEST_F(ClientServerInProcess, SendRegisterProjectPartsForCodeCompletionCommand)
 {
-    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("data/complete.pro"));
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral(TESTDATA_DIR"/complete.pro"));
     CodeModelBackEnd::RegisterProjectPartsForCodeCompletionCommand command({projectContainer});
 
     EXPECT_CALL(mockIpcServer, registerProjectPartsForCodeCompletion(command))
@@ -168,7 +168,7 @@ TEST_F(ClientServerInProcess, SendRegisterProjectPartsForCodeCompletionCommand)
 
 TEST_F(ClientServerInProcess, SendUnregisterProjectPartsForCodeCompletionCommand)
 {
-    CodeModelBackEnd::UnregisterProjectPartsForCodeCompletionCommand command({Utf8StringLiteral("data/complete.pro")});
+    CodeModelBackEnd::UnregisterProjectPartsForCodeCompletionCommand command({Utf8StringLiteral(TESTDATA_DIR"/complete.pro")});
 
     EXPECT_CALL(mockIpcServer, unregisterProjectPartsForCodeCompletion(command))
         .Times(1);
@@ -179,7 +179,7 @@ TEST_F(ClientServerInProcess, SendUnregisterProjectPartsForCodeCompletionCommand
 
 TEST_F(ClientServerInProcess, SendTranslationUnitDoesNotExistCommand)
 {
-    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("data/complete_extractor_function.cpp"),
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_function.cpp"),
                                                   Utf8StringLiteral("pathToProjectPart.pro"));
     CodeModelBackEnd::TranslationUnitDoesNotExistCommand command(fileContainer);
 

@@ -66,12 +66,12 @@ protected:
 
 CodeModelBackEnd::ProjectPart CodeCompleter::projectPart(Utf8StringLiteral("projectPartId"));
 CodeModelBackEnd::UnsavedFiles CodeCompleter::unsavedFiles;
-CodeModelBackEnd::TranslationUnit CodeCompleter::translationUnit(Utf8StringLiteral("data/complete_completer.cpp"), unsavedFiles, projectPart);
+CodeModelBackEnd::TranslationUnit CodeCompleter::translationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_completer.cpp"), unsavedFiles, projectPart);
 CodeModelBackEnd::CodeCompleter CodeCompleter::completer = translationUnit;
 
 void CodeCompleter::SetUpTestCase()
 {
-    QFile unsavedFileContentFile(QStringLiteral("data/complete_completer_unsaved.cpp"));
+    QFile unsavedFileContentFile(QStringLiteral(TESTDATA_DIR"/complete_completer_unsaved.cpp"));
     unsavedFileContentFile.open(QIODevice::ReadOnly);
 
     const Utf8String unsavedFileContent = Utf8String::fromByteArray(unsavedFileContentFile.readAll());

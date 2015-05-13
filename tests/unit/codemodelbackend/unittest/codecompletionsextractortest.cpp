@@ -150,12 +150,12 @@ protected:
 
 CodeModelBackEnd::ProjectPart CodeCompletionsExtractor::project(Utf8StringLiteral("/path/to/projectfile"));
 CodeModelBackEnd::UnsavedFiles CodeCompletionsExtractor::unsavedFiles;
-TranslationUnit CodeCompletionsExtractor::functionTranslationUnit(Utf8StringLiteral("data/complete_extractor_function.cpp"), unsavedFiles, project);
-TranslationUnit CodeCompletionsExtractor::variableTranslationUnit(Utf8StringLiteral("data/complete_extractor_variable.cpp"), unsavedFiles, project);
-TranslationUnit CodeCompletionsExtractor::classTranslationUnit(Utf8StringLiteral("data/complete_extractor_class.cpp"), unsavedFiles, project);
-TranslationUnit CodeCompletionsExtractor::namespaceTranslationUnit(Utf8StringLiteral("data/complete_extractor_namespace.cpp"), unsavedFiles, project);
-TranslationUnit CodeCompletionsExtractor::enumerationTranslationUnit(Utf8StringLiteral("data/complete_extractor_enumeration.cpp"), unsavedFiles, project);
-TranslationUnit CodeCompletionsExtractor::constructorTranslationUnit(Utf8StringLiteral("data/complete_extractor_constructor.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionsExtractor::functionTranslationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_function.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionsExtractor::variableTranslationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_variable.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionsExtractor::classTranslationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_class.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionsExtractor::namespaceTranslationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_namespace.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionsExtractor::enumerationTranslationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_enumeration.cpp"), unsavedFiles, project);
+TranslationUnit CodeCompletionsExtractor::constructorTranslationUnit(Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_constructor.cpp"), unsavedFiles, project);
 
 void CodeCompletionsExtractor::TearDownTestCase()
 {
@@ -527,9 +527,9 @@ TEST_F(CodeCompletionsExtractor, UnsavedFile)
 {
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
     CodeModelBackEnd::ProjectPart project(Utf8StringLiteral("/path/to/projectfile"));
-    TranslationUnit translationUnit(Utf8String::fromUtf8("data/complete_extractor_function.cpp"), unsavedFiles, project);
-    unsavedFiles.createOrUpdate({unsavedDataFileContainer("data/complete_extractor_function.cpp",
-                                                          "data/complete_extractor_function_unsaved.cpp")});
+    TranslationUnit translationUnit(Utf8String::fromUtf8(TESTDATA_DIR"/complete_extractor_function.cpp"), unsavedFiles, project);
+    unsavedFiles.createOrUpdate({unsavedDataFileContainer(TESTDATA_DIR"/complete_extractor_function.cpp",
+                                                          TESTDATA_DIR"/complete_extractor_function_unsaved.cpp")});
     ClangCodeCompleteResults completeResults(getResults(translationUnit, 20));
 
     ::CodeCompletionsExtractor extractor(completeResults.data());
@@ -543,12 +543,12 @@ TEST_F(CodeCompletionsExtractor, ChangeUnsavedFile)
 {
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
     CodeModelBackEnd::ProjectPart project(Utf8StringLiteral("/path/to/projectfile"));
-    TranslationUnit translationUnit(Utf8String::fromUtf8("data/complete_extractor_function.cpp"), unsavedFiles, project);
-    unsavedFiles.createOrUpdate({unsavedDataFileContainer("data/complete_extractor_function.cpp",
-                                                          "data/complete_extractor_function_unsaved.cpp")});
+    TranslationUnit translationUnit(Utf8String::fromUtf8(TESTDATA_DIR"/complete_extractor_function.cpp"), unsavedFiles, project);
+    unsavedFiles.createOrUpdate({unsavedDataFileContainer(TESTDATA_DIR"/complete_extractor_function.cpp",
+                                                          TESTDATA_DIR"/complete_extractor_function_unsaved.cpp")});
     ClangCodeCompleteResults completeResults(getResults(translationUnit, 20));
-    unsavedFiles.createOrUpdate({unsavedDataFileContainer("data/complete_extractor_function.cpp",
-                                                          "data/complete_extractor_function_unsaved_2.cpp")});
+    unsavedFiles.createOrUpdate({unsavedDataFileContainer(TESTDATA_DIR"/complete_extractor_function.cpp",
+                                                          TESTDATA_DIR"/complete_extractor_function_unsaved_2.cpp")});
     completeResults = getResults(translationUnit, 20);
 
     ::CodeCompletionsExtractor extractor(completeResults.data());

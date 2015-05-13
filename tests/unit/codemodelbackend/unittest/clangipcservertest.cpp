@@ -90,11 +90,11 @@ protected:
     MockIpcClient mockIpcClient;
     CodeModelBackEnd::ClangIpcServer clangServer;
     const Utf8String projectPartId = Utf8StringLiteral("pathToProjectPart.pro");
-    const Utf8String functionTestFilePath = Utf8StringLiteral("data/complete_extractor_function.cpp");
-    const Utf8String variableTestFilePath = Utf8StringLiteral("data/complete_extractor_variable.cpp");
-    const QString unsavedTestFilePath = QStringLiteral("data/complete_extractor_function_unsaved.cpp");
-    const QString updatedUnsavedTestFilePath = QStringLiteral("data/complete_extractor_function_unsaved_2.cpp");
-    const Utf8String parseErrorTestFilePath = Utf8StringLiteral("data/complete_translationunit_parse_error.cpp");
+    const Utf8String functionTestFilePath = Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_function.cpp");
+    const Utf8String variableTestFilePath = Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_variable.cpp");
+    const QString unsavedTestFilePath = QStringLiteral(TESTDATA_DIR"/complete_extractor_function_unsaved.cpp");
+    const QString updatedUnsavedTestFilePath = QStringLiteral(TESTDATA_DIR"/complete_extractor_function_unsaved_2.cpp");
+    const Utf8String parseErrorTestFilePath = Utf8StringLiteral(TESTDATA_DIR"/complete_translationunit_parse_error.cpp");
 };
 
 

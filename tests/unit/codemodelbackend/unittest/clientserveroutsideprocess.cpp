@@ -136,7 +136,7 @@ TEST_F(ClientServerOutsideProcess, SendCompleteCodeCommand)
 
 TEST_F(ClientServerOutsideProcess, SendRegisterProjectPartsForCodeCompletionCommand)
 {
-    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("data/complete.pro"));
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral(TESTDATA_DIR"/complete.pro"));
     CodeModelBackEnd::RegisterProjectPartsForCodeCompletionCommand registerProjectPartsForCodeCompletionCommand({projectContainer});
     EchoCommand echoCommand(QVariant::fromValue(registerProjectPartsForCodeCompletionCommand));
 
@@ -149,7 +149,7 @@ TEST_F(ClientServerOutsideProcess, SendRegisterProjectPartsForCodeCompletionComm
 
 TEST_F(ClientServerOutsideProcess, SendUnregisterProjectPartsForCodeCompletionCommand)
 {
-    CodeModelBackEnd::UnregisterProjectPartsForCodeCompletionCommand unregisterProjectPartsForCodeCompletionCommand({Utf8StringLiteral("data/complete.pro")});
+    CodeModelBackEnd::UnregisterProjectPartsForCodeCompletionCommand unregisterProjectPartsForCodeCompletionCommand({Utf8StringLiteral(TESTDATA_DIR"/complete.pro")});
     EchoCommand echoCommand(QVariant::fromValue(unregisterProjectPartsForCodeCompletionCommand));
 
     EXPECT_CALL(mockIpcClient, echo(echoCommand))

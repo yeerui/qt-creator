@@ -87,7 +87,4 @@ DEFINES += CODEMODELBACKEND_TESTS
 DEFINES += DONT_CHECK_COMMAND_COUNTER
 DEFINES += GTEST_HAS_STD_INITIALIZER_LIST_ GTEST_LANG_CXX11
 
-copydata.commands = $(COPY_DIR) $$shell_quote($$shell_path($$PWD/data)) $$shell_quote($$shell_path($$OUT_PWD/data))
-first.depends += copydata
-QMAKE_EXTRA_TARGETS += first copydata
-
+DEFINES += TESTDATA_DIR=$$shell_quote($$shell_path(\"$$PWD/data\"))
