@@ -39,8 +39,8 @@
 #include "cmbunregisterprojectsforcodecompletioncommand.h"
 #include "cmbcompletecodecommand.h"
 #include "cmbcodecompletedcommand.h"
-#include "projectdoesnotexistscommand.h"
-#include "translationunitdoesnotexistscommand.h"
+#include "projectpartsdonotexistcommand.h"
+#include "translationunitdoesnotexistcommand.h"
 
 #include <QDataStream>
 
@@ -83,25 +83,25 @@ void Commands::registerCommands()
     qRegisterMetaTypeStreamOperators<CodeCompletedCommand>();
     QMetaType::registerComparators<CodeCompletedCommand>();
 
-    qRegisterMetaType<RegisterProjectsForCodeCompletionCommand>();
-    qRegisterMetaTypeStreamOperators<RegisterProjectsForCodeCompletionCommand>();
-    QMetaType::registerComparators<RegisterProjectsForCodeCompletionCommand>();
+    qRegisterMetaType<RegisterProjectPartsForCodeCompletionCommand>();
+    qRegisterMetaTypeStreamOperators<RegisterProjectPartsForCodeCompletionCommand>();
+    QMetaType::registerComparators<RegisterProjectPartsForCodeCompletionCommand>();
 
-    qRegisterMetaType<ProjectContainer>();
-    qRegisterMetaTypeStreamOperators<ProjectContainer>();
-    QMetaType::registerComparators<ProjectContainer>();
+    qRegisterMetaType<ProjectPartContainer>();
+    qRegisterMetaTypeStreamOperators<ProjectPartContainer>();
+    QMetaType::registerComparators<ProjectPartContainer>();
 
-    qRegisterMetaType<UnregisterProjectsForCodeCompletionCommand>();
-    qRegisterMetaTypeStreamOperators<UnregisterProjectsForCodeCompletionCommand>();
-    QMetaType::registerComparators<UnregisterProjectsForCodeCompletionCommand>();
+    qRegisterMetaType<UnregisterProjectPartsForCodeCompletionCommand>();
+    qRegisterMetaTypeStreamOperators<UnregisterProjectPartsForCodeCompletionCommand>();
+    QMetaType::registerComparators<UnregisterProjectPartsForCodeCompletionCommand>();
 
     qRegisterMetaType<TranslationUnitDoesNotExistCommand>();
     qRegisterMetaTypeStreamOperators<TranslationUnitDoesNotExistCommand>();
     QMetaType::registerComparators<TranslationUnitDoesNotExistCommand>();
 
-    qRegisterMetaType<ProjectDoesNotExistCommand>();
-    qRegisterMetaTypeStreamOperators<ProjectDoesNotExistCommand>();
-    QMetaType::registerComparators<ProjectDoesNotExistCommand>();
+    qRegisterMetaType<ProjectPartsDoNotExistCommand>();
+    qRegisterMetaTypeStreamOperators<ProjectPartsDoNotExistCommand>();
+    QMetaType::registerComparators<ProjectPartsDoNotExistCommand>();
 }
 
 } // namespace CodeModelBackEnd

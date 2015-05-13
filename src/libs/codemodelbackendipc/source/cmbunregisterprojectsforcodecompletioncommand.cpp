@@ -37,43 +37,43 @@
 namespace CodeModelBackEnd {
 
 
-UnregisterProjectsForCodeCompletionCommand::UnregisterProjectsForCodeCompletionCommand(const Utf8StringVector &filePaths)
+UnregisterProjectPartsForCodeCompletionCommand::UnregisterProjectPartsForCodeCompletionCommand(const Utf8StringVector &filePaths)
     : filePaths_(filePaths)
 {
 }
 
-const Utf8StringVector &UnregisterProjectsForCodeCompletionCommand::filePaths() const
+const Utf8StringVector &UnregisterProjectPartsForCodeCompletionCommand::filePaths() const
 {
     return filePaths_;
 }
 
-QDataStream &operator<<(QDataStream &out, const UnregisterProjectsForCodeCompletionCommand &command)
+QDataStream &operator<<(QDataStream &out, const UnregisterProjectPartsForCodeCompletionCommand &command)
 {
     out << command.filePaths_;
 
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, UnregisterProjectsForCodeCompletionCommand &command)
+QDataStream &operator>>(QDataStream &in, UnregisterProjectPartsForCodeCompletionCommand &command)
 {
     in >> command.filePaths_;
 
     return in;
 }
 
-bool operator == (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second)
+bool operator == (const UnregisterProjectPartsForCodeCompletionCommand &first, const UnregisterProjectPartsForCodeCompletionCommand &second)
 {
     return first.filePaths_ == second.filePaths_;
 }
 
-bool operator < (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second)
+bool operator < (const UnregisterProjectPartsForCodeCompletionCommand &first, const UnregisterProjectPartsForCodeCompletionCommand &second)
 {
     return first.filePaths_ < second.filePaths_;
 }
 
-QDebug operator <<(QDebug debug, const UnregisterProjectsForCodeCompletionCommand &command)
+QDebug operator <<(QDebug debug, const UnregisterProjectPartsForCodeCompletionCommand &command)
 {
-    debug.nospace() << "UnregisterProjectsForCodeCompletionCommand(";
+    debug.nospace() << "UnregisterProjectPartsForCodeCompletionCommand(";
 
     for (const Utf8String &fileNames_ : command.filePaths())
         debug.nospace() << fileNames_ << ", ";
@@ -83,9 +83,9 @@ QDebug operator <<(QDebug debug, const UnregisterProjectsForCodeCompletionComman
     return debug;
 }
 
-void PrintTo(const UnregisterProjectsForCodeCompletionCommand &command, ::std::ostream* os)
+void PrintTo(const UnregisterProjectPartsForCodeCompletionCommand &command, ::std::ostream* os)
 {
-    *os << "UnregisterProjectsForCodeCompletionCommand(";
+    *os << "UnregisterProjectPartsForCodeCompletionCommand(";
 
     for (const Utf8String &fileNames_ : command.filePaths())
         *os << fileNames_.constData() << ", ";

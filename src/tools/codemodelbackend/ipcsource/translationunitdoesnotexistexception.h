@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,29 +28,28 @@
 **
 ****************************************************************************/
 
-#include "translationunitfilenotexitsexception.h"
+#ifndef CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H
+#define CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H
+
+#include <filecontainer.h>
 
 namespace CodeModelBackEnd {
 
-TranslationUnitFileNotExitsException::TranslationUnitFileNotExitsException(const Utf8String &filePath)
-    : filePath_(filePath)
+class TranslationUnitDoesNotExistException : public std::exception
 {
-}
+public:
+    TranslationUnitDoesNotExistException(const FileContainer &fileContainer);
+    TranslationUnitDoesNotExistException(const Utf8String filePath, const Utf8String projectPartId);
 
-const Utf8String &TranslationUnitFileNotExitsException::filePath() const
-{
-    return filePath_;
-}
+    const FileContainer &fileContainer() const;
 
-const char *TranslationUnitFileNotExitsException::what() const Q_DECL_NOEXCEPT
-{
-    if (what_.isEmpty())
-        what_ += Utf8StringLiteral("File ")
-                + filePath()
-                + Utf8StringLiteral(" in project does not exist!");
+    const char *what() const Q_DECL_NOEXCEPT override;
 
-    return what_.constData();
-}
+private:
+    FileContainer fileContainer_;
+    mutable Utf8String what_;
+};
 
 } // namespace CodeModelBackEnd
 
+#endif // CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H

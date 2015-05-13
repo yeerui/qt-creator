@@ -28,29 +28,58 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_PROJECTDONOTEXISTSEXCEPTION_H
-#define CODEMODELBACKEND_PROJECTDONOTEXISTSEXCEPTION_H
+#ifndef CODEMODELBACKEND_PROJECT_H
+#define CODEMODELBACKEND_PROJECT_H
 
-#include <utf8stringvector.h>
+#include <memory>
+#include <vector>
+#include <chrono>
 
-#include <exception>
+class Utf8String;
+class Utf8StringVector;
 
 namespace CodeModelBackEnd {
 
-class ProjectDoesNotExistException : public std::exception
+class ProjectPartContainer;
+class ProjectPartData;
+
+using time_point = std::chrono::high_resolution_clock::time_point;
+
+class ProjectPart
 {
 public:
-    ProjectDoesNotExistException(const Utf8StringVector &projectFilePaths);
+    ProjectPart(const Utf8String &projectPartId);
+    ProjectPart(const ProjectPartContainer &projectContainer);
+    ~ProjectPart();
 
-    const Utf8StringVector &projectFilePaths() const;
+    ProjectPart(const ProjectPart &project);
+    ProjectPart &operator =(const ProjectPart &project);
 
-    const char *what() const Q_DECL_NOEXCEPT override;
+    ProjectPart(ProjectPart &&project);
+    ProjectPart &operator =(ProjectPart &&project);
+
+    void clearProjectPartId();
+
+    const Utf8String &projectPartId() const;
+
+    void setArguments(const Utf8StringVector &arguments_);
+
+    const std::vector<const char*> &arguments() const;
+
+    int argumentCount() const;
+    const char *const *cxArguments() const;
+
+    const time_point &lastChangeTimePoint() const;
 
 private:
-    Utf8StringVector projectFilePaths_;
-    mutable Utf8String what_;
+    void updateLastChangeTimePoint();
+
+private:
+    std::shared_ptr<ProjectPartData> d;
 };
+
+bool operator ==(const ProjectPart &first, const ProjectPart &second);
 
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_PROJECTDONOTEXISTSEXCEPTION_H
+#endif // CODEMODELBACKEND_PROJECT_H

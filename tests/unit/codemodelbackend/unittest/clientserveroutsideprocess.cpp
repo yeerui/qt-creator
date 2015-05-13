@@ -54,8 +54,8 @@
 #include <writecommandblock.h>
 #include <readcommandblock.h>
 #include <connectionclient.h>
-#include <translationunitdoesnotexistscommand.h>
-#include <projectdoesnotexistscommand.h>
+#include <translationunitdoesnotexistcommand.h>
+#include <projectpartsdonotexistcommand.h>
 
 #include <mockipclient.h>
 
@@ -98,7 +98,7 @@ TEST_F(ClientServerOutsideProcess, ResetAliveTimer)
 
 TEST_F(ClientServerOutsideProcess, SendRegisterTranslationUnitForCodeCompletionCommand)
 {
-    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo"), Utf8StringLiteral("pathToProject.pro"));
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo"), Utf8StringLiteral("pathToProjectPart.pro"));
     CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand registerTranslationUnitForCodeCompletionCommand({fileContainer});
     EchoCommand echoCommand(QVariant::fromValue(registerTranslationUnitForCodeCompletionCommand));
 
@@ -134,28 +134,28 @@ TEST_F(ClientServerOutsideProcess, SendCompleteCodeCommand)
     ASSERT_TRUE(client.waitForEcho());
 }
 
-TEST_F(ClientServerOutsideProcess, SendRegisterProjectsForCodeCompletionCommand)
+TEST_F(ClientServerOutsideProcess, SendRegisterProjectPartsForCodeCompletionCommand)
 {
-    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("data/complete.pro"));
-    CodeModelBackEnd::RegisterProjectsForCodeCompletionCommand registerProjectsForCodeCompletionCommand({projectContainer});
-    EchoCommand echoCommand(QVariant::fromValue(registerProjectsForCodeCompletionCommand));
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("data/complete.pro"));
+    CodeModelBackEnd::RegisterProjectPartsForCodeCompletionCommand registerProjectPartsForCodeCompletionCommand({projectContainer});
+    EchoCommand echoCommand(QVariant::fromValue(registerProjectPartsForCodeCompletionCommand));
 
     EXPECT_CALL(mockIpcClient, echo(echoCommand))
             .Times(1);
 
-    client.serverProxy().registerProjectsForCodeCompletion(registerProjectsForCodeCompletionCommand);
+    client.serverProxy().registerProjectPartsForCodeCompletion(registerProjectPartsForCodeCompletionCommand);
     ASSERT_TRUE(client.waitForEcho());
 }
 
-TEST_F(ClientServerOutsideProcess, SendUnregisterProjectsForCodeCompletionCommand)
+TEST_F(ClientServerOutsideProcess, SendUnregisterProjectPartsForCodeCompletionCommand)
 {
-    CodeModelBackEnd::UnregisterProjectsForCodeCompletionCommand unregisterProjectsForCodeCompletionCommand({Utf8StringLiteral("data/complete.pro")});
-    EchoCommand echoCommand(QVariant::fromValue(unregisterProjectsForCodeCompletionCommand));
+    CodeModelBackEnd::UnregisterProjectPartsForCodeCompletionCommand unregisterProjectPartsForCodeCompletionCommand({Utf8StringLiteral("data/complete.pro")});
+    EchoCommand echoCommand(QVariant::fromValue(unregisterProjectPartsForCodeCompletionCommand));
 
     EXPECT_CALL(mockIpcClient, echo(echoCommand))
             .Times(1);
 
-    client.serverProxy().unregisterProjectsForCodeCompletion(unregisterProjectsForCodeCompletionCommand);
+    client.serverProxy().unregisterProjectPartsForCodeCompletion(unregisterProjectPartsForCodeCompletionCommand);
     ASSERT_TRUE(client.waitForEcho());
 }
 

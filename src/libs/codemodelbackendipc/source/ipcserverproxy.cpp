@@ -81,12 +81,12 @@ void IpcServerProxy::unregisterTranslationUnitsForCodeCompletion(const Unregiste
     writeCommandBlock.write(QVariant::fromValue(command));
 }
 
-void IpcServerProxy::registerProjectsForCodeCompletion(const RegisterProjectsForCodeCompletionCommand &command)
+void IpcServerProxy::registerProjectPartsForCodeCompletion(const RegisterProjectPartsForCodeCompletionCommand &command)
 {
     writeCommandBlock.write(QVariant::fromValue(command));
 }
 
-void IpcServerProxy::unregisterProjectsForCodeCompletion(const UnregisterProjectsForCodeCompletionCommand &command)
+void IpcServerProxy::unregisterProjectPartsForCodeCompletion(const UnregisterProjectPartsForCodeCompletionCommand &command)
 {
     writeCommandBlock.write(QVariant::fromValue(command));
 }

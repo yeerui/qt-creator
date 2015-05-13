@@ -28,36 +28,29 @@
 **
 ****************************************************************************/
 
-#include "translationunitdoesnotexistsexception.h"
+#ifndef CODEMODELBACKEND_PROJECTDONOTEXISTSEXCEPTION_H
+#define CODEMODELBACKEND_PROJECTDONOTEXISTSEXCEPTION_H
+
+#include <utf8stringvector.h>
+
+#include <exception>
 
 namespace CodeModelBackEnd {
 
-TranslationUnitDoesNotExistException::TranslationUnitDoesNotExistException(const FileContainer &fileContainer)
-    : fileContainer_(fileContainer)
+class ProjectPartDoNotExistException : public std::exception
 {
-}
+public:
+    ProjectPartDoNotExistException(const Utf8StringVector &projectPartIds);
 
-TranslationUnitDoesNotExistException::TranslationUnitDoesNotExistException(const Utf8String filePath, const Utf8String projectFilePath)
-    : fileContainer_(filePath, projectFilePath)
-{
-}
+    const Utf8StringVector &projectPartIds() const;
 
-const FileContainer &TranslationUnitDoesNotExistException::fileContainer() const
-{
-    return fileContainer_;
-}
+    const char *what() const Q_DECL_NOEXCEPT override;
 
-const char *TranslationUnitDoesNotExistException::what() const Q_DECL_NOEXCEPT
-{
-    if (what_.isEmpty())
-        what_ += Utf8StringLiteral("Parse error for file ")
-                + fileContainer_.filePath()
-                + Utf8StringLiteral(" in project ")
-                + fileContainer_.projectFilePath()
-                + Utf8StringLiteral("!");
-
-    return what_.constData();
-}
+private:
+    Utf8StringVector projectPartIds_;
+    mutable Utf8String what_;
+};
 
 } // namespace CodeModelBackEnd
 
+#endif // CODEMODELBACKEND_PROJECTDONOTEXISTSEXCEPTION_H

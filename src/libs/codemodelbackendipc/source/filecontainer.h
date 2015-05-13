@@ -48,18 +48,18 @@ class CMBIPC_EXPORT FileContainer
 public:
     FileContainer() = default;
     FileContainer(const Utf8String &filePath,
-                  const Utf8String &projectFilePath,
+                  const Utf8String &projectPartId,
                   const Utf8String &unsavedFileContent = Utf8String(),
                   bool hasUnsavedFileContent = false);
 
     const Utf8String &filePath() const;
-    const Utf8String &projectFilePath() const;
+    const Utf8String &projectPartId() const;
     const Utf8String &unsavedFileContent() const;
     bool hasUnsavedFileContent() const;
 
 private:
     Utf8String filePath_;
-    Utf8String projectFilePath_;
+    Utf8String projectPartId_;
     Utf8String unsavedFileContent_;
     bool hasUnsavedFileContent_ = false;
 };

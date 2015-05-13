@@ -28,28 +28,70 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H
-#define CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H
+#include "projectpartsdonotexistcommand.h"
 
-#include <filecontainer.h>
+#include <QDebug>
+
+#include <QDataStream>
 
 namespace CodeModelBackEnd {
 
-class TranslationUnitDoesNotExistException : public std::exception
+ProjectPartsDoNotExistCommand::ProjectPartsDoNotExistCommand(const Utf8StringVector &projectPartIds)
+    : projectPartIds_(projectPartIds)
 {
-public:
-    TranslationUnitDoesNotExistException(const FileContainer &fileContainer);
-    TranslationUnitDoesNotExistException(const Utf8String filePath, const Utf8String projectFilePath);
+}
 
-    const FileContainer &fileContainer() const;
 
-    const char *what() const Q_DECL_NOEXCEPT override;
+const Utf8StringVector &ProjectPartsDoNotExistCommand::projectPartIds() const
+{
+    return projectPartIds_;
+}
 
-private:
-    FileContainer fileContainer_;
-    mutable Utf8String what_;
-};
+QDataStream &operator<<(QDataStream &out, const ProjectPartsDoNotExistCommand &command)
+{
+    out << command.projectPartIds_;
+
+    return out;
+}
+
+QDataStream &operator>>(QDataStream &in, ProjectPartsDoNotExistCommand &command)
+{
+    in >> command.projectPartIds_;
+
+    return in;
+}
+
+bool operator == (const ProjectPartsDoNotExistCommand &first, const ProjectPartsDoNotExistCommand &second)
+{
+    return first.projectPartIds_ == second.projectPartIds_;
+}
+
+bool operator < (const ProjectPartsDoNotExistCommand &first, const ProjectPartsDoNotExistCommand &second)
+{
+    return first.projectPartIds_ < second.projectPartIds_;
+}
+
+QDebug operator <<(QDebug debug, const ProjectPartsDoNotExistCommand &command)
+{
+    debug.nospace() << "ProjectPartDoesNotExistCommand(";
+
+    debug.nospace() << command.projectPartIds_;
+
+    debug.nospace() << ")";
+
+    return debug;
+}
+
+void PrintTo(const ProjectPartsDoNotExistCommand &command, ::std::ostream* os)
+{
+    QString output;
+    QDebug debug(&output);
+
+    debug << command;
+
+    *os << output.toUtf8().constData();
+}
+
 
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_TRANSLATIONUNITDONOTEXISTS_H

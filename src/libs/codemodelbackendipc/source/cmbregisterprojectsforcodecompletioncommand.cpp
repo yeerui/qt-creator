@@ -36,45 +36,45 @@
 
 namespace CodeModelBackEnd {
 
-RegisterProjectsForCodeCompletionCommand::RegisterProjectsForCodeCompletionCommand(const QVector<ProjectContainer> &projectContainers)
+RegisterProjectPartsForCodeCompletionCommand::RegisterProjectPartsForCodeCompletionCommand(const QVector<ProjectPartContainer> &projectContainers)
     :projectContainers_(projectContainers)
 {
 }
 
-const QVector<ProjectContainer> &RegisterProjectsForCodeCompletionCommand::projectContainers() const
+const QVector<ProjectPartContainer> &RegisterProjectPartsForCodeCompletionCommand::projectContainers() const
 {
     return projectContainers_;
 }
 
-QDataStream &operator<<(QDataStream &out, const RegisterProjectsForCodeCompletionCommand &command)
+QDataStream &operator<<(QDataStream &out, const RegisterProjectPartsForCodeCompletionCommand &command)
 {
     out << command.projectContainers_;
 
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, RegisterProjectsForCodeCompletionCommand &command)
+QDataStream &operator>>(QDataStream &in, RegisterProjectPartsForCodeCompletionCommand &command)
 {
     in >> command.projectContainers_;
 
     return in;
 }
 
-bool operator == (const RegisterProjectsForCodeCompletionCommand &first, const RegisterProjectsForCodeCompletionCommand &second)
+bool operator == (const RegisterProjectPartsForCodeCompletionCommand &first, const RegisterProjectPartsForCodeCompletionCommand &second)
 {
     return first.projectContainers_ == second.projectContainers_;
 }
 
-bool operator < (const RegisterProjectsForCodeCompletionCommand &first, const RegisterProjectsForCodeCompletionCommand &second)
+bool operator < (const RegisterProjectPartsForCodeCompletionCommand &first, const RegisterProjectPartsForCodeCompletionCommand &second)
 {
     return first.projectContainers_ < second.projectContainers_;
 }
 
-QDebug operator <<(QDebug debug, const RegisterProjectsForCodeCompletionCommand &command)
+QDebug operator <<(QDebug debug, const RegisterProjectPartsForCodeCompletionCommand &command)
 {
-    debug.nospace() << "RegisterProjectsForCodeCompletion(";
+    debug.nospace() << "RegisterProjectPartsForCodeCompletion(";
 
-    for (const ProjectContainer &projectContainer : command.projectContainers())
+    for (const ProjectPartContainer &projectContainer : command.projectContainers())
         debug.nospace() << projectContainer<< ", ";
 
     debug.nospace() << ")";
@@ -82,11 +82,11 @@ QDebug operator <<(QDebug debug, const RegisterProjectsForCodeCompletionCommand 
     return debug;
 }
 
-void PrintTo(const RegisterProjectsForCodeCompletionCommand &command, ::std::ostream* os)
+void PrintTo(const RegisterProjectPartsForCodeCompletionCommand &command, ::std::ostream* os)
 {
-    *os << "RegisterProjectsForCodeCompletion(";
+    *os << "RegisterProjectPartsForCodeCompletion(";
 
-    for (const ProjectContainer &projectContainer : command.projectContainers())
+    for (const ProjectPartContainer &projectContainer : command.projectContainers())
         PrintTo(projectContainer, os);
 
     *os << ")";

@@ -34,63 +34,63 @@
 
 namespace CodeModelBackEnd {
 
-ProjectContainer::ProjectContainer(const Utf8String &fileName,
+ProjectPartContainer::ProjectPartContainer(const Utf8String &fileName,
                                    const Utf8StringVector &arguments)
-    : filePath_(fileName),
+    : projectPartId_(fileName),
       arguments_(arguments)
 {
 }
 
-const Utf8String &ProjectContainer::filePath() const
+const Utf8String &ProjectPartContainer::projectPartId() const
 {
-    return filePath_;
+    return projectPartId_;
 }
 
-const Utf8StringVector &ProjectContainer::arguments() const
+const Utf8StringVector &ProjectPartContainer::arguments() const
 {
     return arguments_;
 }
 
 
-QDataStream &operator<<(QDataStream &out, const ProjectContainer &container)
+QDataStream &operator<<(QDataStream &out, const ProjectPartContainer &container)
 {
-    out << container.filePath_;
+    out << container.projectPartId_;
     out << container.arguments_;
 
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, ProjectContainer &container)
+QDataStream &operator>>(QDataStream &in, ProjectPartContainer &container)
 {
-    in >> container.filePath_;
+    in >> container.projectPartId_;
     in >> container.arguments_;
 
     return in;
 }
 
-bool operator == (const ProjectContainer &first, const ProjectContainer &second)
+bool operator == (const ProjectPartContainer &first, const ProjectPartContainer &second)
 {
-    return first.filePath_ == second.filePath_;
+    return first.projectPartId_ == second.projectPartId_;
 }
 
-bool operator < (const ProjectContainer &first, const ProjectContainer &second)
+bool operator < (const ProjectPartContainer &first, const ProjectPartContainer &second)
 {
-    return first.filePath_ < second.filePath_;
+    return first.projectPartId_ < second.projectPartId_;
 }
 
-QDebug operator <<(QDebug debug, const ProjectContainer &container)
+QDebug operator <<(QDebug debug, const ProjectPartContainer &container)
 {
     debug.nospace() << "ProjectContainer("
-                    << container.filePath()
+                    << container.projectPartId()
                     << ")";
 
     return debug;
 }
 
-void PrintTo(const ProjectContainer &container, ::std::ostream* os)
+void PrintTo(const ProjectPartContainer &container, ::std::ostream* os)
 {
     *os << "ProjectContainer("
-        << container.filePath().constData()
+        << container.projectPartId().constData()
         << ")";
 }
 

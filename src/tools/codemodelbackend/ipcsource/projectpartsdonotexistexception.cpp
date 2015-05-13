@@ -28,58 +28,29 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_PROJECT_H
-#define CODEMODELBACKEND_PROJECT_H
-
-#include <memory>
-#include <vector>
-#include <chrono>
-
-class Utf8String;
-class Utf8StringVector;
+#include "projectpartsdonotexistexception.h"
 
 namespace CodeModelBackEnd {
 
-class ProjectContainer;
-class ProjectData;
-
-using time_point = std::chrono::high_resolution_clock::time_point;
-
-class Project
+ProjectPartDoNotExistException::ProjectPartDoNotExistException(const Utf8StringVector &projectPartIds)
+    : projectPartIds_(projectPartIds)
 {
-public:
-    Project(const Utf8String &projectFilePath);
-    Project(const ProjectContainer &projectContainer);
-    ~Project();
+}
 
-    Project(const Project &project);
-    Project &operator =(const Project &project);
+const Utf8StringVector &ProjectPartDoNotExistException::projectPartIds() const
+{
+    return projectPartIds_;
+}
 
-    Project(Project &&project);
-    Project &operator =(Project &&project);
+const char *ProjectPartDoNotExistException::what() const Q_DECL_NOEXCEPT
+{
+    if (what_.isEmpty())
+        what_ += Utf8StringLiteral("ProjectPart files ")
+                + projectPartIds().join(Utf8StringLiteral(", "))
+                + Utf8StringLiteral(" does not exist!");
 
-    void clearProjectFilePath();
-
-    const Utf8String &projectFilePath() const;
-
-    void setArguments(const Utf8StringVector &arguments_);
-
-    const std::vector<const char*> &arguments() const;
-
-    int argumentCount() const;
-    const char *const *cxArguments() const;
-
-    const time_point &lastChangeTimePoint() const;
-
-private:
-    void updateLastChangeTimePoint();
-
-private:
-    std::shared_ptr<ProjectData> d;
-};
-
-bool operator ==(const Project &first, const Project &second);
+    return what_.constData();
+}
 
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_PROJECT_H

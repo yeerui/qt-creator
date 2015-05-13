@@ -59,8 +59,8 @@ public:
     void end() override;
     void registerTranslationUnitsForCodeCompletion(const RegisterTranslationUnitForCodeCompletionCommand &command) override;
     void unregisterTranslationUnitsForCodeCompletion(const UnregisterTranslationUnitsForCodeCompletionCommand &command) override;
-    void registerProjectsForCodeCompletion(const RegisterProjectsForCodeCompletionCommand &command) override;
-    void unregisterProjectsForCodeCompletion(const UnregisterProjectsForCodeCompletionCommand &command) override;
+    void registerProjectPartsForCodeCompletion(const RegisterProjectPartsForCodeCompletionCommand &command) override;
+    void unregisterProjectPartsForCodeCompletion(const UnregisterProjectPartsForCodeCompletionCommand &command) override;
     void completeCode(const CompleteCodeCommand &command) override;
 
     void readCommands();

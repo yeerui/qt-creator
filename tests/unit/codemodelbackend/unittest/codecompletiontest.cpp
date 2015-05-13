@@ -36,7 +36,7 @@
 #include <translationunit.h>
 #include <unsavedfiles.h>
 #include <utf8stringvector.h>
-#include <project.h>
+#include <projectpart.h>
 
 #include <QFile>
 
@@ -58,15 +58,15 @@ public:
     static void TearDownTestCase();
 
 protected:
-    static CodeModelBackEnd::Project project;
+    static CodeModelBackEnd::ProjectPart projectPart;
     static CodeModelBackEnd::UnsavedFiles unsavedFiles;
     static CodeModelBackEnd::TranslationUnit translationUnit;
     static CodeModelBackEnd::CodeCompleter completer;
 };
 
-CodeModelBackEnd::Project CodeCompleter::project(Utf8StringLiteral("/path/to/projectfile"));
+CodeModelBackEnd::ProjectPart CodeCompleter::projectPart(Utf8StringLiteral("projectPartId"));
 CodeModelBackEnd::UnsavedFiles CodeCompleter::unsavedFiles;
-CodeModelBackEnd::TranslationUnit CodeCompleter::translationUnit(Utf8StringLiteral("data/complete_completer.cpp"), unsavedFiles, project);
+CodeModelBackEnd::TranslationUnit CodeCompleter::translationUnit(Utf8StringLiteral("data/complete_completer.cpp"), unsavedFiles, projectPart);
 CodeModelBackEnd::CodeCompleter CodeCompleter::completer = translationUnit;
 
 void CodeCompleter::SetUpTestCase()
@@ -76,7 +76,7 @@ void CodeCompleter::SetUpTestCase()
 
     const Utf8String unsavedFileContent = Utf8String::fromByteArray(unsavedFileContentFile.readAll());
     const CodeModelBackEnd::FileContainer unsavedDataFileContainer(translationUnit.filePath(),
-                                                                   project.projectFilePath(),
+                                                                   projectPart.projectPartId(),
                                                                    unsavedFileContent,
                                                                    true);
 

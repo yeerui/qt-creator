@@ -37,14 +37,14 @@ namespace CodeModelBackEnd {
 
 class IpcServerInterface;
 class RegisterTranslationUnitForCodeCompletionCommand;
-class RegisterProjectsForCodeCompletionCommand;
+class RegisterProjectPartsForCodeCompletionCommand;
 class UnregisterTranslationUnitsForCodeCompletionCommand;
-class UnregisterProjectsForCodeCompletionCommand;
+class UnregisterProjectPartsForCodeCompletionCommand;
 class EchoCommand;
 class CompleteCodeCommand;
 class CodeCompletedCommand;
 class TranslationUnitDoesNotExistCommand;
-class ProjectDoesNotExistCommand;
+class ProjectPartsDoNotExistCommand;
 
 class CMBIPC_EXPORT IpcClientInterface : public IpcInterface
 {
@@ -55,7 +55,7 @@ public:
     virtual void echo(const EchoCommand &command) = 0;
     virtual void codeCompleted(const CodeCompletedCommand &command) = 0;
     virtual void translationUnitDoesNotExist(const TranslationUnitDoesNotExistCommand &command) = 0;
-    virtual void projectDoesNotExist(const ProjectDoesNotExistCommand &command) = 0;
+    virtual void projectPartsDoNotExist(const ProjectPartsDoNotExistCommand &command) = 0;
 };
 
 } // namespace CodeModelBackEnd

@@ -31,34 +31,34 @@
 #ifndef CODEMODELBACKEND_PROJECTS_H
 #define CODEMODELBACKEND_PROJECTS_H
 
-#include <projectcontainer.h>
+#include <projectpartcontainer.h>
 
-#include "project.h"
+#include "projectpart.h"
 
 #include <vector>
 
 namespace CodeModelBackEnd {
 
-class Projects
+class ProjectParts
 {
 public:
-    void createOrUpdate(const QVector<ProjectContainer> &projectConainers);
-    void remove(const Utf8StringVector &projectFilePaths);
+    void createOrUpdate(const QVector<ProjectPartContainer> &projectConainers);
+    void remove(const Utf8StringVector &projectPartIds);
 
-    bool hasProject(const Utf8String &projectFilePath) const;
+    bool hasProjectPart(const Utf8String &projectPartId) const;
 
-    const Project &project(const Utf8String &projectFilePath) const;
+    const ProjectPart &project(const Utf8String &projectPartId) const;
 
-    std::vector<Project>::const_iterator findProject(const Utf8String &projectFilePath) const;
-    std::vector<Project>::iterator findProject(const Utf8String &projectFilePath);
+    std::vector<ProjectPart>::const_iterator findProjectPart(const Utf8String &projectPartId) const;
+    std::vector<ProjectPart>::iterator findProjectPart(const Utf8String &projectPartId);
 
-    const std::vector<Project> &projects() const;
-
-private:
-    void createOrUpdateProject(const ProjectContainer &projectConainer);
+    const std::vector<ProjectPart> &projects() const;
 
 private:
-    std::vector<Project> projects_;
+    void createOrUpdateProjectPart(const ProjectPartContainer &projectConainer);
+
+private:
+    std::vector<ProjectPart> projects_;
 };
 
 } // namespace CodeModelbackEnd

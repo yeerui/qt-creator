@@ -40,7 +40,7 @@
 #include <filecontainer.h>
 #include <translationunit.h>
 #include <unsavedfiles.h>
-#include <project.h>
+#include <projectpart.h>
 #include <utf8stringvector.h>
 
 #include <QFile>
@@ -138,7 +138,7 @@ public:
     static void TearDownTestCase();
 
 protected:
-    static CodeModelBackEnd::Project project;
+    static CodeModelBackEnd::ProjectPart project;
     static CodeModelBackEnd::UnsavedFiles unsavedFiles;
     static TranslationUnit functionTranslationUnit;
     static TranslationUnit variableTranslationUnit;
@@ -148,7 +148,7 @@ protected:
     static TranslationUnit constructorTranslationUnit;
 };
 
-CodeModelBackEnd::Project CodeCompletionsExtractor::project(Utf8StringLiteral("/path/to/projectfile"));
+CodeModelBackEnd::ProjectPart CodeCompletionsExtractor::project(Utf8StringLiteral("/path/to/projectfile"));
 CodeModelBackEnd::UnsavedFiles CodeCompletionsExtractor::unsavedFiles;
 TranslationUnit CodeCompletionsExtractor::functionTranslationUnit(Utf8StringLiteral("data/complete_extractor_function.cpp"), unsavedFiles, project);
 TranslationUnit CodeCompletionsExtractor::variableTranslationUnit(Utf8StringLiteral("data/complete_extractor_variable.cpp"), unsavedFiles, project);
@@ -526,7 +526,7 @@ TEST_F(CodeCompletionsExtractor, NotAvailableFunction)
 TEST_F(CodeCompletionsExtractor, UnsavedFile)
 {
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
-    CodeModelBackEnd::Project project(Utf8StringLiteral("/path/to/projectfile"));
+    CodeModelBackEnd::ProjectPart project(Utf8StringLiteral("/path/to/projectfile"));
     TranslationUnit translationUnit(Utf8String::fromUtf8("data/complete_extractor_function.cpp"), unsavedFiles, project);
     unsavedFiles.createOrUpdate({unsavedDataFileContainer("data/complete_extractor_function.cpp",
                                                           "data/complete_extractor_function_unsaved.cpp")});
@@ -542,7 +542,7 @@ TEST_F(CodeCompletionsExtractor, UnsavedFile)
 TEST_F(CodeCompletionsExtractor, ChangeUnsavedFile)
 {
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
-    CodeModelBackEnd::Project project(Utf8StringLiteral("/path/to/projectfile"));
+    CodeModelBackEnd::ProjectPart project(Utf8StringLiteral("/path/to/projectfile"));
     TranslationUnit translationUnit(Utf8String::fromUtf8("data/complete_extractor_function.cpp"), unsavedFiles, project);
     unsavedFiles.createOrUpdate({unsavedDataFileContainer("data/complete_extractor_function.cpp",
                                                           "data/complete_extractor_function_unsaved.cpp")});

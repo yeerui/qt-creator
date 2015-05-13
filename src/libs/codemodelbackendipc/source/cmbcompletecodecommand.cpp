@@ -38,9 +38,9 @@ namespace CodeModelBackEnd {
 
 quint64 CompleteCodeCommand::ticketCounter = 0;
 
-CompleteCodeCommand::CompleteCodeCommand(const Utf8String &filePath, quint32 line, quint32 column, const Utf8String &projectFilePath)
+CompleteCodeCommand::CompleteCodeCommand(const Utf8String &filePath, quint32 line, quint32 column, const Utf8String &projectPartId)
     : filePath_(filePath),
-      projectFilePath_(projectFilePath),
+      projectPartId_(projectPartId),
       ticketNumber_(++ticketCounter),
       line_(line),
       column_(column)
@@ -52,9 +52,9 @@ const Utf8String &CompleteCodeCommand::filePath() const
     return filePath_;
 }
 
-const Utf8String &CompleteCodeCommand::projectFilePath() const
+const Utf8String &CompleteCodeCommand::projectPartId() const
 {
-    return projectFilePath_;
+    return projectPartId_;
 }
 
 quint32 CompleteCodeCommand::line() const
@@ -75,7 +75,7 @@ quint64 CompleteCodeCommand::ticketNumber() const
 QDataStream &operator<<(QDataStream &out, const CompleteCodeCommand &command)
 {
     out << command.filePath_;
-    out << command.projectFilePath_;
+    out << command.projectPartId_;
     out << command.ticketNumber_;
     out << command.line_;
     out << command.column_;
@@ -86,7 +86,7 @@ QDataStream &operator<<(QDataStream &out, const CompleteCodeCommand &command)
 QDataStream &operator>>(QDataStream &in, CompleteCodeCommand &command)
 {
     in >> command.filePath_;
-    in >> command.projectFilePath_;
+    in >> command.projectPartId_;
     in >> command.ticketNumber_;
     in >> command.line_;
     in >> command.column_;
@@ -98,7 +98,7 @@ bool operator == (const CompleteCodeCommand &first, const CompleteCodeCommand &s
 {
     return first.ticketNumber_ == second.ticketNumber_
             && first.filePath_ == second.filePath_
-            && first.projectFilePath_ == second.projectFilePath_
+            && first.projectPartId_ == second.projectPartId_
             && first.line_ == second.line_
             && first.column_ == second.column_;
 }
@@ -107,7 +107,7 @@ bool operator < (const CompleteCodeCommand &first, const CompleteCodeCommand &se
 {
     return first.ticketNumber_ < second.ticketNumber_
             && first.filePath_ < second.filePath_
-            && first.projectFilePath_ < second.projectFilePath_
+            && first.projectPartId_ < second.projectPartId_
             && first.line_ < second.line_
             && first.column_ < second.column_;
 }
@@ -119,7 +119,7 @@ QDebug operator <<(QDebug debug, const CompleteCodeCommand &command)
     debug.nospace() << command.filePath_ << ", ";
     debug.nospace() << command.line_<< ", ";
     debug.nospace() << command.column_<< ", ";
-    debug.nospace() << command.projectFilePath_ << ", ";
+    debug.nospace() << command.projectPartId_ << ", ";
     debug.nospace() << command.ticketNumber_;
 
     debug.nospace() << ")";
@@ -134,7 +134,7 @@ void PrintTo(const CompleteCodeCommand &command, ::std::ostream* os)
     *os << command.filePath_.constData() << ", ";
     *os << command.line_ << ", ";
     *os << command.column_ << ", ";
-    *os << command.projectFilePath_.constData() << ", ";
+    *os << command.projectPartId_.constData() << ", ";
     *os << command.ticketNumber_;
 
     *os << ")";

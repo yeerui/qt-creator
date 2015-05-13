@@ -28,7 +28,7 @@
 **
 ****************************************************************************/
 
-#include "translationunitdoesnotexistscommand.h"
+#include "translationunitdoesnotexistcommand.h"
 
 #include <QDebug>
 
@@ -41,8 +41,8 @@ TranslationUnitDoesNotExistCommand::TranslationUnitDoesNotExistCommand(const Fil
 {
 }
 
-TranslationUnitDoesNotExistCommand::TranslationUnitDoesNotExistCommand(const Utf8String &filePath, const Utf8String &projectFilePath)
-    : fileContainer_(filePath, projectFilePath)
+TranslationUnitDoesNotExistCommand::TranslationUnitDoesNotExistCommand(const Utf8String &filePath, const Utf8String &projectPartId)
+    : fileContainer_(filePath, projectPartId)
 {
 }
 
@@ -56,9 +56,9 @@ const Utf8String &TranslationUnitDoesNotExistCommand::filePath() const
     return fileContainer_.filePath();
 }
 
-const Utf8String &TranslationUnitDoesNotExistCommand::projectFilePath() const
+const Utf8String &TranslationUnitDoesNotExistCommand::projectPartId() const
 {
-    return fileContainer_.projectFilePath();
+    return fileContainer_.projectPartId();
 }
 
 QDataStream &operator<<(QDataStream &out, const TranslationUnitDoesNotExistCommand &command)

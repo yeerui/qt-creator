@@ -39,35 +39,35 @@
 
 namespace CodeModelBackEnd {
 
-class CMBIPC_EXPORT ProjectContainer
+class CMBIPC_EXPORT ProjectPartContainer
 {
-    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectContainer &container);
-    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, ProjectContainer &container);
-    friend CMBIPC_EXPORT bool operator == (const ProjectContainer &first, const ProjectContainer &second);
-    friend CMBIPC_EXPORT bool operator < (const ProjectContainer &first, const ProjectContainer &second);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectPartContainer &container);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, ProjectPartContainer &container);
+    friend CMBIPC_EXPORT bool operator == (const ProjectPartContainer &first, const ProjectPartContainer &second);
+    friend CMBIPC_EXPORT bool operator < (const ProjectPartContainer &first, const ProjectPartContainer &second);
 public:
-    ProjectContainer() = default;
-    ProjectContainer(const Utf8String &filePath,
+    ProjectPartContainer() = default;
+    ProjectPartContainer(const Utf8String &projectPartId,
                      const Utf8StringVector &arguments = Utf8StringVector());
 
-    const Utf8String &filePath() const;
+    const Utf8String &projectPartId() const;
     const Utf8StringVector &arguments() const;
 
 private:
-    Utf8String filePath_;
+    Utf8String projectPartId_;
     Utf8StringVector arguments_;
 };
 
-CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectContainer &container);
-CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, ProjectContainer &container);
-CMBIPC_EXPORT bool operator == (const ProjectContainer &first, const ProjectContainer &second);
-CMBIPC_EXPORT bool operator < (const ProjectContainer &first, const ProjectContainer &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const ProjectPartContainer &container);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, ProjectPartContainer &container);
+CMBIPC_EXPORT bool operator == (const ProjectPartContainer &first, const ProjectPartContainer &second);
+CMBIPC_EXPORT bool operator < (const ProjectPartContainer &first, const ProjectPartContainer &second);
 
-CMBIPC_EXPORT QDebug operator <<(QDebug debug, const ProjectContainer &container);
-void PrintTo(const ProjectContainer &container, ::std::ostream* os);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const ProjectPartContainer &container);
+void PrintTo(const ProjectPartContainer &container, ::std::ostream* os);
 
 } // namespace CodeModelBackEnd
 
-Q_DECLARE_METATYPE(CodeModelBackEnd::ProjectContainer)
+Q_DECLARE_METATYPE(CodeModelBackEnd::ProjectPartContainer)
 
 #endif // CODEMODELBACKEND_PROJECTCONTAINER_H

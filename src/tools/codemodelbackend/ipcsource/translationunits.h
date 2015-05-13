@@ -40,32 +40,32 @@
 
 namespace CodeModelBackEnd {
 
-class Projects;
+class ProjectParts;
 class UnsavedFiles;
 
 class TranslationUnits
 {
 public:
-    TranslationUnits(Projects &projects, UnsavedFiles &unsavedFiles);
+    TranslationUnits(ProjectParts &projects, UnsavedFiles &unsavedFiles);
 
     void createOrUpdate(const QVector<FileContainer> &fileContainers);
     void remove(const QVector<FileContainer> &fileContainers);
 
-    const TranslationUnit &translationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const;
+    const TranslationUnit &translationUnit(const Utf8String &filePath, const Utf8String &projectPartId) const;
 
     const std::vector<TranslationUnit> &translationUnits() const;
 
 private:
     void createOrUpdateTranslationUnit(const FileContainer &fileContainer);
     std::vector<TranslationUnit>::iterator findTranslationUnit(const FileContainer &fileContainer);
-    std::vector<TranslationUnit>::const_iterator findTranslationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const;
-    void checkIfProjectExists(const Utf8String &projectFileName) const;
-    void checkIfProjectsExists(const QVector<FileContainer> &fileContainers) const;
+    std::vector<TranslationUnit>::const_iterator findTranslationUnit(const Utf8String &filePath, const Utf8String &projectPartId) const;
+    void checkIfProjectPartExists(const Utf8String &projectFileName) const;
+    void checkIfProjectPartsExists(const QVector<FileContainer> &fileContainers) const;
 
 
 private:
     std::vector<TranslationUnit> translationUnits_;
-    Projects &projects;
+    ProjectParts &projects;
     UnsavedFiles &unsavedFiles;
 };
 

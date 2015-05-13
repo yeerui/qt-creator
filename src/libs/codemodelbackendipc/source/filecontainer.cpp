@@ -37,11 +37,11 @@
 namespace CodeModelBackEnd {
 
 FileContainer::FileContainer(const Utf8String &fileName,
-                             const Utf8String &projectFilePath,
+                             const Utf8String &projectPartId,
                              const Utf8String &unsavedFileContent,
                              bool hasUnsavedFileContent)
     : filePath_(fileName),
-      projectFilePath_(projectFilePath),
+      projectPartId_(projectPartId),
       unsavedFileContent_(unsavedFileContent),
       hasUnsavedFileContent_(hasUnsavedFileContent)
 {
@@ -52,9 +52,9 @@ const Utf8String &FileContainer::filePath() const
     return filePath_;
 }
 
-const Utf8String &FileContainer::projectFilePath() const
+const Utf8String &FileContainer::projectPartId() const
 {
-    return projectFilePath_;
+    return projectPartId_;
 }
 
 const Utf8String &FileContainer::unsavedFileContent() const
@@ -70,7 +70,7 @@ bool FileContainer::hasUnsavedFileContent() const
 QDataStream &operator<<(QDataStream &out, const FileContainer &container)
 {
     out << container.filePath_;
-    out << container.projectFilePath_;
+    out << container.projectPartId_;
     out << container.unsavedFileContent_;
     out << container.hasUnsavedFileContent_;
 
@@ -80,7 +80,7 @@ QDataStream &operator<<(QDataStream &out, const FileContainer &container)
 QDataStream &operator>>(QDataStream &in, FileContainer &container)
 {
     in >> container.filePath_;
-    in >> container.projectFilePath_;
+    in >> container.projectPartId_;
     in >> container.unsavedFileContent_;
     in >> container.hasUnsavedFileContent_;
 
@@ -89,13 +89,13 @@ QDataStream &operator>>(QDataStream &in, FileContainer &container)
 
 bool operator == (const FileContainer &first, const FileContainer &second)
 {
-    return first.filePath_ == second.filePath_ && first.projectFilePath_ == second.projectFilePath_;
+    return first.filePath_ == second.filePath_ && first.projectPartId_ == second.projectPartId_;
 }
 
 bool operator < (const FileContainer &first, const FileContainer &second)
 {
     if (first.filePath_ == second.filePath_)
-        return first.projectFilePath_ < second.projectFilePath_;
+        return first.projectPartId_ < second.projectPartId_;
 
     return first.filePath_ < second.filePath_;
 }
@@ -105,7 +105,7 @@ QDebug operator <<(QDebug debug, const FileContainer &container)
     debug.nospace() << "FileContainer("
                     << container.filePath()
                     << ", "
-                    << container.projectFilePath();
+                    << container.projectPartId();
 
     if (container.hasUnsavedFileContent())
         debug.nospace() << ", "
@@ -121,7 +121,7 @@ void PrintTo(const FileContainer &container, ::std::ostream* os)
     *os << "FileContainer("
         << container.filePath().constData()
         << ", "
-        << container.projectFilePath().constData();
+        << container.projectPartId().constData();
 
     if (container.hasUnsavedFileContent())
         *os << ", "

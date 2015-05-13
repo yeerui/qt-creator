@@ -35,8 +35,8 @@
 
 #include "cmbechocommand.h"
 #include "cmbcodecompletedcommand.h"
-#include "translationunitdoesnotexistscommand.h"
-#include "projectdoesnotexistscommand.h"
+#include "translationunitdoesnotexistcommand.h"
+#include "projectpartsdonotexistcommand.h"
 
 namespace CodeModelBackEnd {
 
@@ -47,7 +47,7 @@ void IpcClientInterface::dispatch(const QVariant &command)
     static const int echoCommandType = QMetaType::type("CodeModelBackEnd::EchoCommand");
     static const int codeCompletedCommandType = QMetaType::type("CodeModelBackEnd::CodeCompletedCommand");
     static const int translationUnitDoesNotExistCommand = QMetaType::type("CodeModelBackEnd::TranslationUnitDoesNotExistCommand");
-    static const int projectDoesNotExistCommand = QMetaType::type("CodeModelBackEnd::ProjectDoesNotExistCommand");
+    static const int projectPartsDoNotExistCommand = QMetaType::type("CodeModelBackEnd::ProjectPartsDoNotExistCommand");
 
     int type = command.userType();
 
@@ -59,8 +59,8 @@ void IpcClientInterface::dispatch(const QVariant &command)
         codeCompleted(command.value<CodeCompletedCommand>());
     else if (type == translationUnitDoesNotExistCommand)
         translationUnitDoesNotExist(command.value<TranslationUnitDoesNotExistCommand>());
-    else if (type == projectDoesNotExistCommand)
-        projectDoesNotExist(command.value<ProjectDoesNotExistCommand>());
+    else if (type == projectPartsDoNotExistCommand)
+        projectPartsDoNotExist(command.value<ProjectPartsDoNotExistCommand>());
     else
         qWarning() << "Unknown IpcClientCommand";
 }

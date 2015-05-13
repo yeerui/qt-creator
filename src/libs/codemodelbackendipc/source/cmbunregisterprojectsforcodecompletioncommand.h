@@ -39,17 +39,17 @@
 
 namespace CodeModelBackEnd {
 
-class CMBIPC_EXPORT UnregisterProjectsForCodeCompletionCommand
+class CMBIPC_EXPORT UnregisterProjectPartsForCodeCompletionCommand
 {
-    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const UnregisterProjectsForCodeCompletionCommand &command);
-    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, UnregisterProjectsForCodeCompletionCommand &command);
-    friend CMBIPC_EXPORT bool operator == (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second);
-    friend CMBIPC_EXPORT bool operator < (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second);
-    friend void PrintTo(const UnregisterProjectsForCodeCompletionCommand &command, ::std::ostream* os);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const UnregisterProjectPartsForCodeCompletionCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, UnregisterProjectPartsForCodeCompletionCommand &command);
+    friend CMBIPC_EXPORT bool operator == (const UnregisterProjectPartsForCodeCompletionCommand &first, const UnregisterProjectPartsForCodeCompletionCommand &second);
+    friend CMBIPC_EXPORT bool operator < (const UnregisterProjectPartsForCodeCompletionCommand &first, const UnregisterProjectPartsForCodeCompletionCommand &second);
+    friend void PrintTo(const UnregisterProjectPartsForCodeCompletionCommand &command, ::std::ostream* os);
 
 public:
-    UnregisterProjectsForCodeCompletionCommand() = default;
-    UnregisterProjectsForCodeCompletionCommand(const Utf8StringVector &filePaths);
+    UnregisterProjectPartsForCodeCompletionCommand() = default;
+    UnregisterProjectPartsForCodeCompletionCommand(const Utf8StringVector &filePaths);
 
     const Utf8StringVector &filePaths() const;
 
@@ -57,15 +57,15 @@ private:
     Utf8StringVector filePaths_;
 };
 
-CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const UnregisterProjectsForCodeCompletionCommand &command);
-CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, UnregisterProjectsForCodeCompletionCommand &command);
-CMBIPC_EXPORT bool operator == (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second);
-CMBIPC_EXPORT bool operator < (const UnregisterProjectsForCodeCompletionCommand &first, const UnregisterProjectsForCodeCompletionCommand &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const UnregisterProjectPartsForCodeCompletionCommand &command);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, UnregisterProjectPartsForCodeCompletionCommand &command);
+CMBIPC_EXPORT bool operator == (const UnregisterProjectPartsForCodeCompletionCommand &first, const UnregisterProjectPartsForCodeCompletionCommand &second);
+CMBIPC_EXPORT bool operator < (const UnregisterProjectPartsForCodeCompletionCommand &first, const UnregisterProjectPartsForCodeCompletionCommand &second);
 
-CMBIPC_EXPORT QDebug operator <<(QDebug debug, const UnregisterProjectsForCodeCompletionCommand &command);
-void PrintTo(const UnregisterProjectsForCodeCompletionCommand &command, ::std::ostream* os);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const UnregisterProjectPartsForCodeCompletionCommand &command);
+void PrintTo(const UnregisterProjectPartsForCodeCompletionCommand &command, ::std::ostream* os);
 } // namespace CodeModelBackEnd
 
-Q_DECLARE_METATYPE(CodeModelBackEnd::UnregisterProjectsForCodeCompletionCommand)
+Q_DECLARE_METATYPE(CodeModelBackEnd::UnregisterProjectPartsForCodeCompletionCommand)
 
 #endif // CODEMODELBACKEND_UNREGISTERPROJECTSFORCODECOMPLETION_H

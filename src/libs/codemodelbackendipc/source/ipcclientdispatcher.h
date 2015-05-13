@@ -47,7 +47,7 @@ public:
     void echo(const EchoCommand &command) override;
     void codeCompleted(const CodeCompletedCommand &command) override;
     void translationUnitDoesNotExist(const TranslationUnitDoesNotExistCommand &command) override;
-    void projectDoesNotExist(const ProjectDoesNotExistCommand &command) override;
+    void projectPartsDoNotExist(const ProjectPartsDoNotExistCommand &command) override;
 
 private:
     QVector<IpcClientInterface*> clients;

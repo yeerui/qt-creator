@@ -52,10 +52,10 @@ public:
     CompleteCodeCommand(const Utf8String &filePath,
                         quint32 line,
                         quint32 column,
-                        const Utf8String &projectFilePath);
+                        const Utf8String &projectPartId);
 
     const Utf8String &filePath() const;
-    const Utf8String &projectFilePath() const;
+    const Utf8String &projectPartId() const;
 
     quint32 line() const;
     quint32 column() const;
@@ -64,7 +64,7 @@ public:
 
 private:
     Utf8String filePath_;
-    Utf8String projectFilePath_;
+    Utf8String projectPartId_;
     static quint64 ticketCounter;
     quint64 ticketNumber_;
     quint32 line_ = 0;

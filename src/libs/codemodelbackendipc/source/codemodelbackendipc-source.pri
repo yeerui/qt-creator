@@ -1,67 +1,66 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2014-12-17T12:23:46
+# ProjectPart created by QtCreator 2014-12-17T12:23:46
 #
 #-------------------------------------------------
 
 INCLUDEPATH += $$PWD
-VPATH += $$PWD
 
-SOURCES += ipcserverinterface.cpp \
-    ipcserverproxy.cpp \
-    ipcserver.cpp \
-    ipcclientinterface.cpp \
-    cmbendcommand.cpp \
-    cmbalivecommand.cpp \
-    ipcclientproxy.cpp \
-    cmbcommands.cpp \
-    writecommandblock.cpp \
-    readcommandblock.cpp \
-    ipcinterface.cpp \
-    connectionserver.cpp \
-    connectionclient.cpp \
-    cmbechocommand.cpp \
-    ipcclientdispatcher.cpp \
-    cmbregistertranslationunitsforcodecompletioncommand.cpp \
-    filecontainer.cpp \
-    cmbunregistertranslationunitsforcodecompletioncommand.cpp \
-    cmbcompletecodecommand.cpp \
-    cmbcodecompletedcommand.cpp \
-    codecompletion.cpp \
-    codemodelbackendipc_global.cpp \
-    $$PWD/projectcontainer.cpp \
+SOURCES += $$PWD/ipcserverinterface.cpp \
+    $$PWD/ipcserverproxy.cpp \
+    $$PWD/ipcserver.cpp \
+    $$PWD/ipcclientinterface.cpp \
+    $$PWD/cmbendcommand.cpp \
+    $$PWD/cmbalivecommand.cpp \
+    $$PWD/ipcclientproxy.cpp \
+    $$PWD/cmbcommands.cpp \
+    $$PWD/writecommandblock.cpp \
+    $$PWD/readcommandblock.cpp \
+    $$PWD/ipcinterface.cpp \
+    $$PWD/connectionserver.cpp \
+    $$PWD/connectionclient.cpp \
+    $$PWD/cmbechocommand.cpp \
+    $$PWD/ipcclientdispatcher.cpp \
+    $$PWD/cmbregistertranslationunitsforcodecompletioncommand.cpp \
+    $$PWD/filecontainer.cpp \
+    $$PWD/cmbunregistertranslationunitsforcodecompletioncommand.cpp \
+    $$PWD/cmbcompletecodecommand.cpp \
+    $$PWD/cmbcodecompletedcommand.cpp \
+    $$PWD/codecompletion.cpp \
+    $$PWD/codemodelbackendipc_global.cpp \
     $$PWD/cmbregisterprojectsforcodecompletioncommand.cpp \
     $$PWD/cmbunregisterprojectsforcodecompletioncommand.cpp \
-    translationunitdoesnotexistscommand.cpp \
-    $$PWD/projectdoesnotexistscommand.cpp \
-    $$PWD/codecompletionchunk.cpp
+    $$PWD/translationunitdoesnotexistcommand.cpp \
+    $$PWD/codecompletionchunk.cpp \
+    $$PWD/projectpartcontainer.cpp \
+    $$PWD/projectpartsdonotexistcommand.cpp
 
 
-HEADERS += codemodelbackendipc_global.h \
-    ipcserverinterface.h \
-    ipcserverproxy.h \
-    ipcserver.h \
-    ipcclientinterface.h \
-    cmbendcommand.h \
-    cmbalivecommand.h \
-    ipcclientproxy.h \
-    cmbcommands.h \
-    writecommandblock.h \
-    readcommandblock.h \
-    ipcinterface.h \
-    connectionserver.h \
-    connectionclient.h \
-    cmbechocommand.h \
-    ipcclientdispatcher.h \
-    cmbregistertranslationunitsforcodecompletioncommand.h \
-    filecontainer.h \
-    cmbunregistertranslationunitsforcodecompletioncommand.h \
-    cmbcompletecodecommand.h \
-    cmbcodecompletedcommand.h \
-    codecompletion.h \
-    $$PWD/projectcontainer.h \
+HEADERS += $$PWD/codemodelbackendipc_global.h \
+    $$PWD/ipcserverinterface.h \
+    $$PWD/ipcserverproxy.h \
+    $$PWD/ipcserver.h \
+    $$PWD/ipcclientinterface.h \
+    $$PWD/cmbendcommand.h \
+    $$PWD/cmbalivecommand.h \
+    $$PWD/ipcclientproxy.h \
+    $$PWD/cmbcommands.h \
+    $$PWD/writecommandblock.h \
+    $$PWD/readcommandblock.h \
+    $$PWD/ipcinterface.h \
+    $$PWD/connectionserver.h \
+    $$PWD/connectionclient.h \
+    $$PWD/cmbechocommand.h \
+    $$PWD/ipcclientdispatcher.h \
+    $$PWD/cmbregistertranslationunitsforcodecompletioncommand.h \
+    $$PWD/filecontainer.h \
+    $$PWD/cmbunregistertranslationunitsforcodecompletioncommand.h \
+    $$PWD/cmbcompletecodecommand.h \
+    $$PWD/cmbcodecompletedcommand.h \
+    $$PWD/codecompletion.h \
     $$PWD/cmbregisterprojectsforcodecompletioncommand.h \
     $$PWD/cmbunregisterprojectsforcodecompletioncommand.h \
-    translationunitdoesnotexistscommand.h \
-    $$PWD/projectdoesnotexistscommand.h \
-    $$PWD/codecompletionchunk.h
+    $$PWD/translationunitdoesnotexistcommand.h \
+    $$PWD/codecompletionchunk.h \
+    $$PWD/projectpartcontainer.h \
+    $$PWD/projectpartsdonotexistcommand.h

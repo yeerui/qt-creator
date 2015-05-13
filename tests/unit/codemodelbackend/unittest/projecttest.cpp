@@ -33,10 +33,10 @@
 #include "gmock/gmock-matchers.h"
 #include "gmock/gmock-generated-matchers.h"
 
-#include <project.h>
+#include <projectpart.h>
 #include <utf8stringvector.h>
 #include <projects.h>
-#include <projectdoesnotexistsexception.h>
+#include <projectpartsdonotexistexception.h>
 
 #include <chrono>
 
@@ -49,46 +49,46 @@ using testing::Not;
 
 namespace {
 
-TEST(Project, CreateProject)
+TEST(ProjectPart, CreateProjectPart)
 {
     Utf8String projectPath(Utf8StringLiteral("/tmp/blah.pro"));
 
-    CodeModelBackEnd::Project project(projectPath);
+    CodeModelBackEnd::ProjectPart project(projectPath);
 
-    ASSERT_THAT(project.projectFilePath(), projectPath);
+    ASSERT_THAT(project.projectPartId(), projectPath);
 }
 
-TEST(Project, CreateProjectWithProjectContainer)
+TEST(ProjectPart, CreateProjectPartWithProjectPartContainer)
 {
-    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-O")});
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("pathToProjectPart.pro"), {Utf8StringLiteral("-O")});
 
-    CodeModelBackEnd::Project project(projectContainer);
+    CodeModelBackEnd::ProjectPart project(projectContainer);
 
-    ASSERT_THAT(project.projectFilePath(), Utf8StringLiteral("pathToProject.pro"));
+    ASSERT_THAT(project.projectPartId(), Utf8StringLiteral("pathToProjectPart.pro"));
     ASSERT_THAT(project.arguments(), Contains(StrEq("-O")));
 }
 
-TEST(Project, SetArguments)
+TEST(ProjectPart, SetArguments)
 {
-    CodeModelBackEnd::Project project(Utf8StringLiteral("/tmp/blah.pro"));
+    CodeModelBackEnd::ProjectPart project(Utf8StringLiteral("/tmp/blah.pro"));
 
     project.setArguments(Utf8StringVector({Utf8StringLiteral("-O"), Utf8StringLiteral("-fast")}));
 
     ASSERT_THAT(project.arguments(), ElementsAre(StrEq("-O"), StrEq("-fast")));
 }
 
-TEST(Project, ArgumentCount)
+TEST(ProjectPart, ArgumentCount)
 {
-    CodeModelBackEnd::Project project(Utf8StringLiteral("/tmp/blah.pro"));
+    CodeModelBackEnd::ProjectPart project(Utf8StringLiteral("/tmp/blah.pro"));
 
     project.setArguments(Utf8StringVector({Utf8StringLiteral("-O"), Utf8StringLiteral("-fast")}));
 
     ASSERT_THAT(project.argumentCount(), 2);
 }
 
-TEST(Project, TimeStampIsUpdatedAsArgumentChanged)
+TEST(ProjectPart, TimeStampIsUpdatedAsArgumentChanged)
 {
-    CodeModelBackEnd::Project project(Utf8StringLiteral("/tmp/blah.pro"));
+    CodeModelBackEnd::ProjectPart project(Utf8StringLiteral("/tmp/blah.pro"));
     auto lastChangeTimePoint = project.lastChangeTimePoint();
 
     project.setArguments(Utf8StringVector({Utf8StringLiteral("-O"), Utf8StringLiteral("-fast")}));
@@ -97,88 +97,88 @@ TEST(Project, TimeStampIsUpdatedAsArgumentChanged)
 
 }
 
-TEST(Project, GetNonExistingPoject)
+TEST(ProjectPart, GetNonExistingPoject)
 {
-    CodeModelBackEnd::Projects projects;
+    CodeModelBackEnd::ProjectParts projects;
 
-    ASSERT_THROW(projects.project(Utf8StringLiteral("pathToProject.pro")), CodeModelBackEnd::ProjectDoesNotExistException);
+    ASSERT_THROW(projects.project(Utf8StringLiteral("pathToProjectPart.pro")), CodeModelBackEnd::ProjectPartDoNotExistException);
 }
 
-TEST(Project, AddProjects)
+TEST(ProjectPart, AddProjectParts)
 {
-    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-O")});
-    CodeModelBackEnd::Projects projects;
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("pathToProjectPart.pro"), {Utf8StringLiteral("-O")});
+    CodeModelBackEnd::ProjectParts projects;
 
     projects.createOrUpdate({projectContainer});
 
-    ASSERT_THAT(projects.project(projectContainer.filePath()), CodeModelBackEnd::Project(projectContainer));
-    ASSERT_THAT(projects.project(projectContainer.filePath()).arguments(), ElementsAre(StrEq("-O")));
+    ASSERT_THAT(projects.project(projectContainer.projectPartId()), CodeModelBackEnd::ProjectPart(projectContainer));
+    ASSERT_THAT(projects.project(projectContainer.projectPartId()).arguments(), ElementsAre(StrEq("-O")));
 }
 
-TEST(Project, UpdateProjects)
+TEST(ProjectPart, UpdateProjectParts)
 {
-    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-O")});
-    CodeModelBackEnd::ProjectContainer projectContainerWithNewArguments(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-fast")});
-    CodeModelBackEnd::Projects projects;
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("pathToProjectPart.pro"), {Utf8StringLiteral("-O")});
+    CodeModelBackEnd::ProjectPartContainer projectContainerWithNewArguments(Utf8StringLiteral("pathToProjectPart.pro"), {Utf8StringLiteral("-fast")});
+    CodeModelBackEnd::ProjectParts projects;
     projects.createOrUpdate({projectContainer});
 
     projects.createOrUpdate({projectContainerWithNewArguments});
 
-    ASSERT_THAT(projects.project(projectContainer.filePath()), CodeModelBackEnd::Project(projectContainer));
-    ASSERT_THAT(projects.project(projectContainer.filePath()).arguments(), ElementsAre(StrEq("-fast")));
+    ASSERT_THAT(projects.project(projectContainer.projectPartId()), CodeModelBackEnd::ProjectPart(projectContainer));
+    ASSERT_THAT(projects.project(projectContainer.projectPartId()).arguments(), ElementsAre(StrEq("-fast")));
 }
 
-TEST(Project, ThrowExceptionForAccesingRemovedProjects)
+TEST(ProjectPart, ThrowExceptionForAccesingRemovedProjectParts)
 {
-    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-O")});
-    CodeModelBackEnd::Projects projects;
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("pathToProjectPart.pro"), {Utf8StringLiteral("-O")});
+    CodeModelBackEnd::ProjectParts projects;
     projects.createOrUpdate({projectContainer});
 
-    projects.remove({projectContainer.filePath()});
+    projects.remove({projectContainer.projectPartId()});
 
-    ASSERT_THROW(projects.project(projectContainer.filePath()), CodeModelBackEnd::ProjectDoesNotExistException);
+    ASSERT_THROW(projects.project(projectContainer.projectPartId()), CodeModelBackEnd::ProjectPartDoNotExistException);
 }
 
-TEST(Project, ProjectFilePathIsEmptyfterRemoving)
+TEST(ProjectPart, ProjectPartProjectPartIdIsEmptyfterRemoving)
 {
-    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"), {Utf8StringLiteral("-O")});
-    CodeModelBackEnd::Projects projects;
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("pathToProjectPart.pro"), {Utf8StringLiteral("-O")});
+    CodeModelBackEnd::ProjectParts projects;
     projects.createOrUpdate({projectContainer});
-    CodeModelBackEnd::Project project(projects.project(projectContainer.filePath()));
+    CodeModelBackEnd::ProjectPart project(projects.project(projectContainer.projectPartId()));
 
-    projects.remove({projectContainer.filePath()});
+    projects.remove({projectContainer.projectPartId()});
 
-    ASSERT_TRUE(project.projectFilePath().isEmpty());
+    ASSERT_TRUE(project.projectPartId().isEmpty());
 }
 
-TEST(Project, ThrowsForNotExistingProjectButRemovesAllExistingProject)
+TEST(Project, ThrowsForNotExistingProjectPartButRemovesAllExistingProject)
 {
-    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"));
-    CodeModelBackEnd::Projects projects;
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("pathToProjectPart.pro"));
+    CodeModelBackEnd::ProjectParts projects;
     projects.createOrUpdate({projectContainer});
-    CodeModelBackEnd::Project project = *projects.findProject(Utf8StringLiteral("pathToProject.pro"));
+    CodeModelBackEnd::ProjectPart project = *projects.findProjectPart(Utf8StringLiteral("pathToProjectPart.pro"));
 
-    EXPECT_THROW(projects.remove({Utf8StringLiteral("doesnotexist.pro"), projectContainer.filePath()}),  CodeModelBackEnd::ProjectDoesNotExistException);
+    EXPECT_THROW(projects.remove({Utf8StringLiteral("doesnotexist.pro"), projectContainer.projectPartId()}),  CodeModelBackEnd::ProjectPartDoNotExistException);
 
     ASSERT_THAT(projects.projects(), Not(Contains(project)));
 }
 
-TEST(Project, HasProject)
+TEST(ProjectPart, HasProjectPart)
 {
-    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"));
-    CodeModelBackEnd::Projects projects;
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("pathToProjectPart.pro"));
+    CodeModelBackEnd::ProjectParts projects;
     projects.createOrUpdate({projectContainer});
 
-    ASSERT_TRUE(projects.hasProject(projectContainer.filePath()));
+    ASSERT_TRUE(projects.hasProjectPart(projectContainer.projectPartId()));
 }
 
-TEST(Project, DoNotHasProject)
+TEST(ProjectPart, DoNotHasProjectPart)
 {
-    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"));
-    CodeModelBackEnd::Projects projects;
+    CodeModelBackEnd::ProjectPartContainer projectContainer(Utf8StringLiteral("pathToProjectPart.pro"));
+    CodeModelBackEnd::ProjectParts projects;
     projects.createOrUpdate({projectContainer});
 
-    ASSERT_FALSE(projects.hasProject(Utf8StringLiteral("doesnotexist.pro")));
+    ASSERT_FALSE(projects.hasProjectPart(Utf8StringLiteral("doesnotexist.pro")));
 }
 
 

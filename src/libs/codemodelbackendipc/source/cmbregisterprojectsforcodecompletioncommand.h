@@ -34,36 +34,36 @@
 #include <QMetaType>
 #include <QVector>
 
-#include "projectcontainer.h"
+#include "projectpartcontainer.h"
 
 namespace CodeModelBackEnd {
 
-class CMBIPC_EXPORT RegisterProjectsForCodeCompletionCommand
+class CMBIPC_EXPORT RegisterProjectPartsForCodeCompletionCommand
 {
-    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const RegisterProjectsForCodeCompletionCommand &command);
-    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, RegisterProjectsForCodeCompletionCommand &command);
-    friend CMBIPC_EXPORT bool operator == (const RegisterProjectsForCodeCompletionCommand &first, const RegisterProjectsForCodeCompletionCommand &second);
-    friend CMBIPC_EXPORT bool operator < (const RegisterProjectsForCodeCompletionCommand &first, const RegisterProjectsForCodeCompletionCommand &second);
-    friend void PrintTo(const RegisterProjectsForCodeCompletionCommand &command, ::std::ostream* os);
+    friend CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const RegisterProjectPartsForCodeCompletionCommand &command);
+    friend CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, RegisterProjectPartsForCodeCompletionCommand &command);
+    friend CMBIPC_EXPORT bool operator == (const RegisterProjectPartsForCodeCompletionCommand &first, const RegisterProjectPartsForCodeCompletionCommand &second);
+    friend CMBIPC_EXPORT bool operator < (const RegisterProjectPartsForCodeCompletionCommand &first, const RegisterProjectPartsForCodeCompletionCommand &second);
+    friend void PrintTo(const RegisterProjectPartsForCodeCompletionCommand &command, ::std::ostream* os);
 public:
-    RegisterProjectsForCodeCompletionCommand() = default;
-    RegisterProjectsForCodeCompletionCommand(const QVector<ProjectContainer> &projectContainers);
+    RegisterProjectPartsForCodeCompletionCommand() = default;
+    RegisterProjectPartsForCodeCompletionCommand(const QVector<ProjectPartContainer> &projectContainers);
 
-    const QVector<ProjectContainer> &projectContainers() const;
+    const QVector<ProjectPartContainer> &projectContainers() const;
 
 private:
-    QVector<ProjectContainer> projectContainers_;
+    QVector<ProjectPartContainer> projectContainers_;
 };
 
-CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const RegisterProjectsForCodeCompletionCommand &command);
-CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, RegisterProjectsForCodeCompletionCommand &command);
-CMBIPC_EXPORT bool operator == (const RegisterProjectsForCodeCompletionCommand &first, const RegisterProjectsForCodeCompletionCommand &second);
-CMBIPC_EXPORT bool operator < (const RegisterProjectsForCodeCompletionCommand &first, const RegisterProjectsForCodeCompletionCommand &second);
+CMBIPC_EXPORT QDataStream &operator<<(QDataStream &out, const RegisterProjectPartsForCodeCompletionCommand &command);
+CMBIPC_EXPORT QDataStream &operator>>(QDataStream &in, RegisterProjectPartsForCodeCompletionCommand &command);
+CMBIPC_EXPORT bool operator == (const RegisterProjectPartsForCodeCompletionCommand &first, const RegisterProjectPartsForCodeCompletionCommand &second);
+CMBIPC_EXPORT bool operator < (const RegisterProjectPartsForCodeCompletionCommand &first, const RegisterProjectPartsForCodeCompletionCommand &second);
 
-CMBIPC_EXPORT QDebug operator <<(QDebug debug, const RegisterProjectsForCodeCompletionCommand &command);
-void PrintTo(const RegisterProjectsForCodeCompletionCommand &command, ::std::ostream* os);
+CMBIPC_EXPORT QDebug operator <<(QDebug debug, const RegisterProjectPartsForCodeCompletionCommand &command);
+void PrintTo(const RegisterProjectPartsForCodeCompletionCommand &command, ::std::ostream* os);
 } // namespace CodeModelBackEnd
 
-Q_DECLARE_METATYPE(CodeModelBackEnd::RegisterProjectsForCodeCompletionCommand)
+Q_DECLARE_METATYPE(CodeModelBackEnd::RegisterProjectPartsForCodeCompletionCommand)
 
 #endif // CODEMODELBACKEND_REGISTERPROJECTSFORCODECOMPLETIONCOMAND_H

@@ -31,14 +31,14 @@
 #include "translationunits.h"
 
 #include <projects.h>
-#include <translationunitdoesnotexistsexception.h>
-#include <projectdoesnotexistsexception.h>
+#include <translationunitdoesnotexistexception.h>
+#include <projectpartsdonotexistexception.h>
 
 namespace CodeModelBackEnd {
 
 bool operator ==(const FileContainer &fileContainer, const TranslationUnit &translationUnit)
 {
-    return fileContainer.filePath() == translationUnit.filePath() && fileContainer.projectFilePath() == translationUnit.projectFilePath();
+    return fileContainer.filePath() == translationUnit.filePath() && fileContainer.projectPartId() == translationUnit.projectPartId();
 }
 
 bool operator ==(const TranslationUnit &translationUnit, const FileContainer &fileContainer)
@@ -47,7 +47,7 @@ bool operator ==(const TranslationUnit &translationUnit, const FileContainer &fi
 }
 
 
-TranslationUnits::TranslationUnits(Projects &projects, UnsavedFiles &unsavedFiles)
+TranslationUnits::TranslationUnits(ProjectParts &projects, UnsavedFiles &unsavedFiles)
     : projects(projects),
       unsavedFiles(unsavedFiles)
 {
@@ -73,7 +73,7 @@ static bool removeFromFileContainer(QVector<FileContainer> &fileContainers, cons
 
 void TranslationUnits::remove(const QVector<FileContainer> &fileContainers)
 {
-    checkIfProjectsExists(fileContainers);
+    checkIfProjectPartsExists(fileContainers);
 
     QVector<FileContainer> processedFileContainers = fileContainers;
 
@@ -88,14 +88,14 @@ void TranslationUnits::remove(const QVector<FileContainer> &fileContainers)
 
 }
 
-const TranslationUnit &TranslationUnits::translationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const
+const TranslationUnit &TranslationUnits::translationUnit(const Utf8String &filePath, const Utf8String &projectPartId) const
 {
-    checkIfProjectExists(projectFilePath);
+    checkIfProjectPartExists(projectPartId);
 
-    auto findIterator = findTranslationUnit(filePath, projectFilePath);
+    auto findIterator = findTranslationUnit(filePath, projectPartId);
 
     if (findIterator == translationUnits_.end())
-        throw TranslationUnitDoesNotExistException(FileContainer(filePath, projectFilePath));
+        throw TranslationUnitDoesNotExistException(FileContainer(filePath, projectPartId));
 
     return *findIterator;
 }
@@ -109,7 +109,7 @@ void TranslationUnits::createOrUpdateTranslationUnit(const FileContainer &fileCo
 {
     auto findIterator = findTranslationUnit(fileContainer);
     if (findIterator == translationUnits_.end())
-        translationUnits_.push_back(TranslationUnit(fileContainer.filePath(), unsavedFiles, projects.project(fileContainer.projectFilePath())));
+        translationUnits_.push_back(TranslationUnit(fileContainer.filePath(), unsavedFiles, projects.project(fileContainer.projectPartId())));
 }
 
 std::vector<TranslationUnit>::iterator TranslationUnits::findTranslationUnit(const FileContainer &fileContainer)
@@ -117,28 +117,28 @@ std::vector<TranslationUnit>::iterator TranslationUnits::findTranslationUnit(con
     return std::find(translationUnits_.begin(), translationUnits_.end(), fileContainer);
 }
 
-std::vector<TranslationUnit>::const_iterator TranslationUnits::findTranslationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const
+std::vector<TranslationUnit>::const_iterator TranslationUnits::findTranslationUnit(const Utf8String &filePath, const Utf8String &projectPartId) const
 {
-    FileContainer fileContainer(filePath, projectFilePath);
+    FileContainer fileContainer(filePath, projectPartId);
     return std::find(translationUnits_.begin(), translationUnits_.end(), fileContainer);
 }
 
-void TranslationUnits::checkIfProjectExists(const Utf8String &projectFileName) const
+void TranslationUnits::checkIfProjectPartExists(const Utf8String &projectFileName) const
 {
     projects.project(projectFileName);
 }
 
-void TranslationUnits::checkIfProjectsExists(const QVector<FileContainer> &fileContainers) const
+void TranslationUnits::checkIfProjectPartsExists(const QVector<FileContainer> &fileContainers) const
 {
-    Utf8StringVector notExistingProjects;
+    Utf8StringVector notExistingProjectParts;
 
     for (const FileContainer &fileContainer : fileContainers) {
-        if (!projects.hasProject(fileContainer.projectFilePath()))
-            notExistingProjects.push_back(fileContainer.projectFilePath());
+        if (!projects.hasProjectPart(fileContainer.projectPartId()))
+            notExistingProjectParts.push_back(fileContainer.projectPartId());
     }
 
-    if (!notExistingProjects.isEmpty())
-        throw ProjectDoesNotExistException(notExistingProjects);
+    if (!notExistingProjectParts.isEmpty())
+        throw ProjectPartDoNotExistException(notExistingProjectParts);
 
 }
 

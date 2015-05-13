@@ -47,8 +47,8 @@ public:
     virtual void end() = 0;
     virtual void registerTranslationUnitsForCodeCompletion(const RegisterTranslationUnitForCodeCompletionCommand &command) = 0;
     virtual void unregisterTranslationUnitsForCodeCompletion(const UnregisterTranslationUnitsForCodeCompletionCommand &command) = 0;
-    virtual void registerProjectsForCodeCompletion(const RegisterProjectsForCodeCompletionCommand &command) = 0;
-    virtual void unregisterProjectsForCodeCompletion(const UnregisterProjectsForCodeCompletionCommand &command) = 0;
+    virtual void registerProjectPartsForCodeCompletion(const RegisterProjectPartsForCodeCompletionCommand &command) = 0;
+    virtual void unregisterProjectPartsForCodeCompletion(const UnregisterProjectPartsForCodeCompletionCommand &command) = 0;
     virtual void completeCode(const CompleteCodeCommand &command) = 0;
 
     void addClient(IpcClientInterface *client);

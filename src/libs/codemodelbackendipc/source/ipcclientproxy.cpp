@@ -41,8 +41,8 @@
 #include "cmbechocommand.h"
 #include "cmbregistertranslationunitsforcodecompletioncommand.h"
 #include "cmbcodecompletedcommand.h"
-#include "translationunitdoesnotexistscommand.h"
-#include "projectdoesnotexistscommand.h"
+#include "translationunitdoesnotexistcommand.h"
+#include "projectpartsdonotexistcommand.h"
 
 namespace CodeModelBackEnd {
 
@@ -94,7 +94,7 @@ void IpcClientProxy::translationUnitDoesNotExist(const TranslationUnitDoesNotExi
     writeCommandBlock.write(QVariant::fromValue(command));
 }
 
-void IpcClientProxy::projectDoesNotExist(const ProjectDoesNotExistCommand &command)
+void IpcClientProxy::projectPartsDoNotExist(const ProjectPartsDoNotExistCommand &command)
 {
     writeCommandBlock.write(QVariant::fromValue(command));
 }

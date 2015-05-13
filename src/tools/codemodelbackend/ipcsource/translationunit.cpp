@@ -37,10 +37,10 @@
 #include "codecompleter.h"
 
 #include "translationunitisnullexception.h"
-#include "translationunitfilenotexitsexception.h"
+#include "translationunitfilenotexitexception.h"
 #include "translationunitparseerrorexception.h"
 #include "unsavedfiles.h"
-#include "project.h"
+#include "projectpart.h"
 
 namespace CodeModelBackEnd {
 
@@ -49,12 +49,12 @@ class TranslationUnitData
 public:
     TranslationUnitData(const Utf8String &filePath,
                         const UnsavedFiles &unsavedFiles,
-                        const Project &project);
+                        const ProjectPart &projectPart);
     ~TranslationUnitData();
 
 public:
     time_point lastChangeTimePoint;
-    Project project;
+    ProjectPart projectPart;
     Utf8String filePath;
     CXTranslationUnit translationUnit = nullptr;
     CXIndex index = nullptr;
@@ -63,9 +63,9 @@ public:
 
 TranslationUnitData::TranslationUnitData(const Utf8String &filePath,
                                          const UnsavedFiles &unsavedFiles,
-                                         const Project &project)
+                                         const ProjectPart &projectPart)
     : lastChangeTimePoint(std::chrono::high_resolution_clock::now()),
-      project(project),
+      projectPart(projectPart),
       filePath(filePath),
       unsavedFiles(unsavedFiles)
 {
@@ -79,7 +79,7 @@ TranslationUnitData::~TranslationUnitData()
 
 TranslationUnit::TranslationUnit(const Utf8String &filePath,
                                  const UnsavedFiles &unsavedFiles,
-                                 const Project &project)
+                                 const ProjectPart &project)
     : d(std::make_shared<TranslationUnitData>(filePath, unsavedFiles, project))
 {
     checkIfFileExists();
@@ -123,11 +123,11 @@ const Utf8String &TranslationUnit::filePath() const
     return d->filePath;
 }
 
-const Utf8String &TranslationUnit::projectFilePath() const
+const Utf8String &TranslationUnit::projectPartId() const
 {
     checkIfNull();
 
-    return d->project.projectFilePath();
+    return d->projectPart.projectPartId();
 }
 
 const time_point &TranslationUnit::lastChangeTimePoint() const
@@ -154,7 +154,7 @@ void TranslationUnit::updateLastChangeTimePoint() const
 
 void TranslationUnit::removeOutdatedTranslationUnit() const
 {
-    if (d->project.lastChangeTimePoint() > d->lastChangeTimePoint) {
+    if (d->projectPart.lastChangeTimePoint() > d->lastChangeTimePoint) {
         clang_disposeTranslationUnit(d->translationUnit);
         d->translationUnit = nullptr;
     }
@@ -171,8 +171,8 @@ void TranslationUnit::createTranslationUnitIfNeeded() const
         d->translationUnit = CXTranslationUnit();
         CXErrorCode errorCode = clang_parseTranslationUnit2(index(),
                                                             d->filePath.constData(),
-                                                            d->project.cxArguments(),
-                                                            d->project.argumentCount(),
+                                                            d->projectPart.cxArguments(),
+                                                            d->projectPart.argumentCount(),
                                                             d->unsavedFiles.cxUnsavedFiles(),
                                                             d->unsavedFiles.count(),
                                                             options,
@@ -188,7 +188,7 @@ void TranslationUnit::checkTranslationUnitErrorCode(CXErrorCode errorCode) const
 {
     switch (errorCode) {
         case CXError_Success: break;
-        default: throw TranslationUnitParseErrorException(d->filePath, d->project.projectFilePath());
+        default: throw TranslationUnitParseErrorException(d->filePath, d->projectPart.projectPartId());
     }
 }
 
@@ -221,7 +221,7 @@ TranslationUnit &TranslationUnit::operator =(TranslationUnit &&other)
 
 bool operator ==(const TranslationUnit &first, const TranslationUnit &second)
 {
-    return first.filePath() == second.filePath() && first.projectFilePath() == second.projectFilePath();
+    return first.filePath() == second.filePath() && first.projectPartId() == second.projectPartId();
 }
 
 } // namespace CodeModelBackEnd

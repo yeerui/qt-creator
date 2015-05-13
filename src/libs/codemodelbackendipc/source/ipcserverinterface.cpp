@@ -46,8 +46,8 @@ void IpcServerInterface::dispatch(const QVariant &command)
     static const int endCommandType = QMetaType::type("CodeModelBackEnd::EndCommand");
     static const int registerTranslationUnitsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::RegisterTranslationUnitForCodeCompletionCommand");
     static const int unregisterTranslationUnitsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::UnregisterTranslationUnitsForCodeCompletionCommand");
-    static const int registerProjectsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::RegisterProjectsForCodeCompletionCommand");
-    static const int unregisterProjectsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::UnregisterProjectsForCodeCompletionCommand");
+    static const int registerProjectPartsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::RegisterProjectPartsForCodeCompletionCommand");
+    static const int unregisterProjectPartsForCodeCompletionCommandType = QMetaType::type("CodeModelBackEnd::UnregisterProjectPartsForCodeCompletionCommand");
     static const int completeCodeCommandType = QMetaType::type("CodeModelBackEnd::CompleteCodeCommand");
 
     int type = command.userType();
@@ -58,10 +58,10 @@ void IpcServerInterface::dispatch(const QVariant &command)
         registerTranslationUnitsForCodeCompletion(command.value<RegisterTranslationUnitForCodeCompletionCommand>());
     else if (type == unregisterTranslationUnitsForCodeCompletionCommandType)
         unregisterTranslationUnitsForCodeCompletion(command.value<UnregisterTranslationUnitsForCodeCompletionCommand>());
-    else if (type == registerProjectsForCodeCompletionCommandType)
-        registerProjectsForCodeCompletion(command.value<RegisterProjectsForCodeCompletionCommand>());
-    else if (type == unregisterProjectsForCodeCompletionCommandType)
-        unregisterProjectsForCodeCompletion(command.value<UnregisterProjectsForCodeCompletionCommand>());
+    else if (type == registerProjectPartsForCodeCompletionCommandType)
+        registerProjectPartsForCodeCompletion(command.value<RegisterProjectPartsForCodeCompletionCommand>());
+    else if (type == unregisterProjectPartsForCodeCompletionCommandType)
+        unregisterProjectPartsForCodeCompletion(command.value<UnregisterProjectPartsForCodeCompletionCommand>());
     else if (type == completeCodeCommandType)
         completeCode(command.value<CompleteCodeCommand>());
     else

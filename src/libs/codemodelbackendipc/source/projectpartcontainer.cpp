@@ -28,68 +28,76 @@
 **
 ****************************************************************************/
 
-#include "projectdoesnotexistscommand.h"
+#include "projectpartcontainer.h"
 
-#include <QDebug>
+#include <QtDebug>
 
 #include <QDataStream>
 
 namespace CodeModelBackEnd {
 
-ProjectDoesNotExistCommand::ProjectDoesNotExistCommand(const Utf8StringVector &projectFilePaths)
-    : projectFilePaths_(projectFilePaths)
+ProjectPartContainer::ProjectPartContainer(const Utf8String &projectPathId,
+                                           const Utf8StringVector &arguments)
+    : projectPartId_(projectPathId),
+      arguments_(arguments)
 {
 }
 
-
-const Utf8StringVector &ProjectDoesNotExistCommand::projectFilePaths() const
+const Utf8String &ProjectPartContainer::projectPartId() const
 {
-    return projectFilePaths_;
+    return projectPartId_;
 }
 
-QDataStream &operator<<(QDataStream &out, const ProjectDoesNotExistCommand &command)
+const Utf8StringVector &ProjectPartContainer::arguments() const
 {
-    out << command.projectFilePaths_;
+    return arguments_;
+}
+
+
+QDataStream &operator<<(QDataStream &out, const ProjectPartContainer &container)
+{
+    out << container.projectPartId_;
+    out << container.arguments_;
 
     return out;
 }
 
-QDataStream &operator>>(QDataStream &in, ProjectDoesNotExistCommand &command)
+QDataStream &operator>>(QDataStream &in, ProjectPartContainer &container)
 {
-    in >> command.projectFilePaths_;
+    in >> container.projectPartId_;
+    in >> container.arguments_;
 
     return in;
 }
 
-bool operator == (const ProjectDoesNotExistCommand &first, const ProjectDoesNotExistCommand &second)
+bool operator == (const ProjectPartContainer &first, const ProjectPartContainer &second)
 {
-    return first.projectFilePaths_ == second.projectFilePaths_;
+    return first.projectPartId_ == second.projectPartId_;
 }
 
-bool operator < (const ProjectDoesNotExistCommand &first, const ProjectDoesNotExistCommand &second)
+bool operator < (const ProjectPartContainer &first, const ProjectPartContainer &second)
 {
-    return first.projectFilePaths_ < second.projectFilePaths_;
+    return first.projectPartId_ < second.projectPartId_;
 }
 
-QDebug operator <<(QDebug debug, const ProjectDoesNotExistCommand &command)
+QDebug operator <<(QDebug debug, const ProjectPartContainer &container)
 {
-    debug.nospace() << "ProjectDoesNotExistCommand(";
-
-    debug.nospace() << command.projectFilePaths_;
-
-    debug.nospace() << ")";
+    debug.nospace() << "ProjectPartContainer("
+                    << container.projectPartId()
+                    << ","
+                    << container.arguments()
+                    << ")";
 
     return debug;
 }
 
-void PrintTo(const ProjectDoesNotExistCommand &command, ::std::ostream* os)
+void PrintTo(const ProjectPartContainer &container, ::std::ostream* os)
 {
-    QString output;
-    QDebug debug(&output);
-
-    debug << command;
-
-    *os << output.toUtf8().constData();
+    *os << "ProjectPartContainer("
+        << container.projectPartId().constData()
+        << ","
+        << container.arguments().constData()
+        << ")";
 }
 
 

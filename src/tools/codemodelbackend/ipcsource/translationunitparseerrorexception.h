@@ -40,16 +40,16 @@ namespace CodeModelBackEnd {
 class TranslationUnitParseErrorException : public std::exception
 {
 public:
-    TranslationUnitParseErrorException(const Utf8String &filePath, const Utf8String &projectFilePath);
+    TranslationUnitParseErrorException(const Utf8String &filePath, const Utf8String &projectPartId);
 
     const Utf8String &filePath() const;
-    const Utf8String &projectFilePath() const;
+    const Utf8String &projectPartId() const;
 
     const char *what() const Q_DECL_NOEXCEPT override;
 
 private:
     Utf8String filePath_;
-    Utf8String projectFilePath_;
+    Utf8String projectPartId_;
     mutable Utf8String what_;
 };
 

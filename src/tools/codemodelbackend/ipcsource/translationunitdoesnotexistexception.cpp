@@ -28,26 +28,33 @@
 **
 ****************************************************************************/
 
-#include "projectdoesnotexistsexception.h"
+#include "translationunitdoesnotexistexception.h"
 
 namespace CodeModelBackEnd {
 
-ProjectDoesNotExistException::ProjectDoesNotExistException(const Utf8StringVector &projectFilePaths)
-    : projectFilePaths_(projectFilePaths)
+TranslationUnitDoesNotExistException::TranslationUnitDoesNotExistException(const FileContainer &fileContainer)
+    : fileContainer_(fileContainer)
 {
 }
 
-const Utf8StringVector &ProjectDoesNotExistException::projectFilePaths() const
+TranslationUnitDoesNotExistException::TranslationUnitDoesNotExistException(const Utf8String filePath, const Utf8String projectPartId)
+    : fileContainer_(filePath, projectPartId)
 {
-    return projectFilePaths_;
 }
 
-const char *ProjectDoesNotExistException::what() const Q_DECL_NOEXCEPT
+const FileContainer &TranslationUnitDoesNotExistException::fileContainer() const
+{
+    return fileContainer_;
+}
+
+const char *TranslationUnitDoesNotExistException::what() const Q_DECL_NOEXCEPT
 {
     if (what_.isEmpty())
-        what_ += Utf8StringLiteral("Project files ")
-                + projectFilePaths().join(Utf8StringLiteral(", "))
-                + Utf8StringLiteral(" does not exist!");
+        what_ += Utf8StringLiteral("Parse error for file ")
+                + fileContainer_.filePath()
+                + Utf8StringLiteral(" in project ")
+                + fileContainer_.projectPartId()
+                + Utf8StringLiteral("!");
 
     return what_.constData();
 }

@@ -44,8 +44,8 @@ class MockIpcClient : public CodeModelBackEnd::IpcClientInterface {
       void(const CodeModelBackEnd::CodeCompletedCommand &command));
   MOCK_METHOD1(translationUnitDoesNotExist,
       void(const CodeModelBackEnd::TranslationUnitDoesNotExistCommand &command));
-  MOCK_METHOD1(projectDoesNotExist,
-      void(const CodeModelBackEnd::ProjectDoesNotExistCommand &command));
+  MOCK_METHOD1(projectPartsDoNotExist,
+      void(const CodeModelBackEnd::ProjectPartsDoNotExistCommand &command));
 };
 
 #endif // MOCKIPCLIENT_H

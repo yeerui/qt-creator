@@ -45,7 +45,7 @@ namespace CodeModelBackEnd {
 class TranslationUnitData;
 class CodeCompleter;
 class UnsavedFiles;
-class Project;
+class ProjectPart;
 
 using time_point = std::chrono::high_resolution_clock::time_point;
 
@@ -55,7 +55,7 @@ public:
     TranslationUnit() = default;
     TranslationUnit(const Utf8String &filePath,
                     const UnsavedFiles &unsavedFiles,
-                    const Project &project);
+                    const ProjectPart &projectPart);
     ~TranslationUnit();
 
     TranslationUnit(const TranslationUnit &cxTranslationUnit);
@@ -74,7 +74,7 @@ public:
     uint unsavedFilesCount() const;
 
     const Utf8String &filePath() const;
-    const Utf8String &projectFilePath() const;
+    const Utf8String &projectPartId() const;
 
     const time_point &lastChangeTimePoint() const;
 

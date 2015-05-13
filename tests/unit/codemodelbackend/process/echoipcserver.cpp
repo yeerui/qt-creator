@@ -68,12 +68,12 @@ void EchoIpcServer::unregisterTranslationUnitsForCodeCompletion(const Unregister
     echoCommand(QVariant::fromValue(command));
 }
 
-void EchoIpcServer::registerProjectsForCodeCompletion(const RegisterProjectsForCodeCompletionCommand &command)
+void EchoIpcServer::registerProjectPartsForCodeCompletion(const RegisterProjectPartsForCodeCompletionCommand &command)
 {
     echoCommand(QVariant::fromValue(command));
 }
 
-void EchoIpcServer::unregisterProjectsForCodeCompletion(const UnregisterProjectsForCodeCompletionCommand &command)
+void EchoIpcServer::unregisterProjectPartsForCodeCompletion(const UnregisterProjectPartsForCodeCompletionCommand &command)
 {
     echoCommand(QVariant::fromValue(command));
 }

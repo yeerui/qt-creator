@@ -32,70 +32,70 @@
 
 #include <QtGlobal>
 
-#include "projectdoesnotexistsexception.h"
+#include "projectpartsdonotexistexception.h"
 
 namespace CodeModelBackEnd {
 
-void Projects::createOrUpdate(const QVector<ProjectContainer> &projectContainers)
+void ProjectParts::createOrUpdate(const QVector<ProjectPartContainer> &projectContainers)
 {
-    for (const ProjectContainer &projectContainer : projectContainers)
-        createOrUpdateProject(projectContainer);
+    for (const ProjectPartContainer &projectContainer : projectContainers)
+        createOrUpdateProjectPart(projectContainer);
 }
 
-void Projects::remove(const Utf8StringVector &projectFilePaths)
+void ProjectParts::remove(const Utf8StringVector &projectPartIds)
 {
-    Utf8StringVector processedProjectFilePaths = projectFilePaths;
+    Utf8StringVector processedProjectPartFilePaths = projectPartIds;
 
-    auto removeBeginIterator = std::remove_if(projects_.begin(), projects_.end(), [&processedProjectFilePaths] (const Project &project) {
-        return processedProjectFilePaths.removeFast(project.projectFilePath());
+    auto removeBeginIterator = std::remove_if(projects_.begin(), projects_.end(), [&processedProjectPartFilePaths] (const ProjectPart &project) {
+        return processedProjectPartFilePaths.removeFast(project.projectPartId());
     });
 
-    std::for_each(removeBeginIterator, projects_.end(), [](Project &project) { project.clearProjectFilePath(); });
+    std::for_each(removeBeginIterator, projects_.end(), [](ProjectPart &project) { project.clearProjectPartId(); });
     projects_.erase(removeBeginIterator, projects_.end());
 
-    if (!processedProjectFilePaths.isEmpty())
-        throw ProjectDoesNotExistException(processedProjectFilePaths);
+    if (!processedProjectPartFilePaths.isEmpty())
+        throw ProjectPartDoNotExistException(processedProjectPartFilePaths);
 }
 
-bool Projects::hasProject(const Utf8String &projectFilePath) const
+bool ProjectParts::hasProjectPart(const Utf8String &projectPartId) const
 {
-    return findProject(projectFilePath) != projects_.cend();
+    return findProjectPart(projectPartId) != projects_.cend();
 }
 
-const Project &Projects::project(const Utf8String &projectFilePath) const
+const ProjectPart &ProjectParts::project(const Utf8String &projectPartId) const
 {
-    const auto findIterator = findProject(projectFilePath);
+    const auto findIterator = findProjectPart(projectPartId);
 
     if (findIterator == projects_.cend())
-        throw ProjectDoesNotExistException({projectFilePath});
+        throw ProjectPartDoNotExistException({projectPartId});
 
     return *findIterator;
 }
 
-std::vector<Project>::const_iterator Projects::findProject(const Utf8String &projectFilePath) const
+std::vector<ProjectPart>::const_iterator ProjectParts::findProjectPart(const Utf8String &projectPartId) const
 {
-    return std::find_if(projects_.begin(), projects_.end(), [projectFilePath] (const Project &project) {
-        return project.projectFilePath() == projectFilePath;
+    return std::find_if(projects_.begin(), projects_.end(), [projectPartId] (const ProjectPart &project) {
+        return project.projectPartId() == projectPartId;
     });
 }
 
-std::vector<Project>::iterator Projects::findProject(const Utf8String &projectFilePath)
+std::vector<ProjectPart>::iterator ProjectParts::findProjectPart(const Utf8String &projectPartId)
 {
-    return std::find_if(projects_.begin(), projects_.end(), [projectFilePath] (const Project &project) {
-        return project.projectFilePath() == projectFilePath;
+    return std::find_if(projects_.begin(), projects_.end(), [projectPartId] (const ProjectPart &project) {
+        return project.projectPartId() == projectPartId;
     });
 }
 
-const std::vector<Project> &Projects::projects() const
+const std::vector<ProjectPart> &ProjectParts::projects() const
 {
     return projects_;
 }
 
-void Projects::createOrUpdateProject(const ProjectContainer &projectContainer)
+void ProjectParts::createOrUpdateProjectPart(const ProjectPartContainer &projectContainer)
 {
-    auto findIterator = findProject(projectContainer.filePath());
+    auto findIterator = findProjectPart(projectContainer.projectPartId());
     if (findIterator == projects_.cend())
-        projects_.push_back(Project(projectContainer));
+        projects_.push_back(ProjectPart(projectContainer));
     else
         findIterator->setArguments(projectContainer.arguments());
 }

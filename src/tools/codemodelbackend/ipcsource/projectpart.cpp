@@ -28,7 +28,7 @@
 **
 ****************************************************************************/
 
-#include "project.h"
+#include "projectpart.h"
 
 #include <cstring>
 
@@ -38,58 +38,58 @@
 
 namespace CodeModelBackEnd {
 
-class ProjectData {
+class ProjectPartData {
 public:
-    ProjectData(const Utf8String &projectFilePath);
+    ProjectPartData(const Utf8String &projectPartId);
 
 public:
     time_point lastChangeTimePoint;
     std::vector<const char*> arguments;
-    Utf8String projectFilePath;
+    Utf8String projectPartId;
 };
 
-ProjectData::ProjectData(const Utf8String &projectFilePath)
+ProjectPartData::ProjectPartData(const Utf8String &projectPartId)
     : lastChangeTimePoint(std::chrono::high_resolution_clock::now()),
-      projectFilePath(projectFilePath)
+      projectPartId(projectPartId)
 {
 }
 
-Project::Project(const Utf8String &projectFilePath)
-    : d(std::make_shared<ProjectData>(projectFilePath))
+ProjectPart::ProjectPart(const Utf8String &projectPartId)
+    : d(std::make_shared<ProjectPartData>(projectPartId))
 {
 }
 
-Project::Project(const ProjectContainer &projectContainer)
-    : d(std::make_shared<ProjectData>(projectContainer.filePath()))
+ProjectPart::ProjectPart(const ProjectPartContainer &projectContainer)
+    : d(std::make_shared<ProjectPartData>(projectContainer.projectPartId()))
 {
     setArguments(projectContainer.arguments());
 }
 
-Project::~Project() = default;
+ProjectPart::~ProjectPart() = default;
 
-Project::Project(const Project &) = default;
-Project &Project::operator =(const Project &) = default;
+ProjectPart::ProjectPart(const ProjectPart &) = default;
+ProjectPart &ProjectPart::operator =(const ProjectPart &) = default;
 
-Project::Project(Project &&other)
+ProjectPart::ProjectPart(ProjectPart &&other)
     : d(std::move(other.d))
 {
 }
 
-Project &Project::operator =(Project &&other)
+ProjectPart &ProjectPart::operator =(ProjectPart &&other)
 {
     d = std::move(other.d);
 
     return *this;
 }
 
-void Project::clearProjectFilePath()
+void ProjectPart::clearProjectPartId()
 {
-    d->projectFilePath.clear();
+    d->projectPartId.clear();
 }
 
-const Utf8String &Project::projectFilePath() const
+const Utf8String &ProjectPart::projectPartId() const
 {
-    return d->projectFilePath;
+    return d->projectPartId;
 }
 
 static const char *strdup(const Utf8String &utf8String)
@@ -100,41 +100,41 @@ static const char *strdup(const Utf8String &utf8String)
     return cxArgument;
 }
 
-void Project::setArguments(const Utf8StringVector &arguments)
+void ProjectPart::setArguments(const Utf8StringVector &arguments)
 {
     d->arguments.resize(arguments.size());
     std::transform(arguments.cbegin(), arguments.cend(), d->arguments.begin(), strdup);
     updateLastChangeTimePoint();
 }
 
-const std::vector<const char*> &Project::arguments() const
+const std::vector<const char*> &ProjectPart::arguments() const
 {
     return d->arguments;
 }
 
-int Project::argumentCount() const
+int ProjectPart::argumentCount() const
 {
     return d->arguments.size();
 }
 
-const char * const *Project::cxArguments() const
+const char * const *ProjectPart::cxArguments() const
 {
     return arguments().data();
 }
 
-const time_point &Project::lastChangeTimePoint() const
+const time_point &ProjectPart::lastChangeTimePoint() const
 {
     return d->lastChangeTimePoint;
 }
 
-void Project::updateLastChangeTimePoint()
+void ProjectPart::updateLastChangeTimePoint()
 {
     d->lastChangeTimePoint = std::chrono::high_resolution_clock::now();
 }
 
-bool operator ==(const Project &first, const Project &second)
+bool operator ==(const ProjectPart &first, const ProjectPart &second)
 {
-    return first.projectFilePath() == second.projectFilePath();
+    return first.projectPartId() == second.projectPartId();
 }
 
 } // namespace CodeModelBackEnd

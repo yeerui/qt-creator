@@ -37,19 +37,19 @@
 #include <translationunit.h>
 #include <unsavedfiles.h>
 #include <utf8string.h>
-#include <project.h>
+#include <projectpart.h>
 #include <translationunits.h>
 #include <filecontainer.h>
-#include <projectcontainer.h>
+#include <projectpartcontainer.h>
 #include <projects.h>
-#include <translationunitdoesnotexistsexception.h>
+#include <translationunitdoesnotexistexception.h>
 #include <translationunitisnullexception.h>
-#include <translationunitfilenotexitsexception.h>
-#include <projectdoesnotexistsexception.h>
+#include <translationunitfilenotexitexception.h>
+#include <projectpartsdonotexistexception.h>
 
 using CodeModelBackEnd::TranslationUnit;
 using CodeModelBackEnd::UnsavedFiles;
-using CodeModelBackEnd::Project;
+using CodeModelBackEnd::ProjectPart;
 
 using testing::IsNull;
 using testing::NotNull;
@@ -61,9 +61,9 @@ namespace {
 
 using ::testing::PrintToString;
 
-MATCHER_P2(IsTranslationUnit, filePath, projectFilePath,
+MATCHER_P2(IsTranslationUnit, filePath, projectPartId,
            std::string(negation ? "isn't" : "is") + " translation unit with file path "
-           + PrintToString(filePath) + " and project " + PrintToString(projectFilePath)
+           + PrintToString(filePath) + " and project " + PrintToString(projectPartId)
            )
 {
     if (arg.filePath() != filePath) {
@@ -71,8 +71,8 @@ MATCHER_P2(IsTranslationUnit, filePath, projectFilePath,
         return false;
     }
 
-    if (arg.projectFilePath() != projectFilePath) {
-        *result_listener << "file path is " + PrintToString(arg.projectFilePath()) + " and not " +  PrintToString(projectFilePath);
+    if (arg.projectPartId() != projectPartId) {
+        *result_listener << "file path is " + PrintToString(arg.projectPartId()) + " and not " +  PrintToString(projectPartId);
         return false;
     }
 
@@ -84,82 +84,82 @@ class TranslationUnits : public ::testing::Test
 protected:
     void SetUp() override;
 
-    CodeModelBackEnd::Projects projects;
+    CodeModelBackEnd::ProjectParts projects;
     CodeModelBackEnd::UnsavedFiles unsavedFiles;
     CodeModelBackEnd::TranslationUnits translationUnits = CodeModelBackEnd::TranslationUnits(projects, unsavedFiles);
     const Utf8String filePath = Utf8StringLiteral("data/complete_testfile_1.cpp");
-    const Utf8String projectFilePath = Utf8StringLiteral("/path/to/projectfile");
+    const Utf8String projectPartId = Utf8StringLiteral("/path/to/projectfile");
 
 };
 
 void TranslationUnits::SetUp()
 {
-    projects.createOrUpdate({CodeModelBackEnd::ProjectContainer(projectFilePath)});
+    projects.createOrUpdate({CodeModelBackEnd::ProjectPartContainer(projectPartId)});
 }
 
 
 TEST_F(TranslationUnits, ThrowForGettingWithWrongFilePath)
 {
-    ASSERT_THROW(translationUnits.translationUnit(Utf8StringLiteral("foo.cpp"), projectFilePath),
+    ASSERT_THROW(translationUnits.translationUnit(Utf8StringLiteral("foo.cpp"), projectPartId),
                  CodeModelBackEnd::TranslationUnitDoesNotExistException);
 
 }
 
-TEST_F(TranslationUnits, ThrowForGettingWithWrongProjectFilePath)
+TEST_F(TranslationUnits, ThrowForGettingWithWrongProjectPartFilePath)
 {
     ASSERT_THROW(translationUnits.translationUnit(filePath, Utf8StringLiteral("foo.pro")),
-                 CodeModelBackEnd::ProjectDoesNotExistException);
+                 CodeModelBackEnd::ProjectPartDoNotExistException);
 
 }
 
 
 TEST_F(TranslationUnits, Add)
 {
-    CodeModelBackEnd::FileContainer fileContainer(filePath, projectFilePath);
+    CodeModelBackEnd::FileContainer fileContainer(filePath, projectPartId);
 
     translationUnits.createOrUpdate({fileContainer});
 
-    ASSERT_THAT(translationUnits.translationUnit(filePath, projectFilePath),
-                IsTranslationUnit(filePath, projectFilePath));
+    ASSERT_THAT(translationUnits.translationUnit(filePath, projectPartId),
+                IsTranslationUnit(filePath, projectPartId));
 }
 
 TEST_F(TranslationUnits, ThrowForRemovingWithWrongFilePath)
 {
-    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), projectFilePath);
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), projectPartId);
 
     ASSERT_THROW(translationUnits.remove({fileContainer}),
                  CodeModelBackEnd::TranslationUnitDoesNotExistException);
 }
 
-TEST_F(TranslationUnits, ThrowForRemovingWithWrongProjectFilePath)
+TEST_F(TranslationUnits, ThrowForRemovingWithWrongProjectPartFilePath)
 {
     CodeModelBackEnd::FileContainer fileContainer(filePath, Utf8StringLiteral("foo.pro"));
 
     ASSERT_THROW(translationUnits.remove({fileContainer}),
-                 CodeModelBackEnd::ProjectDoesNotExistException);
+                 CodeModelBackEnd::ProjectPartDoNotExistException);
 }
 
 TEST_F(TranslationUnits, Remove)
 {
-    CodeModelBackEnd::FileContainer fileContainer(filePath, projectFilePath);
+    CodeModelBackEnd::FileContainer fileContainer(filePath, projectPartId);
     translationUnits.createOrUpdate({fileContainer});
 
     translationUnits.remove({fileContainer});
 
-    ASSERT_THROW(translationUnits.translationUnit(filePath, projectFilePath),
+    ASSERT_THROW(translationUnits.translationUnit(filePath, projectPartId),
                  CodeModelBackEnd::TranslationUnitDoesNotExistException);
 }
 
 TEST_F(TranslationUnits, RemoveAllValidIfExceptionIsThrown)
 {
-    CodeModelBackEnd::FileContainer fileContainer(filePath, projectFilePath);
+    CodeModelBackEnd::FileContainer fileContainer(filePath, projectPartId);
     translationUnits.createOrUpdate({fileContainer});
 
-    ASSERT_THROW(translationUnits.remove({CodeModelBackEnd::FileContainer(Utf8StringLiteral("dontextist.pro"), projectFilePath), fileContainer}),
+    ASSERT_THROW(translationUnits.remove({CodeModelBackEnd::FileContainer(Utf8StringLiteral("dontextist.pro"), projectPartId), fileContainer}),
                  CodeModelBackEnd::TranslationUnitDoesNotExistException);
 
     ASSERT_THAT(translationUnits.translationUnits(),
-                Not(Contains(TranslationUnit(filePath, unsavedFiles, projects.project(projectFilePath)))));
+                Not(Contains(TranslationUnit(filePath, unsavedFiles, projects.project(projectPartId)))));
 }
 
 }

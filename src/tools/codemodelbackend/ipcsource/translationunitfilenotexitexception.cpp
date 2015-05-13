@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,78 +28,29 @@
 **
 ****************************************************************************/
 
-#include "projectcontainer.h"
-
-#include <QtDebug>
-
-#include <QDataStream>
+#include "translationunitfilenotexitexception.h"
 
 namespace CodeModelBackEnd {
 
-ProjectContainer::ProjectContainer(const Utf8String &fileName,
-                                   const Utf8StringVector &arguments)
-    : filePath_(fileName),
-      arguments_(arguments)
+TranslationUnitFileNotExitsException::TranslationUnitFileNotExitsException(const Utf8String &filePath)
+    : filePath_(filePath)
 {
 }
 
-const Utf8String &ProjectContainer::filePath() const
+const Utf8String &TranslationUnitFileNotExitsException::filePath() const
 {
     return filePath_;
 }
 
-const Utf8StringVector &ProjectContainer::arguments() const
+const char *TranslationUnitFileNotExitsException::what() const Q_DECL_NOEXCEPT
 {
-    return arguments_;
+    if (what_.isEmpty())
+        what_ += Utf8StringLiteral("File ")
+                + filePath()
+                + Utf8StringLiteral(" in project does not exist!");
+
+    return what_.constData();
 }
-
-
-QDataStream &operator<<(QDataStream &out, const ProjectContainer &container)
-{
-    out << container.filePath_;
-    out << container.arguments_;
-
-    return out;
-}
-
-QDataStream &operator>>(QDataStream &in, ProjectContainer &container)
-{
-    in >> container.filePath_;
-    in >> container.arguments_;
-
-    return in;
-}
-
-bool operator == (const ProjectContainer &first, const ProjectContainer &second)
-{
-    return first.filePath_ == second.filePath_;
-}
-
-bool operator < (const ProjectContainer &first, const ProjectContainer &second)
-{
-    return first.filePath_ < second.filePath_;
-}
-
-QDebug operator <<(QDebug debug, const ProjectContainer &container)
-{
-    debug.nospace() << "ProjectContainer("
-                    << container.filePath()
-                    << ","
-                    << container.arguments()
-                    << ")";
-
-    return debug;
-}
-
-void PrintTo(const ProjectContainer &container, ::std::ostream* os)
-{
-    *os << "ProjectContainer("
-        << container.filePath().constData()
-        << ","
-        << container.arguments().constData()
-        << ")";
-}
-
 
 } // namespace CodeModelBackEnd
 
