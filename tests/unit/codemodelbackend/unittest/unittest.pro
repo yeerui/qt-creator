@@ -1,11 +1,4 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2015-03-12T12:50:40
-#
-#-------------------------------------------------
-
 QT       += core network testlib
-
 QT       -= gui
 
 TARGET = codemodelbackendtest
@@ -87,4 +80,4 @@ DEFINES += CODEMODELBACKEND_TESTS
 DEFINES += DONT_CHECK_COMMAND_COUNTER
 DEFINES += GTEST_HAS_STD_INITIALIZER_LIST_ GTEST_LANG_CXX11
 
-DEFINES += TESTDATA_DIR=$$shell_quote($$shell_path(\"$$PWD/data\"))
+DEFINES += TESTDATA_DIR=\"R\\\"xxx($$PWD/data)xxx\\\"\"

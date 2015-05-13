@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -92,8 +92,8 @@ protected:
     const Utf8String projectPartId = Utf8StringLiteral("pathToProjectPart.pro");
     const Utf8String functionTestFilePath = Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_function.cpp");
     const Utf8String variableTestFilePath = Utf8StringLiteral(TESTDATA_DIR"/complete_extractor_variable.cpp");
-    const QString unsavedTestFilePath = QStringLiteral(TESTDATA_DIR"/complete_extractor_function_unsaved.cpp");
-    const QString updatedUnsavedTestFilePath = QStringLiteral(TESTDATA_DIR"/complete_extractor_function_unsaved_2.cpp");
+    const QString unsavedTestFilePath = QStringLiteral(TESTDATA_DIR) + QStringLiteral("/complete_extractor_function_unsaved.cpp");
+    const QString updatedUnsavedTestFilePath = QStringLiteral(TESTDATA_DIR) + QStringLiteral("/complete_extractor_function_unsaved_2.cpp");
     const Utf8String parseErrorTestFilePath = Utf8StringLiteral(TESTDATA_DIR"/complete_translationunit_parse_error.cpp");
 };
 

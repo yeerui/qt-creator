@@ -71,7 +71,7 @@ CodeModelBackEnd::CodeCompleter CodeCompleter::completer = translationUnit;
 
 void CodeCompleter::SetUpTestCase()
 {
-    QFile unsavedFileContentFile(QStringLiteral(TESTDATA_DIR"/complete_completer_unsaved.cpp"));
+    QFile unsavedFileContentFile(QStringLiteral(TESTDATA_DIR) + QStringLiteral("/complete_completer_unsaved.cpp"));
     unsavedFileContentFile.open(QIODevice::ReadOnly);
 
     const Utf8String unsavedFileContent = Utf8String::fromByteArray(unsavedFileContentFile.readAll());
