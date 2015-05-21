@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -32,8 +32,20 @@
 
 #include <projects.h>
 #include <translationunitdoesnotexistsexception.h>
+#include <projectdoesnotexistsexception.h>
 
 namespace CodeModelBackEnd {
+
+bool operator ==(const FileContainer &fileContainer, const TranslationUnit &translationUnit)
+{
+    return fileContainer.filePath() == translationUnit.filePath() && fileContainer.projectFilePath() == translationUnit.projectFilePath();
+}
+
+bool operator ==(const TranslationUnit &translationUnit, const FileContainer &fileContainer)
+{
+    return fileContainer == translationUnit;
+}
+
 
 TranslationUnits::TranslationUnits(Projects &projects, UnsavedFiles &unsavedFiles)
     : projects(projects),
@@ -47,24 +59,33 @@ void TranslationUnits::createOrUpdate(const QVector<FileContainer> &fileContaine
         createOrUpdateTranslationUnit(fileContainer);
 }
 
+static bool removeFromFileContainer(QVector<FileContainer> &fileContainers, const TranslationUnit &translationUnit)
+{
+    auto position = std::remove(fileContainers.begin(), fileContainers.end(), translationUnit);
+
+    bool entryIsRemoved = position != fileContainers.end();
+
+    fileContainers.erase(position, fileContainers.end());
+
+    return entryIsRemoved;
+}
+
+
 void TranslationUnits::remove(const QVector<FileContainer> &fileContainers)
 {
-    auto lastRemoveBeginIterator = translationUnits.end();
+    checkIfProjectsExists(fileContainers);
 
-    for (const FileContainer &fileContainer : fileContainers) {
-        checkIfProjectExists(fileContainer.projectFilePath());
+    QVector<FileContainer> processedFileContainers = fileContainers;
 
-        auto removeBeginIterator = std::remove_if(translationUnits.begin(), lastRemoveBeginIterator, [fileContainer] (const TranslationUnit &translationUnit) {
-            return fileContainer.filePath() == translationUnit.filePath() && fileContainer.projectFilePath() == translationUnit.projectFilePath();
-        });
+    auto removeBeginIterator = std::remove_if(translationUnits_.begin(), translationUnits_.end(), [&processedFileContainers] (const TranslationUnit &translationUnit) {
+        return removeFromFileContainer(processedFileContainers, translationUnit);
+    });
 
-        if (removeBeginIterator == lastRemoveBeginIterator)
-            throw TranslationUnitDoesNotExistException(fileContainer);
+    translationUnits_.erase(removeBeginIterator, translationUnits_.end());
 
-        lastRemoveBeginIterator = removeBeginIterator;
-    }
+    if (!processedFileContainers.isEmpty())
+        throw TranslationUnitDoesNotExistException(processedFileContainers.first());
 
-    translationUnits.erase(lastRemoveBeginIterator, translationUnits.end());
 }
 
 const TranslationUnit &TranslationUnits::translationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const
@@ -73,36 +94,52 @@ const TranslationUnit &TranslationUnits::translationUnit(const Utf8String &fileP
 
     auto findIterator = findTranslationUnit(filePath, projectFilePath);
 
-    if (findIterator == translationUnits.end())
+    if (findIterator == translationUnits_.end())
         throw TranslationUnitDoesNotExistException(FileContainer(filePath, projectFilePath));
 
     return *findIterator;
 }
 
+const std::vector<TranslationUnit> &TranslationUnits::translationUnits() const
+{
+    return translationUnits_;
+}
+
 void TranslationUnits::createOrUpdateTranslationUnit(const FileContainer &fileContainer)
 {
     auto findIterator = findTranslationUnit(fileContainer);
-    if (findIterator == translationUnits.end())
-        translationUnits.push_back(TranslationUnit(fileContainer.filePath(), unsavedFiles, projects.project(fileContainer.projectFilePath())));
+    if (findIterator == translationUnits_.end())
+        translationUnits_.push_back(TranslationUnit(fileContainer.filePath(), unsavedFiles, projects.project(fileContainer.projectFilePath())));
 }
 
 std::vector<TranslationUnit>::iterator TranslationUnits::findTranslationUnit(const FileContainer &fileContainer)
 {
-    return std::find_if(translationUnits.begin(), translationUnits.end(), [fileContainer] (const TranslationUnit &translationUnit) {
-        return fileContainer.filePath() == translationUnit.filePath() && fileContainer.projectFilePath() == translationUnit.projectFilePath();
-    });
+    return std::find(translationUnits_.begin(), translationUnits_.end(), fileContainer);
 }
 
 std::vector<TranslationUnit>::const_iterator TranslationUnits::findTranslationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const
 {
-    return std::find_if(translationUnits.begin(), translationUnits.end(), [filePath, projectFilePath] (const TranslationUnit &translationUnit) {
-        return filePath == translationUnit.filePath() && projectFilePath == translationUnit.projectFilePath();
-    });
+    FileContainer fileContainer(filePath, projectFilePath);
+    return std::find(translationUnits_.begin(), translationUnits_.end(), fileContainer);
 }
 
-void TranslationUnits::checkIfProjectExists(const Utf8String &projectFilePath) const
+void TranslationUnits::checkIfProjectExists(const Utf8String &projectFileName) const
 {
-    projects.project(projectFilePath);
+    projects.project(projectFileName);
+}
+
+void TranslationUnits::checkIfProjectsExists(const QVector<FileContainer> &fileContainers) const
+{
+    Utf8StringVector notExistingProjects;
+
+    for (const FileContainer &fileContainer : fileContainers) {
+        if (!projects.hasProject(fileContainer.projectFilePath()))
+            notExistingProjects.push_back(fileContainer.projectFilePath());
+    }
+
+    if (!notExistingProjects.isEmpty())
+        throw ProjectDoesNotExistException(notExistingProjects);
+
 }
 
 } // namespace CodeModelBackEnd

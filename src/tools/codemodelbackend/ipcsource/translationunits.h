@@ -53,14 +53,18 @@ public:
 
     const TranslationUnit &translationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const;
 
+    const std::vector<TranslationUnit> &translationUnits() const;
+
 private:
     void createOrUpdateTranslationUnit(const FileContainer &fileContainer);
     std::vector<TranslationUnit>::iterator findTranslationUnit(const FileContainer &fileContainer);
     std::vector<TranslationUnit>::const_iterator findTranslationUnit(const Utf8String &filePath, const Utf8String &projectFilePath) const;
-    void checkIfProjectExists(const Utf8String &projectFilePath) const;
+    void checkIfProjectExists(const Utf8String &projectFileName) const;
+    void checkIfProjectsExists(const QVector<FileContainer> &fileContainers) const;
+
 
 private:
-    std::vector<TranslationUnit> translationUnits;
+    std::vector<TranslationUnit> translationUnits_;
     Projects &projects;
     UnsavedFiles &unsavedFiles;
 };

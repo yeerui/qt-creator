@@ -219,5 +219,10 @@ TranslationUnit &TranslationUnit::operator =(TranslationUnit &&other)
     return *this;
 }
 
+bool operator ==(const TranslationUnit &first, const TranslationUnit &second)
+{
+    return first.filePath() == second.filePath() && first.projectFilePath() == second.projectFilePath();
+}
+
 } // namespace CodeModelBackEnd
 

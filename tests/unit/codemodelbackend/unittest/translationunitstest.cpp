@@ -54,6 +54,8 @@ using CodeModelBackEnd::Project;
 using testing::IsNull;
 using testing::NotNull;
 using testing::Gt;
+using testing::Not;
+using testing::Contains;
 
 namespace {
 
@@ -146,6 +148,18 @@ TEST_F(TranslationUnits, Remove)
 
     ASSERT_THROW(translationUnits.translationUnit(filePath, projectFilePath),
                  CodeModelBackEnd::TranslationUnitDoesNotExistException);
+}
+
+TEST_F(TranslationUnits, RemoveAllValidIfExceptionIsThrown)
+{
+    CodeModelBackEnd::FileContainer fileContainer(filePath, projectFilePath);
+    translationUnits.createOrUpdate({fileContainer});
+
+    ASSERT_THROW(translationUnits.remove({CodeModelBackEnd::FileContainer(Utf8StringLiteral("dontextist.pro"), projectFilePath), fileContainer}),
+                 CodeModelBackEnd::TranslationUnitDoesNotExistException);
+
+    ASSERT_THAT(translationUnits.translationUnits(),
+                Not(Contains(TranslationUnit(filePath, unsavedFiles, projects.project(projectFilePath)))));
 }
 
 }

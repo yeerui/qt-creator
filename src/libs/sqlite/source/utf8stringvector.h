@@ -53,9 +53,23 @@ public:
 
     static void registerType();
 
+    inline bool removeFast(const Utf8String &valueToBeRemoved);
+
 protected:
     int totalByteSize() const;
 };
+
+bool Utf8StringVector::removeFast(const Utf8String &valueToBeRemoved)
+{
+    auto position = std::remove(begin(), end(), valueToBeRemoved);
+
+    bool hasEntry = position != end();
+
+    erase(position, end());
+
+    return hasEntry;
+}
+
 
 SQLITE_EXPORT QDebug operator<<(QDebug debug, const Utf8StringVector &textVector);
 SQLITE_EXPORT void PrintTo(const Utf8StringVector &textVector, ::std::ostream* os);

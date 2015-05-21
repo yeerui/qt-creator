@@ -46,22 +46,27 @@ void Projects::remove(const Utf8StringVector &projectFilePaths)
 {
     Utf8StringVector processedProjectFilePaths = projectFilePaths;
 
-    auto removeBeginIterator = std::remove_if(projects.begin(), projects.end(), [&processedProjectFilePaths] (const Project &project) {
-        return processedProjectFilePaths.removeOne(project.projectFilePath());
+    auto removeBeginIterator = std::remove_if(projects_.begin(), projects_.end(), [&processedProjectFilePaths] (const Project &project) {
+        return processedProjectFilePaths.removeFast(project.projectFilePath());
     });
+
+    std::for_each(removeBeginIterator, projects_.end(), [](Project &project) { project.clearProjectFilePath(); });
+    projects_.erase(removeBeginIterator, projects_.end());
 
     if (!processedProjectFilePaths.isEmpty())
         throw ProjectDoesNotExistException(processedProjectFilePaths);
+}
 
-    std::for_each(removeBeginIterator, projects.end(), [](Project &project) { project.clearProjectFilePath(); });
-    projects.erase(removeBeginIterator, projects.end());
+bool Projects::hasProject(const Utf8String &projectFilePath) const
+{
+    return findProject(projectFilePath) != projects_.cend();
 }
 
 const Project &Projects::project(const Utf8String &projectFilePath) const
 {
     const auto findIterator = findProject(projectFilePath);
 
-    if (findIterator == projects.cend())
+    if (findIterator == projects_.cend())
         throw ProjectDoesNotExistException({projectFilePath});
 
     return *findIterator;
@@ -69,23 +74,28 @@ const Project &Projects::project(const Utf8String &projectFilePath) const
 
 std::vector<Project>::const_iterator Projects::findProject(const Utf8String &projectFilePath) const
 {
-    return std::find_if(projects.begin(), projects.end(), [projectFilePath] (const Project &project) {
+    return std::find_if(projects_.begin(), projects_.end(), [projectFilePath] (const Project &project) {
         return project.projectFilePath() == projectFilePath;
     });
 }
 
 std::vector<Project>::iterator Projects::findProject(const Utf8String &projectFilePath)
 {
-    return std::find_if(projects.begin(), projects.end(), [projectFilePath] (const Project &project) {
+    return std::find_if(projects_.begin(), projects_.end(), [projectFilePath] (const Project &project) {
         return project.projectFilePath() == projectFilePath;
     });
+}
+
+const std::vector<Project> &Projects::projects() const
+{
+    return projects_;
 }
 
 void Projects::createOrUpdateProject(const ProjectContainer &projectContainer)
 {
     auto findIterator = findProject(projectContainer.filePath());
-    if (findIterator == projects.cend())
-        projects.push_back(Project(projectContainer));
+    if (findIterator == projects_.cend())
+        projects_.push_back(Project(projectContainer));
     else
         findIterator->setArguments(projectContainer.arguments());
 }

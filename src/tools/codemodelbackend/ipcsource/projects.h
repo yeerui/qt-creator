@@ -45,16 +45,20 @@ public:
     void createOrUpdate(const QVector<ProjectContainer> &projectConainers);
     void remove(const Utf8StringVector &projectFilePaths);
 
+    bool hasProject(const Utf8String &projectFilePath) const;
+
     const Project &project(const Utf8String &projectFilePath) const;
 
     std::vector<Project>::const_iterator findProject(const Utf8String &projectFilePath) const;
     std::vector<Project>::iterator findProject(const Utf8String &projectFilePath);
 
+    const std::vector<Project> &projects() const;
+
 private:
     void createOrUpdateProject(const ProjectContainer &projectConainer);
 
 private:
-    std::vector<Project> projects;
+    std::vector<Project> projects_;
 };
 
 } // namespace CodeModelbackEnd

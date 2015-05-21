@@ -90,6 +90,8 @@ private:
     mutable std::shared_ptr<TranslationUnitData> d;
 };
 
+bool operator ==(const TranslationUnit &first, const TranslationUnit &second);
+
 } // namespace CodeModelBackEnd
 
 #endif // CODEMODELBACKEND_TRANSLATIONUNIT_H

@@ -131,6 +131,7 @@ TEST(TranslationUnit, TimeStampIsUpdatedAsNewCxTranslationUnitIsGenerated)
     ASSERT_THAT(translationUnit.lastChangeTimePoint(), Gt(lastChangeTimePoint));
 }
 
+
 //TEST(TranslationUnit, ThrowParseErrorForWrongArguments)
 //{
 //    Project project(Utf8StringLiteral("/path/to/projectfile"));

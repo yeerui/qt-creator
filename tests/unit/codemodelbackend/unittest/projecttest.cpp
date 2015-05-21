@@ -45,6 +45,7 @@ using testing::StrEq;
 using testing::Pointwise;
 using testing::Contains;
 using testing::Gt;
+using testing::Not;
 
 namespace {
 
@@ -149,4 +150,36 @@ TEST(Project, ProjectFilePathIsEmptyfterRemoving)
 
     ASSERT_TRUE(project.projectFilePath().isEmpty());
 }
+
+TEST(Project, ThrowsForNotExistingProjectButRemovesAllExistingProject)
+{
+    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"));
+    CodeModelBackEnd::Projects projects;
+    projects.createOrUpdate({projectContainer});
+    CodeModelBackEnd::Project project = *projects.findProject(Utf8StringLiteral("pathToProject.pro"));
+
+    EXPECT_THROW(projects.remove({Utf8StringLiteral("doesnotexist.pro"), projectContainer.filePath()}),  CodeModelBackEnd::ProjectDoesNotExistException);
+
+    ASSERT_THAT(projects.projects(), Not(Contains(project)));
+}
+
+TEST(Project, HasProject)
+{
+    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"));
+    CodeModelBackEnd::Projects projects;
+    projects.createOrUpdate({projectContainer});
+
+    ASSERT_TRUE(projects.hasProject(projectContainer.filePath()));
+}
+
+TEST(Project, DoNotHasProject)
+{
+    CodeModelBackEnd::ProjectContainer projectContainer(Utf8StringLiteral("pathToProject.pro"));
+    CodeModelBackEnd::Projects projects;
+    projects.createOrUpdate({projectContainer});
+
+    ASSERT_FALSE(projects.hasProject(Utf8StringLiteral("doesnotexist.pro")));
+}
+
+
 }

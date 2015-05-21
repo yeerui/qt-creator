@@ -219,3 +219,26 @@ TEST(Utf8, CompareCharPointer)
     ASSERT_TRUE(text == "foo");
     ASSERT_FALSE(text == "foo2");
 }
+
+TEST(Utf8, RemoveFastFromVectorFailed)
+{
+    Utf8StringVector values({Utf8StringLiteral("a"),
+                             Utf8StringLiteral("b"),
+                             Utf8StringLiteral("c"),
+                             Utf8StringLiteral("d")});
+
+    ASSERT_FALSE(values.removeFast(Utf8StringLiteral("e")));
+}
+
+TEST(Utf8, RemoveFastFromVector)
+{
+    Utf8StringVector values({Utf8StringLiteral("a"),
+                             Utf8StringLiteral("b"),
+                             Utf8StringLiteral("c"),
+                             Utf8StringLiteral("d")});
+
+    bool removed = values.removeFast(Utf8StringLiteral("b"));
+
+    ASSERT_TRUE(removed);
+    ASSERT_THAT(values, Not(Contains(Utf8StringLiteral("b"))));
+}
