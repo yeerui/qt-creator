@@ -107,9 +107,13 @@ const std::vector<TranslationUnit> &TranslationUnits::translationUnits() const
 
 void TranslationUnits::createOrUpdateTranslationUnit(const FileContainer &fileContainer)
 {
+    TranslationUnit::FileExistsCheck checkIfFileExists = fileContainer.hasUnsavedFileContent() ? TranslationUnit::DoNotCheckIfFileExists : TranslationUnit::CheckIfFileExists;
     auto findIterator = findTranslationUnit(fileContainer);
     if (findIterator == translationUnits_.end())
-        translationUnits_.push_back(TranslationUnit(fileContainer.filePath(), unsavedFiles, projects.project(fileContainer.projectPartId())));
+        translationUnits_.push_back(TranslationUnit(fileContainer.filePath(),
+                                                    unsavedFiles,
+                                                    projects.project(fileContainer.projectPartId()),
+                                                    checkIfFileExists));
 }
 
 std::vector<TranslationUnit>::iterator TranslationUnits::findTranslationUnit(const FileContainer &fileContainer)

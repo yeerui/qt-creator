@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -112,6 +112,20 @@ TEST_F(TranslationUnits, ThrowForGettingWithWrongProjectPartFilePath)
 
 }
 
+TEST_F(TranslationUnits, ThrowForAddingNonExistingFile)
+{
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), projectPartId);
+
+    ASSERT_THROW(translationUnits.createOrUpdate({fileContainer}),
+                 CodeModelBackEnd::TranslationUnitFileNotExitsException);
+}
+
+TEST_F(TranslationUnits, DoNotThrowForAddingNonExistingFileWithUnsavedContent)
+{
+    CodeModelBackEnd::FileContainer fileContainer(Utf8StringLiteral("foo.cpp"), projectPartId, Utf8String(), true);
+
+    ASSERT_NO_THROW(translationUnits.createOrUpdate({fileContainer}));
+}
 
 TEST_F(TranslationUnits, Add)
 {

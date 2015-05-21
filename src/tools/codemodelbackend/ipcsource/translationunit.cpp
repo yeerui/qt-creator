@@ -79,10 +79,12 @@ TranslationUnitData::~TranslationUnitData()
 
 TranslationUnit::TranslationUnit(const Utf8String &filePath,
                                  const UnsavedFiles &unsavedFiles,
-                                 const ProjectPart &project)
+                                 const ProjectPart &project,
+                                 FileExistsCheck fileExistsCheck)
     : d(std::make_shared<TranslationUnitData>(filePath, unsavedFiles, project))
 {
-    checkIfFileExists();
+    if (fileExistsCheck == CheckIfFileExists)
+        checkIfFileExists();
 }
 
 bool TranslationUnit::isNull() const

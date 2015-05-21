@@ -52,10 +52,16 @@ using time_point = std::chrono::steady_clock::time_point;
 class TranslationUnit
 {
 public:
+    enum FileExistsCheck {
+        CheckIfFileExists,
+        DoNotCheckIfFileExists
+    };
+
     TranslationUnit() = default;
     TranslationUnit(const Utf8String &filePath,
                     const UnsavedFiles &unsavedFiles,
-                    const ProjectPart &projectPart);
+                    const ProjectPart &projectPart,
+                    FileExistsCheck fileExitsCheck = CheckIfFileExists);
     ~TranslationUnit();
 
     TranslationUnit(const TranslationUnit &cxTranslationUnit);

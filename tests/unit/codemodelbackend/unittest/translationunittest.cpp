@@ -68,7 +68,13 @@ TEST(TranslationUnit, DefaultTranslationUnitIsInvalid)
 
 TEST(TranslationUnit, ThrowExceptionForNonExistingFilePath)
 {
-    ASSERT_THROW(TranslationUnit(Utf8StringLiteral("file.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile"))), CodeModelBackEnd::TranslationUnitFileNotExitsException);
+    ASSERT_THROW(TranslationUnit(Utf8StringLiteral("file.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile"))),
+                 CodeModelBackEnd::TranslationUnitFileNotExitsException);
+}
+
+TEST(TranslationUnit, ThrowNoExceptionForNonExistingFilePathIfDoNotCheckIfFileExistsIsSet)
+{
+    ASSERT_NO_THROW(TranslationUnit(Utf8StringLiteral("file.cpp"), UnsavedFiles(), ProjectPart(Utf8StringLiteral("/path/to/projectfile")), TranslationUnit::DoNotCheckIfFileExists));
 }
 
 TEST(TranslationUnit, TranslationUnitIsValid)
