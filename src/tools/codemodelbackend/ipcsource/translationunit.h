@@ -61,7 +61,7 @@ public:
     TranslationUnit(const Utf8String &filePath,
                     const UnsavedFiles &unsavedFiles,
                     const ProjectPart &projectPart,
-                    FileExistsCheck fileExitsCheck = CheckIfFileExists);
+                    FileExistsCheck fileExistsCheck = CheckIfFileExists);
     ~TranslationUnit();
 
     TranslationUnit(const TranslationUnit &cxTranslationUnit);

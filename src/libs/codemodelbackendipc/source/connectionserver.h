@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -44,7 +44,7 @@ class CMBIPC_EXPORT ConnectionServer : public QObject
 {
     Q_OBJECT
 public:
-    ConnectionServer();
+    ConnectionServer(const QString &connectionName);
     ~ConnectionServer();
 
     void start();
@@ -74,6 +74,7 @@ private:
     std::vector<QLocalSocket*> localSockets;
     IpcServerInterface *ipcServer;
     QLocalServer localServer;
+    static QString connectionName;
     int aliveTimerId;
 };
 

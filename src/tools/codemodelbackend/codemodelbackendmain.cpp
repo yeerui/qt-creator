@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -38,15 +38,20 @@ int main(int argc, char *argv[])
 {
     QCoreApplication::setOrganizationName(QStringLiteral("QtProject"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("qt-project.org"));
-    QCoreApplication::setApplicationName(QStringLiteral("EchoCodeModelBackend"));
+    QCoreApplication::setApplicationName(QStringLiteral("CodeModelBackend"));
     QCoreApplication::setApplicationVersion(QStringLiteral("1.0.0"));
 
     QCoreApplication application(argc, argv);
 
+    if (application.arguments().count() != 2) {
+        qWarning() << "wrong argument count";
+        return 1;
+    }
+
     CodeModelBackEnd::Commands::registerCommands();
 
     CodeModelBackEnd::ClangIpcServer clangIpcServer;
-    CodeModelBackEnd::ConnectionServer connectionServer;
+    CodeModelBackEnd::ConnectionServer connectionServer(application.arguments()[1]);
     connectionServer.start();
     connectionServer.setIpcServer(&clangIpcServer);
 

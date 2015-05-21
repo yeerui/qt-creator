@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -40,9 +40,13 @@
 
 namespace CodeModelBackEnd {
 
-ConnectionServer::ConnectionServer()
+QString ConnectionServer::connectionName;
+
+ConnectionServer::ConnectionServer(const QString &connectionName)
     : aliveTimerId(startTimer(5000))
 {
+    this->connectionName = connectionName;
+
     connect(&localServer, &QLocalServer::newConnection, this, &ConnectionServer::handleNewConnection);
     std::atexit(&ConnectionServer::removeServer);
 #if defined(Q_OS_LINUX)
@@ -58,8 +62,8 @@ ConnectionServer::~ConnectionServer()
 
 void ConnectionServer::start()
 {
-    QLocalServer::removeServer(QStringLiteral("CodeModelBackEnd"));
-    localServer.listen(QStringLiteral("CodeModelBackEnd"));
+    QLocalServer::removeServer(connectionName);
+    localServer.listen(connectionName);
 }
 
 void ConnectionServer::setIpcServer(IpcServerInterface *ipcServer)
@@ -127,7 +131,7 @@ QLocalSocket *ConnectionServer::nextPendingConnection()
 
 void ConnectionServer::removeServer()
 {
-    QLocalServer::removeServer(QStringLiteral("CodeModelBackEnd"));
+    QLocalServer::removeServer(connectionName);
 }
 
 void ConnectionServer::delayedExitApplicationIfNoSockedIsConnected()

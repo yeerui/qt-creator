@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -43,10 +43,15 @@ int main(int argc, char *argv[])
 
     QCoreApplication application(argc, argv);
 
+    if (application.arguments().count() != 2) {
+        qWarning() << "wrong argument count";
+        return 1;
+    }
+
     CodeModelBackEnd::Commands::registerCommands();
 
     CodeModelBackEnd::EchoIpcServer echoIpcServer;
-    CodeModelBackEnd::ConnectionServer connectionServer;
+    CodeModelBackEnd::ConnectionServer connectionServer(application.arguments()[1]);
     connectionServer.start();
     connectionServer.setIpcServer(&echoIpcServer);
 

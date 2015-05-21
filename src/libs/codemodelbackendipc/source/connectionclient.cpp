@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
@@ -40,6 +40,18 @@
 
 namespace CodeModelBackEnd {
 
+namespace {
+QString currentProcessId()
+{
+    return QString::number(QCoreApplication::applicationPid());
+}
+
+QString connectionName()
+{
+    return QStringLiteral("CodeModelBackEnd-") + currentProcessId();
+}
+}
+
 ConnectionClient::ConnectionClient(IpcClientInterface *client)
     : serverProxy_(client, &localSocket),
       isInConnectedMode(false)
@@ -55,7 +67,7 @@ ConnectionClient::~ConnectionClient()
 }
 
 bool ConnectionClient::connectToServer()
-{localSocket.connectToServer(QStringLiteral("CodeModelBackEnd"));
+{localSocket.connectToServer(connectionName());
     isInConnectedMode = true;
     bool isConnected = localSocket.waitForConnected();
     if (!isConnected) {
@@ -103,7 +115,7 @@ void ConnectionClient::startProcess()
     if (!isProcessIsRunning()) {
         process()->setProcessChannelMode(QProcess::ForwardedErrorChannel);
         process()->setReadChannel(QProcess::StandardOutput);
-        process()->start(processPath());
+        process()->start(processPath(), {connectionName()});
         process()->waitForStarted();
         processAliveTimer.start();
     }
@@ -122,7 +134,7 @@ void ConnectionClient::restartProcess()
 bool ConnectionClient::retryToConnectToServer()
 {
     for (int counter = 0; counter < 1000; counter++) {
-        localSocket.connectToServer(QStringLiteral("CodeModelBackEnd"));
+        localSocket.connectToServer(connectionName());
         bool isConnected = localSocket.waitForConnected(20);
 
         if (isConnected)
