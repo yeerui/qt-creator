@@ -1,4 +1,4 @@
-import qbs 1.0
+﻿import qbs 1.0
 
 QtcLibrary {
     name: "CodeModelBackEndIpc"
@@ -7,10 +7,9 @@ QtcLibrary {
     Depends { name: "Sqlite" }
 
     cpp.defines: base.concat("CODEMODELBACKENDIPC_LIBRARY")
-    cpp.includePaths: base.concat("source")
+    cpp.includePaths: base.concat(".")
 
     Group {
-        prefix: "source/"
         files: [
             "*.h",
             "*.cpp"
@@ -21,7 +20,7 @@ QtcLibrary {
         Depends { name: "Sqlite" }
         Depends { name: "Qt.network" }
         cpp.includePaths: [
-            "source"
+            "."
         ]
     }
 }

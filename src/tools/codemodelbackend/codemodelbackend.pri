@@ -22,7 +22,7 @@ LIBS += -L$$OUT_PWD/../codemodelbackendipc/lib/qtcreator -lCodemodelbackendipc -
 LIBS += $$LLVM_LIBS
 INCLUDEPATH += $$LLVM_INCLUDEPATH
 
-INCLUDEPATH *= $$IDE_SOURCE_TREE/src/libs/codemodelbackendipc/source
+INCLUDEPATH *= $$IDE_SOURCE_TREE/src/libs/codemodelbackendipc
 INCLUDEPATH *= $$IDE_SOURCE_TREE/src/libs/sqlite
 
 SOURCES += codemodelbackendmain.cpp
