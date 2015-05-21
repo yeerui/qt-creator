@@ -1,9 +1,9 @@
-import qbs 1.0
+﻿import qbs 1.0
 
 QtcLibrary {
     name: "Sqlite"
 
-    cpp.includePaths: base.concat(["../3rdparty/sqlite", "source"])
+    cpp.includePaths: base.concat(["../3rdparty/sqlite", "."])
     cpp.defines: base.concat([
         "BUILD_SQLITE_LIBRARY",
         "SQLITE_THREADSAFE=2",
@@ -27,7 +27,6 @@ QtcLibrary {
     }
 
     Group {
-        prefix: "source/"
         files: [
             "*.h",
             "*.cpp"
@@ -37,7 +36,7 @@ QtcLibrary {
     Export {
         cpp.includePaths: base.concat([
             "../3rdparty/sqlite",
-            "source"
+            "."
         ])
     }
 }
