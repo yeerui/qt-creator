@@ -159,6 +159,7 @@ void UnsavedFiles::removeCXUnsavedFile(const FileContainer &fileContainer)
                                               d->cxUnsavedFiles.end(),
                                               [filePath] (const CXUnsavedFile &cxUnsavedFile) { return filePath == cxUnsavedFile.Filename; });
 
+    std::for_each(removeBeginIterator, d->cxUnsavedFiles.end(), UnsavedFiles::deleteCXUnsavedFile);
     d->cxUnsavedFiles.erase( removeBeginIterator, d->cxUnsavedFiles.end());
 }
 
