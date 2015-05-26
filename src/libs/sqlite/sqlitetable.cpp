@@ -39,6 +39,11 @@ SqliteTable::SqliteTable()
 
 }
 
+SqliteTable::~SqliteTable()
+{
+    qDeleteAll(sqliteColumns);
+}
+
 void SqliteTable::setName(const Utf8String &name)
 {
     tableName = name;

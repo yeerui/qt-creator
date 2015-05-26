@@ -49,6 +49,7 @@ class SQLITE_EXPORT SqliteTable : public QObject
 
 public:
     SqliteTable();
+    ~SqliteTable();
 
     void setName(const Utf8String &name);
     const Utf8String &name() const;
