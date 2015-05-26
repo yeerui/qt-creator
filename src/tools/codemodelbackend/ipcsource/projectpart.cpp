@@ -41,6 +41,10 @@ namespace CodeModelBackEnd {
 class ProjectPartData {
 public:
     ProjectPartData(const Utf8String &projectPartId);
+    ~ProjectPartData();
+
+public:
+    void clearArguments();
 
 public:
     time_point lastChangeTimePoint;
@@ -48,10 +52,23 @@ public:
     Utf8String projectPartId;
 };
 
+void ProjectPartData::clearArguments()
+{
+    for (auto argument : arguments)
+        delete [] argument;
+
+    arguments.clear();
+}
+
 ProjectPartData::ProjectPartData(const Utf8String &projectPartId)
     : lastChangeTimePoint(std::chrono::steady_clock::now()),
       projectPartId(projectPartId)
 {
+}
+
+ProjectPartData::~ProjectPartData()
+{
+    clearArguments();
 }
 
 ProjectPart::ProjectPart(const Utf8String &projectPartId)
@@ -66,7 +83,6 @@ ProjectPart::ProjectPart(const ProjectPartContainer &projectContainer)
 }
 
 ProjectPart::~ProjectPart() = default;
-
 ProjectPart::ProjectPart(const ProjectPart &) = default;
 ProjectPart &ProjectPart::operator =(const ProjectPart &) = default;
 
@@ -102,6 +118,7 @@ static const char *strdup(const Utf8String &utf8String)
 
 void ProjectPart::setArguments(const Utf8StringVector &arguments)
 {
+    d->clearArguments();
     d->arguments.resize(arguments.size());
     std::transform(arguments.cbegin(), arguments.cend(), d->arguments.begin(), strdup);
     updateLastChangeTimePoint();
