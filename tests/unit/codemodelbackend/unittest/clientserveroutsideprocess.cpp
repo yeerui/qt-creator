@@ -33,11 +33,13 @@
 #include "gmock/gmock-matchers.h"
 #include "gmock/gmock.h"
 
-#include <QString>
 #include <QBuffer>
+#include <QProcess>
 #include <QSignalSpy>
-#include <vector>
+#include <QString>
 #include <QVariant>
+
+#include <vector>
 
 #include "gtest-qt-printing.h"
 
@@ -93,11 +95,20 @@ TEST_F(ClientServerOutsideProcess, RestartProcess)
     ASSERT_TRUE(client.isConnected());
 }
 
-TEST_F(ClientServerOutsideProcess, ResetAliveTimer)
+TEST_F(ClientServerOutsideProcess, RestartProcessAfterAliveTimeout)
 {
     QSignalSpy clientSpy(&client, SIGNAL(processRestarted()));
 
     client.setProcessAliveTimerInterval(1);
+
+    ASSERT_TRUE(clientSpy.wait(100000));
+}
+
+TEST_F(ClientServerOutsideProcess, RestartProcessAfterTermination)
+{
+    QSignalSpy clientSpy(&client, SIGNAL(processRestarted()));
+
+    client.processForTestOnly()->kill();
 
     ASSERT_TRUE(clientSpy.wait(100000));
 }

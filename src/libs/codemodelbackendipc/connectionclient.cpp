@@ -67,7 +67,8 @@ ConnectionClient::~ConnectionClient()
 }
 
 bool ConnectionClient::connectToServer()
-{localSocket.connectToServer(connectionName());
+{
+    localSocket.connectToServer(connectionName());
     isInConnectedMode = true;
     bool isConnected = localSocket.waitForConnected();
     if (!isConnected) {
@@ -178,6 +179,7 @@ void ConnectionClient::finishProcess()
 {
     processAliveTimer.stop();
 
+    disconnectProcessFinished();
     endProcess();
     disconnectFromServer();
     terminateProcess();
@@ -198,6 +200,11 @@ IpcServerProxy &ConnectionClient::serverProxy()
     return serverProxy_;
 }
 
+QProcess *ConnectionClient::processForTestOnly() const
+{
+    return process_.get();
+}
+
 bool ConnectionClient::isProcessIsRunning() const
 {
     return process_ && process_->state() == QProcess::Running;
@@ -205,10 +212,32 @@ bool ConnectionClient::isProcessIsRunning() const
 
 QProcess *ConnectionClient::process() const
 {
-    if (!process_)
+    if (!process_) {
         process_.reset(new QProcess);
+        connectProcessFinished();
+    }
 
     return process_.get();
+}
+
+void ConnectionClient::connectProcessFinished() const
+{
+    if (process_) {
+        connect(process_.get(),
+                static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+                this,
+                &ConnectionClient::restartProcess);
+    }
+}
+
+void ConnectionClient::disconnectProcessFinished() const
+{
+    if (process_) {
+        disconnect(process_.get(),
+                   static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+                   this,
+                   &ConnectionClient::restartProcess);
+    }
 }
 
 const QString &ConnectionClient::processPath() const

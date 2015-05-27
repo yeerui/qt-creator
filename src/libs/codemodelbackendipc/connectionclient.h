@@ -77,6 +77,8 @@ public:
 
     IpcServerProxy &serverProxy();
 
+    QProcess *processForTestOnly() const;
+
 signals:
     void processRestarted();
 
@@ -85,7 +87,10 @@ private:
     void endProcess();
     void terminateProcess();
     void killProcess();
+
     QProcess *process() const;
+    void connectProcessFinished() const;
+    void disconnectProcessFinished() const;
 
 private:
     mutable std::unique_ptr<QProcess> process_;
