@@ -32,6 +32,7 @@
 
 #include "gmock/gmock-matchers.h"
 #include "gmock/gmock-generated-matchers.h"
+#include "gtest-qt-printing.h"
 
 #include <clang-c/Index.h>
 
@@ -584,7 +585,7 @@ TEST_F(CodeCompletionsExtractor, NoArgumentDefinition)
                                             CodeCompletion::Available)));
 }
 
-TEST_F(CodeCompletionsExtractor, CompletionChunks)
+TEST_F(CodeCompletionsExtractor, CompletionChunksFunction)
 {
     ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
@@ -597,7 +598,7 @@ TEST_F(CodeCompletionsExtractor, CompletionChunks)
                                                                              {CodeCompletionChunk::RightParen, Utf8StringLiteral(")")}})));
 }
 
-TEST_F(CodeCompletionsExtractor, CompletionChunksWithOptionalChunks)
+TEST_F(CodeCompletionsExtractor, CompletionChunksFunctionWithOptionalChunks)
 {
     ClangCodeCompleteResults completeResults(getResults(functionTranslationUnit, 20));
 
@@ -607,7 +608,55 @@ TEST_F(CodeCompletionsExtractor, CompletionChunksWithOptionalChunks)
                                                QVector<CodeCompletionChunk>({{CodeCompletionChunk::ResultType, Utf8StringLiteral("void")},
                                                                              {CodeCompletionChunk::TypedText, Utf8StringLiteral("FunctionWithOptional")},
                                                                              {CodeCompletionChunk::LeftParen, Utf8StringLiteral("(")},
-                                                                             {CodeCompletionChunk::Optional, Utf8String(), QVector<CodeCompletionChunk>({{CodeCompletionChunk::Placeholder, Utf8StringLiteral("int x")}})},
+                                                                             {CodeCompletionChunk::Placeholder, Utf8StringLiteral("int x")},
+                                                                             {CodeCompletionChunk::Comma, Utf8StringLiteral(", ")},
+                                                                             {CodeCompletionChunk::Placeholder, Utf8StringLiteral("char y")},
+                                                                             {CodeCompletionChunk::Optional, Utf8String(), QVector<CodeCompletionChunk>({{CodeCompletionChunk::Comma, Utf8StringLiteral(", ")},
+                                                                                                                                                         {CodeCompletionChunk::Placeholder, Utf8StringLiteral("int z")}})},
                                                                              {CodeCompletionChunk::RightParen, Utf8StringLiteral(")")}})));
 }
+
+TEST_F(CodeCompletionsExtractor, CompletionChunksField)
+{
+    ClangCodeCompleteResults completeResults(getResults(variableTranslationUnit, 20));
+
+    ::CodeCompletionsExtractor extractor(completeResults.data());
+
+    ASSERT_THAT(extractor, HasCompletionChunks(Utf8StringLiteral("Field"),
+                                               QVector<CodeCompletionChunk>({{CodeCompletionChunk::ResultType, Utf8StringLiteral("int")},
+                                                                             {CodeCompletionChunk::TypedText, Utf8StringLiteral("Field")}})));
+}
+
+TEST_F(CodeCompletionsExtractor, CompletionChunksEnumerator)
+{
+    ClangCodeCompleteResults completeResults(getResults(enumerationTranslationUnit, 20));
+
+    ::CodeCompletionsExtractor extractor(completeResults.data());
+
+    ASSERT_THAT(extractor, HasCompletionChunks(Utf8StringLiteral("Enumerator"),
+                                               QVector<CodeCompletionChunk>({{CodeCompletionChunk::ResultType, Utf8StringLiteral("Enumeration")},
+                                                                             {CodeCompletionChunk::TypedText, Utf8StringLiteral("Enumerator")}})));
+}
+
+TEST_F(CodeCompletionsExtractor, CompletionChunksEnumeration)
+{
+    ClangCodeCompleteResults completeResults(getResults(enumerationTranslationUnit, 20));
+
+    ::CodeCompletionsExtractor extractor(completeResults.data());
+
+    ASSERT_THAT(extractor, HasCompletionChunks(Utf8StringLiteral("Enumeration"),
+                                               QVector<CodeCompletionChunk>({{CodeCompletionChunk::TypedText, Utf8StringLiteral("Enumeration")}})));
+}
+
+TEST_F(CodeCompletionsExtractor, CompletionChunksClass)
+{
+    ClangCodeCompleteResults completeResults(getResults(classTranslationUnit, 20));
+
+    ::CodeCompletionsExtractor extractor(completeResults.data());
+
+    ASSERT_THAT(extractor, HasCompletionChunks(Utf8StringLiteral("Class"),
+                                               QVector<CodeCompletionChunk>({{CodeCompletionChunk::TypedText, Utf8StringLiteral("Class")}})));
+}
+
+
 }

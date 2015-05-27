@@ -32,6 +32,7 @@
 
 #include "gmock/gmock-matchers.h"
 #include "gmock/gmock-generated-matchers.h"
+#include "gtest-qt-printing.h"
 
 #include <projectpart.h>
 #include <utf8stringvector.h>

@@ -31,6 +31,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock-matchers.h"
 #include "gmock/gmock.h"
+#include "gtest-qt-printing.h"
 
 #include <unsavedfiles.h>
 #include <filecontainer.h>
