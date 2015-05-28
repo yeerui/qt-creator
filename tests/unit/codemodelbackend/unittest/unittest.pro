@@ -19,6 +19,9 @@ include(../../../../src/libs/sqlite/sqlite-lib.pri)
 include(../../../../src/libs/codemodelbackendipc/codemodelbackendipc-lib.pri)
 include(../../../../src/tools/codemodelbackend/ipcsource/codemodelbackendclangipc-source.pri)
 include(../../../../src/tools/codemodelbackend/clang_installation.pri)
+include(../../../../src/plugins/clangcodemodel/clangcodemodeltesting.pri)
+
+INCLUDEPATH += $$PWD/../../../../src/libs $$PWD/../../../../src/plugins
 
 requires(!isEmpty(LLVM_LIBS))
 
@@ -53,7 +56,8 @@ SOURCES += main.cpp \
     unsavedfilestest.cpp \
     projecttest.cpp \
     clangipcservertest.cpp \
-    translationunitstest.cpp
+    translationunitstest.cpp \
+    completionchunkstotextconvertertest.cpp
 
 HEADERS += \
     gtest-qt-printing.h \

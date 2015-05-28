@@ -41,7 +41,8 @@ SOURCES += \
     $$PWD/clangprojectsettingspropertiespage.cpp \
     $$PWD/raii/scopedclangoptions.cpp \
     $$PWD/clangmodelmanagersupport.cpp \
-    $$PWD/clangcompletioncontextanalyzer.cpp
+    $$PWD/clangcompletioncontextanalyzer.cpp \
+    $$PWD/completionchunkstotextconverter.cpp
 
 HEADERS += \
     $$PWD/clangcodemodelplugin.h \
@@ -66,7 +67,8 @@ HEADERS += \
     $$PWD/clangprojectsettingspropertiespage.h \
     $$PWD/raii/scopedclangoptions.h \
     $$PWD/clangmodelmanagersupport.h \
-    $$PWD/clangcompletioncontextanalyzer.h
+    $$PWD/clangcompletioncontextanalyzer.h \
+    $$PWD/completionchunkstotextconverter.h
 
 HEADERS += clangutils.h \
     cxprettyprinter.h
