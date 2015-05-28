@@ -88,10 +88,13 @@ private:
     void terminateProcess();
     void killProcess();
     void printLocalSocketError(QLocalSocket::LocalSocketError socketError);
+    void printStandardOutput();
+    void printStandardError();
 
     QProcess *process() const;
     void connectProcessFinished() const;
     void disconnectProcessFinished() const;
+    void connectStandardOutputAndError() const;
 
 private:
     mutable std::unique_ptr<QProcess> process_;

@@ -111,8 +111,8 @@ void ConnectionClient::setProcessAliveTimerInterval(int processTimerInterval)
 void ConnectionClient::startProcess()
 {
     if (!isProcessIsRunning()) {
-        process()->setProcessChannelMode(QProcess::ForwardedErrorChannel);
-        process()->setReadChannel(QProcess::StandardOutput);
+        connectProcessFinished();
+        connectStandardOutputAndError();
         process()->start(processPath(), {connectionName()});
         process()->waitForStarted();
         processAliveTimer.start();
@@ -177,6 +177,16 @@ void ConnectionClient::printLocalSocketError(QLocalSocket::LocalSocketError /*so
     qWarning() << "ClangCodeModel ConnectionClient LocalSocket Error:" << localSocket.errorString();
 }
 
+void ConnectionClient::printStandardOutput()
+{
+    qWarning() << "CodeModelBackEnd:" << process_->readAllStandardOutput();
+}
+
+void ConnectionClient::printStandardError()
+{
+    qWarning() << "CodeModelBackEnd Error:" << process_->readAllStandardError();
+}
+
 void ConnectionClient::finishProcess()
 {
     processAliveTimer.stop();
@@ -214,22 +224,19 @@ bool ConnectionClient::isProcessIsRunning() const
 
 QProcess *ConnectionClient::process() const
 {
-    if (!process_) {
+    if (!process_)
         process_.reset(new QProcess);
-        connectProcessFinished();
-    }
 
     return process_.get();
 }
 
 void ConnectionClient::connectProcessFinished() const
 {
-    if (process_) {
-        connect(process_.get(),
-                static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
-                this,
-                &ConnectionClient::restartProcess);
-    }
+    connect(process(),
+            static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+            this,
+            &ConnectionClient::restartProcess);
+
 }
 
 void ConnectionClient::disconnectProcessFinished() const
@@ -240,6 +247,12 @@ void ConnectionClient::disconnectProcessFinished() const
                    this,
                    &ConnectionClient::restartProcess);
     }
+}
+
+void ConnectionClient::connectStandardOutputAndError() const
+{
+    connect(process(), &QProcess::readyReadStandardOutput, this, &ConnectionClient::printStandardOutput);
+    connect(process(), &QProcess::readyReadStandardError, this, &ConnectionClient::printStandardError);
 }
 
 const QString &ConnectionClient::processPath() const
