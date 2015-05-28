@@ -53,11 +53,14 @@ QString connectionName()
 }
 
 ConnectionClient::ConnectionClient(IpcClientInterface *client)
-    : serverProxy_(client, &localSocket)
+    : serverProxy_(client, &localSocket),
+      isAliveTimerResetted(false)
 {
     processAliveTimer.setInterval(10000);
 
-    connect(&processAliveTimer, &QTimer::timeout, this, &ConnectionClient::restartProcess);
+    connect(&processAliveTimer, &QTimer::timeout,
+            this, &ConnectionClient::restartProcessIfTimerIsNotResettedAndSocketIsEmpty);
+
     connect(&localSocket,
             static_cast<void (QLocalSocket::*)(QLocalSocket::LocalSocketError)>(&QLocalSocket::error),
             this,
@@ -112,6 +115,7 @@ void ConnectionClient::sendEndCommand()
 
 void ConnectionClient::resetProcessAliveTimer()
 {
+    isAliveTimerResetted = true;
     processAliveTimer.start();
 }
 
@@ -127,7 +131,7 @@ void ConnectionClient::startProcess()
         connectStandardOutputAndError();
         process()->start(processPath(), {connectionName()});
         process()->waitForStarted();
-        processAliveTimer.start();
+        resetProcessAliveTimer();
     }
 }
 
@@ -139,6 +143,19 @@ void ConnectionClient::restartProcess()
     connectToServer();
 
     emit processRestarted();
+}
+
+void ConnectionClient::restartProcessIfTimerIsNotResettedAndSocketIsEmpty()
+{
+    if (isAliveTimerResetted) {
+        isAliveTimerResetted = false;
+        return; // Already reset, but we were scheduled after.
+    }
+
+    if (localSocket.bytesAvailable() > 0)
+        return; // We come first, the incoming data was not yet processed.
+
+    restartProcess();
 }
 
 bool ConnectionClient::connectToLocalSocket()

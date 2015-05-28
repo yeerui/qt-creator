@@ -70,6 +70,7 @@ public:
 
     void startProcess();
     void restartProcess();
+    void restartProcessIfTimerIsNotResettedAndSocketIsEmpty();
     void finishProcess();
     bool isProcessIsRunning() const;
 
@@ -104,6 +105,7 @@ private:
     IpcServerProxy serverProxy_;
     QTimer processAliveTimer;
     QString processPath_;
+    bool isAliveTimerResetted;
 };
 
 } // namespace CodeModelBackEnd
