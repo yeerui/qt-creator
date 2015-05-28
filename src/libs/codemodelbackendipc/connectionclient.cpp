@@ -131,6 +131,8 @@ void ConnectionClient::restartProcess()
 
 bool ConnectionClient::connectToLocalSocket()
 {
+    QThread::msleep(30);
+
     for (int counter = 0; counter < 1000; counter++) {
         localSocket.connectToServer(connectionName());
         bool isConnected = localSocket.waitForConnected(20);
