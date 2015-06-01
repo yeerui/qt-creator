@@ -53,8 +53,7 @@ QString connectionName()
 }
 
 ConnectionClient::ConnectionClient(IpcClientInterface *client)
-    : serverProxy_(client, &localSocket),
-      isInConnectedMode(false)
+    : serverProxy_(client, &localSocket)
 {
     processAliveTimer.setInterval(10000);
 
@@ -68,14 +67,9 @@ ConnectionClient::~ConnectionClient()
 
 bool ConnectionClient::connectToServer()
 {
-    localSocket.connectToServer(connectionName());
-    isInConnectedMode = true;
-    bool isConnected = localSocket.waitForConnected();
-    if (!isConnected) {
-        startProcess();
-        resetProcessAliveTimer();
-        isConnected = retryToConnectToServer();
-    }
+    startProcess();
+    resetProcessAliveTimer();
+    const bool isConnected = connectToLocalSocket();
 
     return isConnected;
 }
@@ -83,7 +77,6 @@ bool ConnectionClient::connectToServer()
 bool ConnectionClient::disconnectFromServer()
 {
     localSocket.disconnectFromServer();
-    isInConnectedMode = false;
     if (localSocket.state() != QLocalSocket::UnconnectedState)
         return localSocket.waitForDisconnected();
 
@@ -132,7 +125,7 @@ void ConnectionClient::restartProcess()
     emit processRestarted();
 }
 
-bool ConnectionClient::retryToConnectToServer()
+bool ConnectionClient::connectToLocalSocket()
 {
     for (int counter = 0; counter < 1000; counter++) {
         localSocket.connectToServer(connectionName());

@@ -83,7 +83,7 @@ signals:
     void processRestarted();
 
 private:
-    bool retryToConnectToServer();
+    bool connectToLocalSocket();
     void endProcess();
     void terminateProcess();
     void killProcess();
@@ -98,7 +98,6 @@ private:
     IpcServerProxy serverProxy_;
     QTimer processAliveTimer;
     QString processPath_;
-    bool isInConnectedMode;
 };
 
 } // namespace CodeModelBackEnd
