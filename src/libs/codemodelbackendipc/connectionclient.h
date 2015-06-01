@@ -87,6 +87,7 @@ private:
     void endProcess();
     void terminateProcess();
     void killProcess();
+    void printLocalSocketError(QLocalSocket::LocalSocketError socketError);
 
     QProcess *process() const;
     void connectProcessFinished() const;

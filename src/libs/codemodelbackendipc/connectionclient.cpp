@@ -58,6 +58,10 @@ ConnectionClient::ConnectionClient(IpcClientInterface *client)
     processAliveTimer.setInterval(10000);
 
     connect(&processAliveTimer, &QTimer::timeout, this, &ConnectionClient::restartProcess);
+    connect(&localSocket,
+            static_cast<void (QLocalSocket::*)(QLocalSocket::LocalSocketError)>(&QLocalSocket::error),
+            this,
+            &ConnectionClient::printLocalSocketError);
 }
 
 ConnectionClient::~ConnectionClient()
@@ -166,6 +170,11 @@ void ConnectionClient::killProcess()
         process()->kill();
         process()->waitForFinished();
     }
+}
+
+void ConnectionClient::printLocalSocketError(QLocalSocket::LocalSocketError /*socketError*/)
+{
+    qWarning() << "ClangCodeModel ConnectionClient LocalSocket Error:" << localSocket.errorString();
 }
 
 void ConnectionClient::finishProcess()
