@@ -19,7 +19,7 @@ include(../../../../src/libs/sqlite/sqlite-lib.pri)
 include(../../../../src/libs/codemodelbackendipc/codemodelbackendipc-lib.pri)
 include(../../../../src/tools/codemodelbackend/ipcsource/codemodelbackendclangipc-source.pri)
 include(../../../../src/tools/codemodelbackend/clang_installation.pri)
-include(../../../../src/plugins/clangcodemodel/clangcodemodeltesting.pri)
+include(../../../../src/plugins/clangcodemodel/clangcodemodelunittestfiles.pri)
 
 INCLUDEPATH += $$PWD/../../../../src/libs $$PWD/../../../../src/plugins
 
