@@ -609,10 +609,11 @@ TEST_F(CodeCompletionsExtractor, CompletionChunksFunctionWithOptionalChunks)
                                                                              {CodeCompletionChunk::TypedText, Utf8StringLiteral("FunctionWithOptional")},
                                                                              {CodeCompletionChunk::LeftParen, Utf8StringLiteral("(")},
                                                                              {CodeCompletionChunk::Placeholder, Utf8StringLiteral("int x")},
-                                                                             {CodeCompletionChunk::Comma, Utf8StringLiteral(", ")},
-                                                                             {CodeCompletionChunk::Placeholder, Utf8StringLiteral("char y")},
-                                                                             {CodeCompletionChunk::Optional, Utf8String(), QVector<CodeCompletionChunk>({{CodeCompletionChunk::Comma, Utf8StringLiteral(", ")},
-                                                                                                                                                         {CodeCompletionChunk::Placeholder, Utf8StringLiteral("int z")}})},
+                                                                             {CodeCompletionChunk::Optional, Utf8String(), QVector<CodeCompletionChunk>({
+                                                                                  {CodeCompletionChunk::Comma, Utf8StringLiteral(", ")},
+                                                                                  {CodeCompletionChunk::Placeholder, Utf8StringLiteral("char y")},
+                                                                                  {CodeCompletionChunk::Comma, Utf8StringLiteral(", ")},
+                                                                                  {CodeCompletionChunk::Placeholder, Utf8StringLiteral("int z")}})},
                                                                              {CodeCompletionChunk::RightParen, Utf8StringLiteral(")")}})));
 }
 

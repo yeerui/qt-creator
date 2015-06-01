@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2015 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of Qt Creator.
@@ -28,57 +28,34 @@
 **
 ****************************************************************************/
 
-#ifndef CODEMODELBACKEND_CODECOMPLETIONSEXTRACTOR_H
-#define CODEMODELBACKEND_CODECOMPLETIONSEXTRACTOR_H
+#ifndef CODEMODELBACKEND_CODECOMPLETIONCHUNKCONVERTER_H
+#define CODEMODELBACKEND_CODECOMPLETIONCHUNKCONVERTER_H
 
-#include <clang-c/Index.h>
+#include <codecompletionchunk.h>
 
 #include <QVector>
 
-#include <codecompletion.h>
+#include <clang-c/Index.h>
 
 namespace CodeModelBackEnd {
 
-class CodeCompletionsExtractor
+class CodeCompletionChunkConverter
 {
 public:
-    CodeCompletionsExtractor(CXCodeCompleteResults *cxCodeCompleteResults);
+    static QVector<CodeCompletionChunk> extract(CXCompletionString completionString);
 
-    CodeCompletionsExtractor(CodeCompletionsExtractor&) = delete;
-    CodeCompletionsExtractor &operator =(CodeCompletionsExtractor&) = delete;
-
-    CodeCompletionsExtractor(CodeCompletionsExtractor&&) = delete;
-    CodeCompletionsExtractor &operator =(CodeCompletionsExtractor&&) = delete;
-
-    bool next();
-    bool peek(const Utf8String &name);
-
-    QVector<CodeCompletion> extractAll();
-
-    const CodeCompletion &currentCodeCompletion() const;
+    static Utf8String chunkText(CXCompletionString completionString, uint chunkIndex);
 
 private:
-    void extractCompletionKind();
-    void extractText();
-    void extractMethodCompletionKind();
-    void extractMacroCompletionKind();
-    void extractPriority();
-    void extractAvailability();
-    void extractHasParameters();
-    void extractCompletionChunks();
-
-    bool hasText(const Utf8String &text, CXCompletionString cxCompletionString) const;
+    QVector<CodeCompletionChunk>  optionalChunks(CXCompletionString completionString, uint chunkIndex);
+    static CodeCompletionChunk::Kind chunkKind(CXCompletionString completionString, uint chunkIndex);
+    void extractCompletionChunks(CXCompletionString completionString);
+    void extractOptionalCompletionChunks(CXCompletionString completionString);
 
 private:
-    CodeCompletion currentCodeCompletion_;
-    CXCompletionResult currentCxCodeCompleteResult;
-    CXCodeCompleteResults *cxCodeCompleteResults;
-    uint cxCodeCompleteResultIndex = -1;
+    QVector<CodeCompletionChunk> chunks;
 };
 
-#ifdef CODEMODELBACKEND_TESTS
-void PrintTo(const CodeCompletionsExtractor &extractor, ::std::ostream* os);
-#endif
 } // namespace CodeModelBackEnd
 
-#endif // CODEMODELBACKEND_CODECOMPLETIONSEXTRACTOR_H
+#endif // CODEMODELBACKEND_CODECOMPLETIONCHUNKCONVERTER_H

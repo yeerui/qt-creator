@@ -31,6 +31,7 @@
 #include "codecompletionsextractor.h"
 
 #include "clangstring.h"
+#include "codecompletionchunkconverter.h"
 
 #ifdef CODEMODELBACKEND_TESTS
 #include <gtest/gtest.h>
@@ -159,7 +160,7 @@ void CodeCompletionsExtractor::extractText()
     for (uint chunkIndex = 0; chunkIndex < completionChunkCount; ++chunkIndex) {
         const CXCompletionChunkKind chunkKind = clang_getCompletionChunkKind(currentCxCodeCompleteResult.CompletionString, chunkIndex);
         if (chunkKind == CXCompletionChunk_TypedText) {
-            currentCodeCompletion_.setText(chunkText(currentCxCodeCompleteResult.CompletionString, chunkIndex));
+            currentCodeCompletion_.setText(CodeCompletionChunkConverter::chunkText(currentCxCodeCompleteResult.CompletionString, chunkIndex));
             break;
         }
     }
@@ -247,40 +248,7 @@ void CodeCompletionsExtractor::extractHasParameters()
 
 void CodeCompletionsExtractor::extractCompletionChunks()
 {
-    currentCodeCompletion_.setChunks(extractCompletionChunksFromCompletionString(currentCxCodeCompleteResult.CompletionString));
-}
-
-QVector<CodeCompletionChunk> CodeCompletionsExtractor::extractCompletionChunksFromCompletionString(CXCompletionString completionString)
-{
-    QVector<CodeCompletionChunk> chunks;
-
-    const uint completionChunkCount = clang_getNumCompletionChunks(completionString);
-
-    for (uint chunkIndex = 0; chunkIndex < completionChunkCount; ++chunkIndex) {
-        const CodeCompletionChunk::Kind kind = chunkKind(completionString, chunkIndex);
-
-        if (kind == CodeCompletionChunk::Optional)
-            chunks.append(CodeCompletionChunk(kind, chunkText(completionString, chunkIndex), optionalChunks(completionString, chunkIndex)));
-        else
-             chunks.append(CodeCompletionChunk(kind, chunkText(completionString, chunkIndex)));
-    }
-
-    return chunks;
-}
-
-Utf8String CodeCompletionsExtractor::chunkText(CXCompletionString completionString, uint chunkIndex)
-{
-    return ClangString(clang_getCompletionChunkText(completionString, chunkIndex));
-}
-
-CodeCompletionChunk::Kind CodeCompletionsExtractor::chunkKind(CXCompletionString completionString, uint chunkIndex)
-{
-    return CodeCompletionChunk::Kind(clang_getCompletionChunkKind(completionString, chunkIndex));
-}
-
-QVector<CodeCompletionChunk> CodeCompletionsExtractor::optionalChunks(CXCompletionString completionString, uint chunkIndex)
-{
-    return extractCompletionChunksFromCompletionString(clang_getCompletionChunkCompletionString(completionString, chunkIndex));
+    currentCodeCompletion_.setChunks(CodeCompletionChunkConverter::extract(currentCxCodeCompleteResult.CompletionString));
 }
 
 bool CodeCompletionsExtractor::hasText(const Utf8String &text, CXCompletionString cxCompletionString) const
