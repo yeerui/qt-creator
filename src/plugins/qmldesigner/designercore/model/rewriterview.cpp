@@ -50,14 +50,14 @@ using namespace QmlDesigner::Internal;
 
 namespace QmlDesigner {
 
-RewriterView::Error::Error():
+RewriterError::RewriterError():
         m_type(NoError),
         m_line(-1),
         m_column(-1)
 {
 }
 
-RewriterView::Error::Error(const Exception *exception):
+RewriterError::RewriterError(Exception *exception):
         m_type(InternalError),
         m_line(exception->line()),
         m_column(-1),
@@ -66,7 +66,7 @@ RewriterView::Error::Error(const Exception *exception):
 {
 }
 
-RewriterView::Error::Error(const QmlJS::DiagnosticMessage &qmlError, const QUrl &document):
+RewriterError::RewriterError(const QmlJS::DiagnosticMessage &qmlError, const QUrl &document):
         m_type(ParseError),
         m_line(qmlError.loc.startLine),
         m_column(qmlError.loc.startColumn),
@@ -75,7 +75,7 @@ RewriterView::Error::Error(const QmlJS::DiagnosticMessage &qmlError, const QUrl 
 {
 }
 
-RewriterView::Error::Error(const QString &shortDescription) :
+RewriterError::RewriterError(const QString &shortDescription) :
     m_type(ParseError),
     m_line(1),
     m_column(0),
@@ -85,33 +85,33 @@ RewriterView::Error::Error(const QString &shortDescription) :
 }
 
 
-QString RewriterView::Error::toString() const
+QString RewriterError::toString() const
 {
     QString str;
 
     if (m_type == ParseError)
-        str += tr("Error parsing");
+        str += RewriterView::tr("Error parsing");
     else if (m_type == InternalError)
-        str += tr("Internal error");
+        str += RewriterView::tr("Internal error");
 
     if (url().isValid()) {
         if (!str.isEmpty())
             str += QLatin1Char(' ');
 
-        str += tr("\"%1\"").arg(url().toString());
+        str += RewriterView::tr("\"%1\"").arg(url().toString());
     }
 
     if (line() != -1) {
         if (!str.isEmpty())
             str += QLatin1Char(' ');
-        str += tr("line %1").arg(line());
+        str += RewriterView::tr("line %1").arg(line());
     }
 
     if (column() != -1) {
         if (!str.isEmpty())
             str += QLatin1Char(' ');
 
-        str += tr("column %1").arg(column());
+        str += RewriterView::tr("column %1").arg(column());
     }
 
     if (!str.isEmpty())
@@ -178,10 +178,6 @@ void RewriterView::nodeCreated(const ModelNode &createdNode)
 
     if (!isModificationGroupActive())
         applyChanges();
-}
-
-void RewriterView::nodeAboutToBeRemoved(const ModelNode &/*removedNode*/)
-{
 }
 
 void RewriterView::nodeRemoved(const ModelNode &removedNode, const NodeAbstractProperty &parentProperty, PropertyChangeFlags propertyChange)
@@ -289,10 +285,6 @@ void RewriterView::nodeReparented(const ModelNode &node, const NodeAbstractPrope
         applyChanges();
 }
 
-void RewriterView::nodeAboutToBeReparented(const ModelNode &/*node*/, const NodeAbstractProperty &/*newPropertyParent*/, const NodeAbstractProperty &/*oldPropertyParent*/, AbstractView::PropertyChangeFlags /*propertyChange*/)
-{
-}
-
 void RewriterView::importsChanged(const QList<Import> &addedImports, const QList<Import> &removedImports)
 {
     foreach (const Import &import, addedImports)
@@ -331,10 +323,6 @@ void RewriterView::importRemoved(const Import &import)
 
     if (!isModificationGroupActive())
         applyChanges();
-}
-
-void RewriterView::fileUrlChanged(const QUrl & /*oldUrl*/, const QUrl & /*newUrl*/)
-{
 }
 
 void RewriterView::nodeIdChanged(const ModelNode& node, const QString& newId, const QString& oldId)
@@ -383,48 +371,6 @@ void RewriterView::customNotification(const AbstractView * /*view*/, const QStri
         return; // we emitted this ourselves, so just ignore these notifications.
 }
 
-void RewriterView::scriptFunctionsChanged(const ModelNode & /*node*/, const QStringList & /*scriptFunctionList*/)
-{
-}
-
-void RewriterView::instancePropertyChange(const QList<QPair<ModelNode, PropertyName> > & /*propertyList*/)
-{
-}
-
-void RewriterView::instancesCompleted(const QVector<ModelNode> & /*completedNodeList*/)
-{
-}
-
-void RewriterView::instanceInformationsChange(const QMultiHash<ModelNode, InformationName> & /* informationChangeHash */)
-{
-
-}
-
-void RewriterView::instancesRenderImageChanged(const QVector<ModelNode> & /*nodeList*/)
-{
-
-}
-
-void RewriterView::instancesPreviewImageChanged(const QVector<ModelNode> & /*nodeList*/)
-{
-
-}
-
-void RewriterView::instancesChildrenChanged(const QVector<ModelNode> & /*nodeList*/)
-{
-
-}
-
-void RewriterView::instancesToken(const QString &/*tokenName*/, int /*tokenNumber*/, const QVector<ModelNode> &/*nodeVector*/)
-{
-
-}
-
-void RewriterView::nodeSourceChanged(const ModelNode &, const QString & /*newNodeSource*/)
-{
-
-}
-
 void RewriterView::rewriterBeginTransaction()
 {
     transactionLevel++;
@@ -440,14 +386,6 @@ void RewriterView::rewriterEndTransaction()
         setModificationGroupActive(false);
         applyModificationGroupChanges();
     }
-}
-
-void RewriterView::currentStateChanged(const ModelNode & /*node*/)
-{
-}
-
-void RewriterView::selectedNodesChanged(const QList<ModelNode> & /* selectedNodeList, */, const QList<ModelNode> & /*lastSelectedNodeList */)
-{
 }
 
 bool RewriterView::isModificationGroupActive() const
@@ -537,11 +475,11 @@ void RewriterView::applyChanges()
         qDebug() << "Content:" << content;
         if (!errors().isEmpty())
             qDebug() << "Error:" << errors().first().description();
-        throw RewritingException(__LINE__, __FUNCTION__, __FILE__, m_rewritingErrorMessage, content);
+        throw RewritingException(__LINE__, __FUNCTION__, __FILE__, m_rewritingErrorMessage.toUtf8(), content.toUtf8());
     }
 }
 
-QList<RewriterView::Error> RewriterView::errors() const
+QList<RewriterError> RewriterView::errors() const
 {
     return m_errors;
 }
@@ -552,13 +490,13 @@ void RewriterView::clearErrors()
     emit errorsChanged(m_errors);
 }
 
-void RewriterView::setErrors(const QList<RewriterView::Error> &errors)
+void RewriterView::setErrors(const QList<RewriterError> &errors)
 {
     m_errors = errors;
     emit errorsChanged(m_errors);
 }
 
-void RewriterView::addError(const RewriterView::Error &error)
+void RewriterView::addError(const RewriterError &error)
 {
     m_errors.append(error);
     emit errorsChanged(m_errors);
@@ -666,8 +604,22 @@ ModelNode RewriterView::nodeAtTextCursorPosition(int cursorPosition) const
 
 bool RewriterView::renameId(const QString& oldId, const QString& newId)
 {
-    if (textModifier())
-        return textModifier()->renameId(oldId, newId);
+    if (textModifier()) {
+        PropertyName propertyName = oldId.toUtf8();
+
+        bool hasAliasExport = rootModelNode().isValid()
+                && rootModelNode().hasBindingProperty(propertyName)
+                && rootModelNode().bindingProperty(propertyName).isAliasExport();
+
+        bool refactoring =  textModifier()->renameId(oldId, newId);
+
+        if (refactoring && hasAliasExport) { //Keep export alias properties
+            rootModelNode().removeProperty(propertyName);
+            PropertyName newPropertyName = newId.toUtf8();
+            rootModelNode().bindingProperty(newPropertyName).setDynamicTypeNameAndExpression("alias", newPropertyName);
+        }
+        return refactoring;
+    }
 
     return false;
 }
@@ -750,6 +702,11 @@ QString RewriterView::pathForImport(const Import &import)
 QStringList RewriterView::importDirectories() const
 {
     return m_textToModelMerger->vContext().paths;
+}
+
+QSet<QPair<QString, QString> > RewriterView::qrcMapping() const
+{
+    return m_textToModelMerger->qrcMapping();
 }
 
 void RewriterView::qmlTextChanged()

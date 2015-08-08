@@ -39,7 +39,13 @@ def openQbsProject(projectPath):
 def openQmakeProject(projectPath, targets=Targets.desktopTargetClasses(), fromWelcome=False):
     cleanUpUserFiles(projectPath)
     if fromWelcome:
-        mouseClick(waitForObject(":OpenProject_QStyleItem"), 5, 5, 0, Qt.LeftButton)
+        if isQt54Build:
+            welcomePage = ":WelcomePageStyledBar.WelcomePage_QQuickView"
+        else:
+            welcomePage = ":Qt Creator.WelcomePage_QQuickWidget"
+        mouseClick(waitForObject("{clip='false' container='%s' enabled='true' text='Open Project' "
+                                 "type='Button' unnamed='1' visible='true'}" % welcomePage),
+                   5, 5, 0, Qt.LeftButton)
     else:
         invokeMenuItem("File", "Open File or Project...")
     selectFromFileDialog(projectPath)
@@ -94,7 +100,13 @@ def __handleCmakeWizardPage__():
 # this list can be used in __chooseTargets__()
 def __createProjectOrFileSelectType__(category, template, fromWelcome = False, isProject=True):
     if fromWelcome:
-        mouseClick(waitForObject(":CreateProject_QStyleItem"), 5, 5, 0, Qt.LeftButton)
+        if isQt54Build:
+            welcomePage = ":WelcomePageStyledBar.WelcomePage_QQuickView"
+        else:
+            welcomePage = ":Qt Creator.WelcomePage_QQuickWidget"
+        mouseClick(waitForObject("{clip='false' container='%s' enabled='true' text='New Project' "
+                                 "type='Button' unnamed='1' visible='true'}" % welcomePage),
+                   5, 5, 0, Qt.LeftButton)
     else:
         invokeMenuItem("File", "New File or Project...")
     categoriesView = waitForObject(":New.templateCategoryView_QTreeView")
@@ -270,26 +282,39 @@ def createProject_Qt_Console(path, projectName, checks = True):
 
 def createNewQtQuickApplication(workingDir, projectName = None,
                                 targets=Targets.desktopTargetClasses(), minimumQtVersion="5.3",
-                                fromWelcome=False):
-    available = __createProjectOrFileSelectType__("  Application", "Qt Quick Application", fromWelcome)
+                                withControls = False, fromWelcome=False):
+    if withControls:
+        template = "Qt Quick Controls Application"
+    else:
+        template = "Qt Quick Application"
+    available = __createProjectOrFileSelectType__("  Application", template, fromWelcome)
     projectName = __createProjectSetNameAndPath__(workingDir, projectName)
     requiredQt = __createProjectHandleQtQuickSelection__(minimumQtVersion)
     __modifyAvailableTargets__(available, requiredQt)
     checkedTargets = __chooseTargets__(targets, available)
     snooze(1)
-    clickButton(waitForObject(":Next_QPushButton"))
-    __createProjectHandleLastPage__()
+    if len(checkedTargets):
+        clickButton(waitForObject(":Next_QPushButton"))
+        __createProjectHandleLastPage__()
+        progressBarWait(10000)
+    else:
+        clickButton(waitForObject("{type='QPushButton' text='Cancel' visible='1'}"))
 
-    progressBarWait(10000)
     return checkedTargets, projectName
 
-def createNewQtQuickUI(workingDir, qtQuickVersion="1.1"):
-    __createProjectOrFileSelectType__("  Application", "Qt Quick UI")
+def createNewQtQuickUI(workingDir, qtVersion = "5.3", withControls = False):
+    if withControls:
+        template = 'Qt Quick Controls UI'
+    else:
+        template = 'Qt Quick UI'
+    __createProjectOrFileSelectType__("  Other Project", template)
     if workingDir == None:
         workingDir = tempDir()
     projectName = __createProjectSetNameAndPath__(workingDir)
-    __createProjectHandleQtQuickSelection__(qtQuickVersion)
+    __createProjectHandleQtQuickSelection__(qtVersion)
     __createProjectHandleLastPage__()
+    progressBarWait(10000)
+
     return projectName
 
 def createNewQmlExtension(workingDir, targets=Targets.DESKTOP_474_GCC, qtQuickVersion=1):
@@ -323,26 +348,31 @@ def createEmptyQtProject(workingDir=None, projectName=None, targets=Targets.desk
     return projectName, checkedTargets
 
 def createNewNonQtProject(workingDir=None, projectName=None, target=Targets.DESKTOP_474_GCC,
-                          plainC=False, cmake=False):
+                          plainC=False, cmake=False, qbs=False):
     if plainC:
-        template = "Plain C Project"
+        template = "Plain C Application"
     else:
-        template = "Plain C++ Project"
-    if cmake:
-        template += " (CMake Build)"
+        template = "Plain C++ Application"
+
     available = __createProjectOrFileSelectType__("  Non-Qt Project", template)
     if workingDir == None:
         workingDir = tempDir()
     projectName = __createProjectSetNameAndPath__(workingDir, projectName)
-    if cmake:
-        __createProjectHandleLastPage__()
-        clickButton(waitForObject(":Next_QPushButton"))
-        if not __handleCmakeWizardPage__():
-            return None
-    else:
-        __chooseTargets__(target, availableTargets=available)
-        clickButton(waitForObject(":Next_QPushButton"))
-        __createProjectHandleLastPage__()
+
+    buildSystem = "qmake"
+    if qbs:
+        buildSystem = "Qbs"
+        if cmake:
+            test.warning("Unsupported combination, at least one of parameters cmake and qbs must "
+                         "be False, ignoring the value of cmake")
+    elif cmake:
+        buildSystem = "CMake"
+    selectFromCombo("{name='BuildSystem' type='Utils::TextFieldComboBox' visible='1'}", buildSystem)
+    clickButton(waitForObject(":Next_QPushButton"))
+
+    __chooseTargets__(target, availableTargets=available)
+    clickButton(waitForObject(":Next_QPushButton"))
+    __createProjectHandleLastPage__()
     return projectName
 
 def createNewCPPLib(projectDir = None, projectName = None, className = None, fromWelcome = False,
@@ -616,7 +646,7 @@ def __getSupportedPlatforms__(text, templateName, getAsStrings=False):
             result.extend([Targets.DESKTOP_521_DEFAULT, Targets.DESKTOP_531_DEFAULT])
             if platform.system() != 'Darwin':
                 result.append(Targets.DESKTOP_541_GCC)
-        if not ("BlackBerry" in templateName or re.search("custom Qt Creator plugin", text)) and (version == None or version < "5.0"):
+        if not templateName == "Qt Creator Plugin" and (version == None or version < "5.0"):
             result.append(Targets.SIMULATOR)
     elif 'Platform independent' in text:
         result = list(Targets.ALL_TARGETS)
@@ -626,7 +656,7 @@ def __getSupportedPlatforms__(text, templateName, getAsStrings=False):
     else:
         test.warning("Returning None (__getSupportedPlatforms__())",
                      "Parsed text: '%s'" % text)
-        return None, None
+        return [], None
     if getAsStrings:
         result = Targets.getTargetsAsStrings(result)
     return result, version

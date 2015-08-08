@@ -49,8 +49,6 @@ namespace CppTools {
 class CPPTOOLS_EXPORT BaseEditorDocumentProcessor : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(BaseEditorDocumentProcessor)
-    BaseEditorDocumentProcessor();
 
 public:
     BaseEditorDocumentProcessor(TextEditor::TextDocument *document);
@@ -88,7 +86,7 @@ protected:
 
     static void runParser(QFutureInterface<void> &future,
                           CppTools::BaseEditorDocumentParser *parser,
-                          CppTools::WorkingCopy workingCopy);
+                          BaseEditorDocumentParser::InMemoryInfo info);
 
     // Convenience
     QString filePath() const { return m_baseTextDocument->filePath().toString(); }

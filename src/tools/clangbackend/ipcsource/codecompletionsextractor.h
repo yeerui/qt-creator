@@ -53,7 +53,7 @@ public:
     bool next();
     bool peek(const Utf8String &name);
 
-    QVector<CodeCompletion> extractAll();
+    CodeCompletions extractAll();
 
     const CodeCompletion &currentCodeCompletion() const;
 
@@ -66,6 +66,13 @@ private:
     void extractAvailability();
     void extractHasParameters();
     void extractCompletionChunks();
+
+    void adaptPriority();
+    void decreasePriorityForNonAvailableCompletions();
+    void decreasePriorityForDestructors();
+    void decreasePriorityForSignals();
+    void decreasePriorityForQObjectInternals();
+    void decreasePriorityForOperators();
 
     bool hasText(const Utf8String &text, CXCompletionString cxCompletionString) const;
 

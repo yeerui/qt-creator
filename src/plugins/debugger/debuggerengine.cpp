@@ -46,6 +46,7 @@
 #include "gdb/gdbengine.h" // REMOVE
 #include "registerhandler.h"
 #include "sourcefileshandler.h"
+#include "sourceutils.h"
 #include "stackhandler.h"
 #include "terminal.h"
 #include "threadshandler.h"
@@ -133,6 +134,29 @@ Location::Location(const StackFrame &frame, bool marker)
     m_from = frame.from;
 }
 
+
+LocationMark::LocationMark(DebuggerEngine *engine, const QString &file, int line)
+    : TextMark(file, line, Constants::TEXT_MARK_CATEGORY_LOCATION), m_engine(engine)
+{
+    setIcon(Internal::locationMarkIcon());
+    setPriority(TextMark::HighPriority);
+}
+
+bool LocationMark::isDraggable() const
+{
+    return m_engine->hasCapability(JumpToLineCapability);
+}
+
+void LocationMark::dragToLine(int line)
+{
+    if (m_engine) {
+        if (BaseTextEditor *textEditor = BaseTextEditor::currentTextEditor()) {
+            ContextData location = getLocationContext(textEditor->textDocument(), line);
+            if (location.isValid())
+                m_engine->executeJumpToLine(location);
+        }
+    }
+}
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -319,7 +343,7 @@ public:
 
     DisassemblerAgent m_disassemblerAgent;
     MemoryAgent m_memoryAgent;
-    QScopedPointer<TextMark> m_locationMark;
+    QScopedPointer<LocationMark> m_locationMark;
     QTimer m_locationTimer;
 
     bool m_isStateDebugging;
@@ -609,11 +633,8 @@ void DebuggerEngine::gotoLocation(const Location &loc)
     if (newEditor)
         editor->document()->setProperty(Constants::OPENED_BY_DEBUGGER, true);
 
-    if (loc.needsMarker()) {
-        d->m_locationMark.reset(new TextMark(file, line, Constants::TEXT_MARK_CATEGORY_LOCATION));
-        d->m_locationMark->setIcon(Internal::locationMarkIcon());
-        d->m_locationMark->setPriority(TextMark::HighPriority);
-    }
+    if (loc.needsMarker())
+        d->m_locationMark.reset(new LocationMark(this, file, line));
 
     //qDebug() << "MEMORY: " << d->m_memoryAgent.hasVisibleEditor();
 }
@@ -1318,6 +1339,11 @@ QString DebuggerEngine::toFileInProject(const QUrl &fileUrl)
     return d->m_fileFinder.findFile(fileUrl);
 }
 
+void DebuggerEngine::updateBreakpointMarkers()
+{
+    d->m_disassemblerAgent.updateBreakpointMarkers();
+}
+
 bool DebuggerEngine::debuggerActionsEnabled() const
 {
     return debuggerActionsEnabled(d->m_state);
@@ -1603,11 +1629,11 @@ void DebuggerEngine::attemptBreakpointSynchronization()
             //qDebug() << "BREAKPOINT " << id << " IS GOOD";
             continue;
         case BreakpointDead:
-            // Should not only be visible inside BreakpointHandler.
-            QTC_CHECK(false);
+            // Can happen temporarily during Breakpoint destruction.
+            // BreakpointItem::deleteThis() intentionally lets the event loop run,
+            // during which an attemptBreakpointSynchronization() might kick in.
             continue;
         }
-        QTC_ASSERT(false, qDebug() << "UNKNOWN STATE"  << bp.id() << state());
     }
 
     if (done) {
@@ -1944,12 +1970,6 @@ void DebuggerEngine::updateLocalsView(const GdbMi &all)
         }
     }
 
-    QSet<QByteArray> toDelete;
-    if (!partial) {
-        foreach (WatchItem *item, handler->model()->itemsAtLevel<WatchItem *>(2))
-            toDelete.insert(item->iname);
-    }
-
     GdbMi data = all["data"];
     foreach (const GdbMi &child, data.children()) {
         WatchItem *item = new WatchItem(child);
@@ -1958,7 +1978,6 @@ void DebuggerEngine::updateLocalsView(const GdbMi &all)
             item->size = ti.size;
 
         handler->insertItem(item);
-        toDelete.remove(item->iname);
     }
 
     GdbMi ns = all["qtnamespace"];
@@ -1966,8 +1985,6 @@ void DebuggerEngine::updateLocalsView(const GdbMi &all)
         setQtNamespace(ns.data());
         showMessage(_("FOUND NAMESPACED QT: " + ns.data()));
     }
-
-    handler->purgeOutdatedItems(toDelete);
 
     static int count = 0;
     showMessage(_("<Rebuild Watchmodel %1 @ %2 >")
@@ -1985,11 +2002,16 @@ bool DebuggerEngine::canHandleToolTip(const DebuggerToolTipContext &context) con
     return state() == InferiorStopOk && context.isCppEditor;
 }
 
-void DebuggerEngine::updateWatchData(const QByteArray &iname)
+void DebuggerEngine::updateItem(const QByteArray &iname)
 {
     UpdateParameters params;
     params.partialVariable = iname;
     doUpdateLocals(params);
+}
+
+void DebuggerEngine::expandItem(const QByteArray &iname)
+{
+    updateItem(iname);
 }
 
 } // namespace Internal

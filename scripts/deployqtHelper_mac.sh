@@ -61,6 +61,12 @@ if [ $LLVM_INSTALL_DIR ]; then
         # use recursive copy to make it copy symlinks as symlinks
         cp -Rf "$LLVM_INSTALL_DIR"/lib/libclang.*dylib "$1/Contents/Frameworks/" || exit 1
         cp -Rf "$LLVM_INSTALL_DIR"/lib/clang "$1/Contents/Resources/cplusplus/" || exit 1
+        clangsource="$LLVM_INSTALL_DIR"/bin/clang
+        clanglinktarget="$(readlink "$clangsource")"
+        cp -Rf "$clangsource" "$1/Contents/Resources/" || exit 1
+        if [ $clanglinktarget ]; then
+            cp -Rf "$(dirname "$clangsource")/$clanglinktarget" "$1/Contents/Resources/$clanglinktarget" || exit 1
+        fi
     fi
     _CLANG_CODEMODEL_LIB="$1/Contents/PlugIns/libClangCodeModel_debug.dylib"
     if [ ! -f "$_CLANG_CODEMODEL_LIB" ]; then
@@ -76,12 +82,7 @@ fi
 
 if [ ! -d "$1/Contents/Frameworks/QtCore.framework" ]; then
 
-    qmlpuppetapp="$1/Contents/MacOS/qmlpuppet"
-    if [ -f "$qmlpuppetapp" ]; then
-        qmlpuppetArgument="-executable=$qmlpuppetapp"
-    fi
-
-    qml2puppetapp="$1/Contents/MacOS/qml2puppet"
+    qml2puppetapp="$1/Contents/Resources/qml2puppet"
     if [ -f "$qml2puppetapp" ]; then
         qml2puppetArgument="-executable=$qml2puppetapp"
     fi
@@ -105,6 +106,6 @@ if [ ! -d "$1/Contents/Frameworks/QtCore.framework" ]; then
         "-executable=$qbsapp-setup-android" \
         "-executable=$qbsapp-setup-qt" \
         "-executable=$qbsapp-setup-toolchains" \
-        "$qmlpuppetArgument" "$qml2puppetArgument" "$clangbackendArgument" || exit 1
+        "$qml2puppetArgument" "$clangbackendArgument" || exit 1
 
 fi

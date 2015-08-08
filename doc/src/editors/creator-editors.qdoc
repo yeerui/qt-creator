@@ -787,9 +787,9 @@
     Select \uicontrol Tools > \uicontrol Options > \uicontrol {Text Editor}
     > \uicontrol Completion.
 
-    By default, code completion considers only the first letter case-sensitive.
-    To apply full or no case-sensitivity, select the option in the
-    \uicontrol {Case-sensitivity} field.
+    By default, code completion does not consider case. To apply full or
+    first-letter case-sensitivity, select \uicontrol Full or
+    \uicontrol {First Letter} in the \uicontrol {Case-sensitivity} field.
 
     \section2 Summary of Available Types
 
@@ -1291,7 +1291,8 @@
 
     \section2 Specifying Tabs and Indentation
 
-    You can specify tab policy and tab size in the \uicontrol Typing group. In
+    You can specify tab policy and tab size in the
+    \uicontrol {Tabs and Indentation} group. In
     the \uicontrol {Tab policy} field, select whether to use only spaces or
     only tabs for indentation, or to use a mixture of them.
 
@@ -1416,7 +1417,7 @@
         \li To search only whole words, select \uicontrol {Whole Words Only}.
 
         \li To search using regular expressions, select
-            \uicontrol {Regular Expressions}. Regular expressions used in \QC
+            \uicontrol {Use Regular Expressions}. Regular expressions used in \QC
             are modeled on Perl regular expressions. For more information on
             using regular expressions, see the documentation for the
             QRegularExpression Class.
@@ -1444,7 +1445,7 @@
 
     The \uicontrol {Preserve Case when Replacing} option can be selected to
     preserve the case of the original text when replacing. This option is not
-    compatible with the \uicontrol {Regular Expressions} search option, and will
+    compatible with the \uicontrol {Use Regular Expressions} search option, and will
     thus be disabled when regular expressions are used. When the option is used,
     the case of the occurrence will be conserved, according to the following
     rules:
@@ -1465,6 +1466,11 @@
             other rules are applied on the rest of the occurrence only.
 
     \endlist
+
+    The locations of search hits, breakpoints, and bookmarks in your document
+    are highlighted on the editor scroll bar. To turn highlighting off, select
+    \uicontrol Tools > \uicontrol Options > \uicontrol {Text Editor} >
+    \uicontrol Display > \uicontrol {Highlight search results on the scrollbar}.
 
     \section1 Advanced Search
 
@@ -2403,9 +2409,10 @@
 
     \endlist
 
-    To move directly to a particular line in the document when you open the
-    document, append a plus sign (+) or a colon (:) to the file name in the
-    locator. For example, to open main.cpp to line 41, enter: \c {main.cpp:41}.
+    To move directly to a particular line and column in the document when you
+    open the document, append them to the file name in the locator, separated by
+    plus signs (+) or colons (:). For example, to open main.cpp to line 41 and
+    column 2, enter: \c {main.cpp:41:2}.
 
     If the path to a file is very long, it might not fit into the locator
     window. To view the full path, press \key Alt when the filename is selected
@@ -2446,7 +2453,7 @@
         \li Locating symbols in the current document (\c {.})
 
         \li Locating a specific line and column in the document displayed in
-            your editor (\c {l})
+            your editor (\c {l <line_number>:<column_number>})
 
         \li Opening help topics, including Qt documentation (\c {?})
 
@@ -2459,6 +2466,8 @@
 
         \li Executing version control system commands (\c {git}). For more
             information, see \l{Using Version Control Systems}
+
+        \li Running external tools (\c x)
 
     \endlist
 
@@ -2524,8 +2533,8 @@
 
         \li Specify the prefix string.
 
-        \li To show only results matching this filter, select
-            \uicontrol {Limit to prefix}.
+        \li To implicitly include the filter even when not typing a prefix as a
+            part of the search string, select \uicontrol {Include by default}.
 
         \li Specify other available options. For more information, see
             \l{Adding Web Search Engines}.
@@ -2593,8 +2602,9 @@
 
             \li Specify the prefix string.
 
-                To show only results matching this filter, select
-                \uicontrol {Limit to prefix}.
+                To implicitly include the filter even when not typing a prefix
+                as a part of the search string, select
+                \uicontrol {Include by default}.
 
                 \image qtcreator-navigate-customfilter.png
 

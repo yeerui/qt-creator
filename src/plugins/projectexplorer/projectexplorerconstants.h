@@ -50,10 +50,12 @@ const char CLEARSESSION[]         = "ProjectExplorer.ClearSession";
 const char BUILDPROJECTONLY[]     = "ProjectExplorer.BuildProjectOnly";
 const char BUILD[]                = "ProjectExplorer.Build";
 const char BUILDCM[]              = "ProjectExplorer.BuildCM";
+const char BUILDDEPENDCM[]        = "ProjectExplorer.BuildDependenciesCM";
 const char BUILDSESSION[]         = "ProjectExplorer.BuildSession";
 const char REBUILDPROJECTONLY[]   = "ProjectExplorer.RebuildProjectOnly";
 const char REBUILD[]              = "ProjectExplorer.Rebuild";
 const char REBUILDCM[]            = "ProjectExplorer.RebuildCM";
+const char REBUILDDEPENDCM[]      = "ProjectExplorer.RebuildDependenciesCM";
 const char REBUILDSESSION[]       = "ProjectExplorer.RebuildSession";
 const char DEPLOYPROJECTONLY[]    = "ProjectExplorer.DeployProjectOnly";
 const char DEPLOY[]               = "ProjectExplorer.Deploy";
@@ -63,6 +65,7 @@ const char PUBLISH[]              = "ProjectExplorer.Publish";
 const char CLEANPROJECTONLY[]     = "ProjectExplorer.CleanProjectOnly";
 const char CLEAN[]                = "ProjectExplorer.Clean";
 const char CLEANCM[]              = "ProjectExplorer.CleanCM";
+const char CLEANDEPENDCM[]        = "ProjectExplorer.CleanDependenciesCM";
 const char CLEANSESSION[]         = "ProjectExplorer.CleanSession";
 const char CANCELBUILD[]          = "ProjectExplorer.CancelBuild";
 const char RUN[]                  = "ProjectExplorer.Run";
@@ -223,14 +226,14 @@ const char BUILDSTEPS_DEPLOY[] = "ProjectExplorer.BuildSteps.Deploy";
 // Deploy Configuration id:
 const char DEFAULT_DEPLOYCONFIGURATION_ID[] = "ProjectExplorer.DefaultDeployConfiguration";
 
-// ToolChain Ids
-const char CLANG_TOOLCHAIN_ID[] = "ProjectExplorer.ToolChain.Clang";
-const char GCC_TOOLCHAIN_ID[] = "ProjectExplorer.ToolChain.Gcc";
-const char LINUXICC_TOOLCHAIN_ID[] = "ProjectExplorer.ToolChain.LinuxIcc";
-const char MINGW_TOOLCHAIN_ID[] = "ProjectExplorer.ToolChain.Mingw";
-const char MSVC_TOOLCHAIN_ID[] = "ProjectExplorer.ToolChain.Msvc";
-const char WINCE_TOOLCHAIN_ID[] = "ProjectExplorer.ToolChain.WinCE";
-const char CUSTOM_TOOLCHAIN_ID[] = "ProjectExplorer.ToolChain.Custom";
+// ToolChain TypeIds
+const char CLANG_TOOLCHAIN_TYPEID[] = "ProjectExplorer.ToolChain.Clang";
+const char GCC_TOOLCHAIN_TYPEID[] = "ProjectExplorer.ToolChain.Gcc";
+const char LINUXICC_TOOLCHAIN_TYPEID[] = "ProjectExplorer.ToolChain.LinuxIcc";
+const char MINGW_TOOLCHAIN_TYPEID[] = "ProjectExplorer.ToolChain.Mingw";
+const char MSVC_TOOLCHAIN_TYPEID[] = "ProjectExplorer.ToolChain.Msvc";
+const char WINCE_TOOLCHAIN_TYPEID[] = "ProjectExplorer.ToolChain.WinCE";
+const char CUSTOM_TOOLCHAIN_TYPEID[] = "ProjectExplorer.ToolChain.Custom";
 
 // Default directory to run custom (build) commands in.
 const char DEFAULT_WORKING_DIR[] = "%{buildDir}";

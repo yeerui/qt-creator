@@ -98,17 +98,19 @@ DocumentWarningWidget::DocumentWarningWidget(DesignModeWidget *parent) :
     layout->addWidget(m_goToError, 1, Qt::AlignRight);
 }
 
-void DocumentWarningWidget::setError(const RewriterView::Error &error)
+void DocumentWarningWidget::setError(const RewriterError &error)
 {
     m_error = error;
     QString str;
-    if (error.type() == RewriterView::Error::ParseError) {
+    if (error.type() == RewriterError::ParseError) {
         str = tr("%3 (%1:%2)").arg(QString::number(error.line()), QString::number(error.column()), error.description());
         m_goToError->show();
-    }  else if (error.type() == RewriterView::Error::InternalError) {
+    }  else if (error.type() == RewriterError::InternalError) {
         str = tr("Internal error (%1)").arg(error.description());
         m_goToError->hide();
     }
+
+    str.prepend(tr("Cannot open this QML document because of an error in the QML file:\n\n"));
 
     m_errorMessage->setText(str);
     resize(layout()->totalSizeHint());
@@ -185,11 +187,18 @@ DesignModeWidget::DesignModeWidget(QWidget *parent) :
     m_navigatorHistoryCounter(-1),
     m_keepNavigatorHistory(false)
 {
-    QObject::connect(viewManager().nodeInstanceView(), SIGNAL(qmlPuppetCrashed()), this, SLOT(qmlPuppetCrashed()));
+    QObject::connect(viewManager().nodeInstanceView(), SIGNAL(qmlPuppetCrashed()), this, SLOT(showQmlPuppetCrashedError()));
 }
 
 DesignModeWidget::~DesignModeWidget()
 {
+    m_leftSideBar.reset();
+    m_rightSideBar.reset();
+
+    foreach (QPointer<QWidget> widget, m_viewWidgets) {
+        if (widget)
+            widget.clear();
+    }
 }
 
 void DesignModeWidget::restoreDefaultView()
@@ -278,7 +287,7 @@ void DesignModeWidget::disableWidgets()
     m_isDisabled = true;
 }
 
-void DesignModeWidget::updateErrorStatus(const QList<RewriterView::Error> &errors)
+void DesignModeWidget::updateErrorStatus(const QList<RewriterError> &errors)
 {
     if (debug)
         qDebug() << Q_FUNC_INFO << errors.count();
@@ -350,9 +359,12 @@ void DesignModeWidget::setup()
     }
 
 
-    QToolBar *toolBar = new QToolBar(m_toolBar);
+
+    QToolBar *toolBar = new QToolBar;
 
     toolBar->addAction(viewManager().componentViewAction());
+
+    toolBar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     m_toolBar->addCenterToolBar(toolBar);
 
     m_mainSplitter = new MiniSplitter(this);
@@ -377,7 +389,9 @@ void DesignModeWidget::setup()
             Core::SideBarItem *sideBarItem = new DesignerSideBarItem(widgetInfo.widget, widgetInfo.toolBarWidgetFactory, widgetInfo.uniqueId);
             sideBarItems.append(sideBarItem);
             rightSideBarItems.append(sideBarItem);
+
         }
+        m_viewWidgets.append(widgetInfo.widget);
     }
 
     if (projectsExplorer) {
@@ -457,10 +471,10 @@ void DesignModeWidget::deleteSidebarWidgets()
     m_rightSideBar.reset();
 }
 
-void DesignModeWidget::qmlPuppetCrashed()
+void DesignModeWidget::showQmlPuppetCrashedError()
 {
-    QList<RewriterView::Error> errorList;
-    RewriterView::Error error(tr("Qt Quick emulation layer crashed"));
+    QList<RewriterError> errorList;
+    RewriterError error(tr("Qt Quick emulation layer crashed"));
     errorList.append(error);
 
     disableWidgets();
@@ -616,7 +630,7 @@ QWidget *DesignModeWidget::createCrumbleBarFrame()
     return frame;
 }
 
-void DesignModeWidget::showErrorMessage(const QList<RewriterView::Error> &errors)
+void DesignModeWidget::showErrorMessage(const QList<RewriterError> &errors)
 {
     Q_ASSERT(!errors.isEmpty());
     m_warningWidget->setError(errors.first());

@@ -728,6 +728,36 @@ QString decodeData(const QByteArray &ba, int encoding)
             union { char c[8]; double d; } u = { { s[7], s[6], s[5], s[4], s[3], s[2], s[1], s[0] } };
             return QString::number(u.d);
         }
+        case SpecialEmptyValue: {
+            return QCoreApplication::translate("Debugger::Internal::WatchHandler", "<empty>");
+        }
+        case SpecialUninitializedValue:  {
+            return QCoreApplication::translate("Debugger::Internal::WatchHandler", "<uninitialized>");
+        }
+        case SpecialInvalidValue:  {
+            return QCoreApplication::translate("Debugger::Internal::WatchHandler", "<invalid>");
+        }
+        case SpecialNotAccessibleValue:  {
+            return QCoreApplication::translate("Debugger::Internal::WatchHandler", "<not accessible>");
+        }
+        case SpecialItemCountValue:  {
+            return QCoreApplication::translate("Debugger::Internal::WatchHandler", "<%n items>", 0, ba.toInt());
+        }
+        case SpecialMinimumItemCountValue:  {
+            return QCoreApplication::translate("Debugger::Internal::WatchHandler", "<at least %n items>", 0, ba.toInt());
+        }
+        case SpecialNotCallableValue:  {
+            return QCoreApplication::translate("Debugger::Internal::WatchHandler", "<not callable>");
+        }
+        case SpecialNullReferenceValue:  {
+            return QCoreApplication::translate("Debugger::Internal::WatchHandler", "<null reference>");
+        }
+        case SpecialOptimizedOutValue:  {
+            return QCoreApplication::translate("Debugger::Internal::WatchHandler", "<optimized out>");
+        }
+        case SpecialEmptyStructureValue:  {
+            return QLatin1String("{...}");
+        }
     }
     qDebug() << "ENCODING ERROR: " << encoding;
     return QCoreApplication::translate("Debugger", "<Encoding error>");
@@ -782,6 +812,16 @@ void DebuggerCommand::arg(const char *name, const char *value)
     args.append("\",");
 }
 
+void DebuggerCommand::arg(const char *name, const QList<int> &list)
+{
+    beginList(name);
+    foreach (int item, list) {
+        args.append(QByteArray::number(item));
+        args.append(',');
+    }
+    endList();
+}
+
 void DebuggerCommand::arg(const char *value)
 {
     args.append("\"");
@@ -821,6 +861,14 @@ void DebuggerCommand::endGroup()
     if (args.endsWith(','))
         args.chop(1);
     args += "},";
+}
+
+QByteArray DebuggerCommand::arguments() const
+{
+    QByteArray result = args;
+    if (result.endsWith(','))
+        result.chop(1);
+    return result;
 }
 
 } // namespace Internal

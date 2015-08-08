@@ -126,17 +126,18 @@ QtOptionsPageWidget::QtOptionsPageWidget(QWidget *parent)
 
     m_infoBrowser->setOpenLinks(false);
     m_infoBrowser->setTextInteractionFlags(Qt::TextBrowserInteraction);
-    connect(m_infoBrowser, SIGNAL(anchorClicked(QUrl)), this, SLOT(infoAnchorClicked(QUrl)));
+    connect(m_infoBrowser, &QTextBrowser::anchorClicked,
+            this, &QtOptionsPageWidget::infoAnchorClicked);
     m_ui->infoWidget->setWidget(m_infoBrowser);
-    connect(m_ui->infoWidget, SIGNAL(expanded(bool)),
-            this, SLOT(setInfoWidgetVisibility()));
+    connect(m_ui->infoWidget, &DetailsWidget::expanded,
+            this, &QtOptionsPageWidget::setInfoWidgetVisibility);
 
     m_ui->versionInfoWidget->setWidget(versionInfoWidget);
     m_ui->versionInfoWidget->setState(DetailsWidget::NoSummary);
 
     m_ui->debuggingHelperWidget->setWidget(debuggingHelperDetailsWidget);
-    connect(m_ui->debuggingHelperWidget, SIGNAL(expanded(bool)),
-            this, SLOT(setInfoWidgetVisibility()));
+    connect(m_ui->debuggingHelperWidget, &DetailsWidget::expanded,
+            this, &QtOptionsPageWidget::setInfoWidgetVisibility);
 
     // setup parent items for auto-detected and manual versions
     m_ui->qtdirList->header()->setStretchLastSection(false);
@@ -158,42 +159,43 @@ QtOptionsPageWidget::QtOptionsPageWidget(QWidget *parent)
 
     m_ui->qtdirList->expandAll();
 
-    connect(m_versionUi->nameEdit, SIGNAL(textEdited(QString)),
-            this, SLOT(updateCurrentQtName()));
+    connect(m_versionUi->nameEdit, &QLineEdit::textEdited,
+            this, &QtOptionsPageWidget::updateCurrentQtName);
 
-    connect(m_versionUi->editPathPushButton, SIGNAL(clicked()),
-            this, SLOT(editPath()));
+    connect(m_versionUi->editPathPushButton, &QAbstractButton::clicked,
+            this, &QtOptionsPageWidget::editPath);
 
-    connect(m_ui->addButton, SIGNAL(clicked()),
-            this, SLOT(addQtDir()));
-    connect(m_ui->delButton, SIGNAL(clicked()),
-            this, SLOT(removeQtDir()));
+    connect(m_ui->addButton, &QAbstractButton::clicked,
+            this, &QtOptionsPageWidget::addQtDir);
+    connect(m_ui->delButton, &QAbstractButton::clicked,
+            this, &QtOptionsPageWidget::removeQtDir);
 
-    connect(m_ui->qtdirList, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
-            this, SLOT(versionChanged(QTreeWidgetItem*,QTreeWidgetItem*)));
+    connect(m_ui->qtdirList, &QTreeWidget::currentItemChanged,
+            this, &QtOptionsPageWidget::versionChanged);
 
-    connect(m_debuggingHelperUi->rebuildButton, SIGNAL(clicked()),
-            this, SLOT(buildDebuggingHelper()));
-    connect(m_debuggingHelperUi->qmlDumpBuildButton, SIGNAL(clicked()),
-            this, SLOT(buildQmlDump()));
+    connect(m_debuggingHelperUi->rebuildButton, &QAbstractButton::clicked,
+            this, [this]() { buildDebuggingHelper(); });
+    connect(m_debuggingHelperUi->qmlDumpBuildButton, &QAbstractButton::clicked,
+            this, &QtOptionsPageWidget::buildQmlDump);
 
-    connect(m_debuggingHelperUi->showLogButton, SIGNAL(clicked()),
-            this, SLOT(slotShowDebuggingBuildLog()));
-    connect(m_debuggingHelperUi->toolChainComboBox, SIGNAL(activated(int)),
-            this, SLOT(selectedToolChainChanged(int)));
+    connect(m_debuggingHelperUi->showLogButton, &QAbstractButton::clicked,
+            this, &QtOptionsPageWidget::slotShowDebuggingBuildLog);
+    connect(m_debuggingHelperUi->toolChainComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+            this, &QtOptionsPageWidget::selectedToolChainChanged);
 
-    connect(m_ui->cleanUpButton, SIGNAL(clicked()), this, SLOT(cleanUpQtVersions()));
+    connect(m_ui->cleanUpButton, &QAbstractButton::clicked,
+            this, &QtOptionsPageWidget::cleanUpQtVersions);
     userChangedCurrentVersion();
     updateCleanUpButton();
 
-    connect(QtVersionManager::instance(), SIGNAL(dumpUpdatedFor(Utils::FileName)),
-            this, SLOT(qtVersionsDumpUpdated(Utils::FileName)));
+    connect(QtVersionManager::instance(), &QtVersionManager::dumpUpdatedFor,
+            this, &QtOptionsPageWidget::qtVersionsDumpUpdated);
 
-    connect(QtVersionManager::instance(), SIGNAL(qtVersionsChanged(QList<int>,QList<int>,QList<int>)),
-            this, SLOT(updateQtVersions(QList<int>,QList<int>,QList<int>)));
+    connect(QtVersionManager::instance(), &QtVersionManager::qtVersionsChanged,
+            this, &QtOptionsPageWidget::updateQtVersions);
 
-    connect(ProjectExplorer::ToolChainManager::instance(), SIGNAL(toolChainsChanged()),
-            this, SLOT(toolChainsUpdated()));
+    connect(ProjectExplorer::ToolChainManager::instance(), &ToolChainManager::toolChainsChanged,
+            this, &QtOptionsPageWidget::toolChainsUpdated);
 
     auto chooser = new Core::VariableChooser(this);
     chooser->addSupportedWidget(m_versionUi->nameEdit, "Qt:Name");
@@ -294,8 +296,7 @@ void QtOptionsPageWidget::toolChainsUpdated()
             updateDescriptionLabel();
             updateDebuggingHelperUi();
         } else {
-            const ValidityInfo info = validInformation(m_versions.at(i));
-            item->setIcon(0, info.icon);
+            updateVersionItem(m_versions.at(i));
         }
     }
 }
@@ -309,7 +310,7 @@ void QtOptionsPageWidget::selectedToolChainChanged(int comboIndex)
     QTreeWidgetItem *item = treeItemForIndex(index);
     QTC_ASSERT(item, return);
 
-    QString toolChainId = m_debuggingHelperUi->toolChainComboBox->itemData(comboIndex).toString();
+    QByteArray toolChainId = m_debuggingHelperUi->toolChainComboBox->itemData(comboIndex).toByteArray();
 
     item->setData(0, ToolChainIdRole, toolChainId);
 }
@@ -367,6 +368,9 @@ QtOptionsPageWidget::ValidityInfo QtOptionsPageWidget::validInformation(const Ba
 
     bool useable = true;
     QStringList warnings;
+    if (!isNameUnique(version))
+        warnings << tr("Display Name is not unique.");
+
     if (!missingToolChains.isEmpty()) {
         if (missingToolChains.count() == abiCount) {
             // Yes, this Qt version can't be used at all!
@@ -399,7 +403,7 @@ QList<ToolChain*> QtOptionsPageWidget::toolChains(const BaseQtVersion *version)
     if (!version)
         return toolChains;
 
-    QSet<QString> ids;
+    QSet<QByteArray> ids;
     foreach (const Abi &a, version->qtAbis()) {
         foreach (ToolChain *tc, ToolChainManager::findToolChains(a)) {
             if (ids.contains(tc->id()))
@@ -412,12 +416,33 @@ QList<ToolChain*> QtOptionsPageWidget::toolChains(const BaseQtVersion *version)
     return toolChains;
 }
 
-QString QtOptionsPageWidget::defaultToolChainId(const BaseQtVersion *version)
+QByteArray QtOptionsPageWidget::defaultToolChainId(const BaseQtVersion *version)
 {
     QList<ToolChain*> possibleToolChains = toolChains(version);
     if (!possibleToolChains.isEmpty())
         return possibleToolChains.first()->id();
-    return QString();
+    return QByteArray();
+}
+
+bool QtOptionsPageWidget::isNameUnique(const BaseQtVersion *version)
+{
+    const QString name = version->displayName().trimmed();
+    foreach (const BaseQtVersion *i, m_versions) {
+        if (i == version)
+            continue;
+        if (i->displayName().trimmed() == name)
+            return false;
+    }
+    return true;
+}
+
+void QtOptionsPageWidget::updateVersionItem(BaseQtVersion *version)
+{
+    const ValidityInfo info = validInformation(version);
+    QTreeWidgetItem *item = treeItemForIndex(m_versions.indexOf(version));
+    item->setText(0, version->displayName());
+    item->setText(1, version->qmakeCommand().toUserOutput());
+    item->setIcon(0, info.icon);
 }
 
 void QtOptionsPageWidget::buildDebuggingHelper(DebuggingHelperBuildTask::Tools tools)
@@ -444,8 +469,8 @@ void QtOptionsPageWidget::buildDebuggingHelper(DebuggingHelperBuildTask::Tools t
     updateDebuggingHelperUi();
 
     // Run a debugging helper build task in the background.
-    QString toolChainId = m_debuggingHelperUi->toolChainComboBox->itemData(
-                m_debuggingHelperUi->toolChainComboBox->currentIndex()).toString();
+    QByteArray toolChainId = m_debuggingHelperUi->toolChainComboBox->itemData(
+                m_debuggingHelperUi->toolChainComboBox->currentIndex()).toByteArray();
     ToolChain *toolChain = ToolChainManager::findToolChain(toolChainId);
     if (!toolChain)
         return;
@@ -549,12 +574,8 @@ void QtOptionsPageWidget::updateQtVersions(const QList<int> &additions, const QL
         m_versions.append(version);
         QTreeWidgetItem *item = new QTreeWidgetItem;
 
-        item->setText(0, version->displayName());
-        item->setText(1, version->qmakeCommand().toUserOutput());
         item->setData(0, VersionIdRole, version->uniqueId());
         item->setData(0, ToolChainIdRole, defaultToolChainId(version));
-        const ValidityInfo info = validInformation(version);
-        item->setIcon(0, info.icon);
 
         // Insert in the right place:
         QTreeWidgetItem *parent = version->isAutodetected()? m_autoItem : m_manualItem;
@@ -570,6 +591,10 @@ void QtOptionsPageWidget::updateQtVersions(const QList<int> &additions, const QL
         if (parent)
             parent->addChild(item);
     }
+
+    // Only set the icon after all versions are there to make sure all names are known:
+    foreach (BaseQtVersion *i, m_versions)
+        updateVersionItem(i);
 }
 
 QtOptionsPageWidget::~QtOptionsPageWidget()
@@ -755,7 +780,7 @@ void QtOptionsPageWidget::updateDebuggingHelperUi()
         m_debuggingHelperUi->qmlDumpBuildButton->setEnabled(canBuildQmlDumper & !isBuildingQmlDumper);
 
         QList<ToolChain*> toolchains = toolChains(currentVersion());
-        QString selectedToolChainId = currentItem->data(0, ToolChainIdRole).toString();
+        QByteArray selectedToolChainId = currentItem->data(0, ToolChainIdRole).toByteArray();
         m_debuggingHelperUi->toolChainComboBox->clear();
         for (int i = 0; i < toolchains.size(); ++i) {
             if (!toolchains.at(i)->isValid())
@@ -900,20 +925,24 @@ void QtOptionsPageWidget::updateCurrentQtName()
     int currentItemIndex = indexForTreeItem(currentItem);
     if (currentItemIndex < 0)
         return;
-    m_versions[currentItemIndex]->setUnexpandedDisplayName(m_versionUi->nameEdit->text());
-    currentItem->setText(0, m_versions[currentItemIndex]->displayName());
+
+    BaseQtVersion *version = m_versions[currentItemIndex];
+    version->setUnexpandedDisplayName(m_versionUi->nameEdit->text());
     updateDescriptionLabel();
+
+    foreach (BaseQtVersion *i, m_versions)
+        updateVersionItem(i);
 }
 
 void QtOptionsPageWidget::apply()
 {
-    disconnect(QtVersionManager::instance(), SIGNAL(qtVersionsChanged(QList<int>,QList<int>,QList<int>)),
-            this, SLOT(updateQtVersions(QList<int>,QList<int>,QList<int>)));
+    disconnect(QtVersionManager::instance(), &QtVersionManager::qtVersionsChanged,
+            this, &QtOptionsPageWidget::updateQtVersions);
 
     QtVersionManager::setNewQtVersions(versions());
 
-    connect(QtVersionManager::instance(), SIGNAL(qtVersionsChanged(QList<int>,QList<int>,QList<int>)),
-            this, SLOT(updateQtVersions(QList<int>,QList<int>,QList<int>)));
+    connect(QtVersionManager::instance(), &QtVersionManager::qtVersionsChanged,
+            this, &QtOptionsPageWidget::updateQtVersions);
 }
 
 QList<BaseQtVersion *> QtOptionsPageWidget::versions() const

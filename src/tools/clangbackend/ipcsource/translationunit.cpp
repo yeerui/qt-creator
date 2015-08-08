@@ -40,6 +40,9 @@
 #include <utf8string.h>
 
 #include <QFileInfo>
+#include <QLoggingCategory>
+
+static Q_LOGGING_CATEGORY(verboseLibLog, "qtc.clangbackend.verboselib");
 
 namespace ClangBackEnd {
 
@@ -96,12 +99,21 @@ void TranslationUnit::reset()
     d.reset();
 }
 
+void TranslationUnit::reparse()
+{
+    cxTranslationUnit();
+
+    reparseTranslationUnit();
+}
+
 CXIndex TranslationUnit::index() const
 {
     checkIfNull();
 
-    if (!d->index)
-        d->index = clang_createIndex(1, 1);
+    if (!d->index) {
+        const bool displayDiagnostics = verboseLibLog().isDebugEnabled();
+        d->index = clang_createIndex(1, displayDiagnostics);
+    }
 
     return d->index;
 }
@@ -163,11 +175,6 @@ void TranslationUnit::removeOutdatedTranslationUnit() const
 
 void TranslationUnit::createTranslationUnitIfNeeded() const
 {
-    const auto options = CXTranslationUnit_DetailedPreprocessingRecord
-            | CXTranslationUnit_CacheCompletionResults
-            | CXTranslationUnit_PrecompiledPreamble
-            | CXTranslationUnit_SkipFunctionBodies;
-
     if (!d->translationUnit) {
         d->translationUnit = CXTranslationUnit();
         CXErrorCode errorCode = clang_parseTranslationUnit2(index(),
@@ -176,10 +183,14 @@ void TranslationUnit::createTranslationUnitIfNeeded() const
                                                             d->projectPart.argumentCount(),
                                                             d->unsavedFiles.cxUnsavedFiles(),
                                                             d->unsavedFiles.count(),
-                                                            options,
+                                                            defaultOptions(),
                                                             &d->translationUnit);
 
         checkTranslationUnitErrorCode(errorCode);
+
+        // We need to reparse to create the precompiled preamble, which will speed up further calls,
+        // e.g. clang_codeCompleteAt() dramatically.
+        reparseTranslationUnit();
 
         updateLastChangeTimePoint();
     }
@@ -191,6 +202,21 @@ void TranslationUnit::checkTranslationUnitErrorCode(CXErrorCode errorCode) const
         case CXError_Success: break;
         default: throw TranslationUnitParseErrorException(d->filePath, d->projectPart.projectPartId());
     }
+}
+
+void TranslationUnit::reparseTranslationUnit() const
+{
+    clang_reparseTranslationUnit(d->translationUnit,
+                                 d->unsavedFiles.count(),
+                                 d->unsavedFiles.cxUnsavedFiles(),
+                                 clang_defaultReparseOptions(d->translationUnit));
+}
+
+int TranslationUnit::defaultOptions()
+{
+    return CXTranslationUnit_CacheCompletionResults
+         | CXTranslationUnit_PrecompiledPreamble
+         | CXTranslationUnit_SkipFunctionBodies;
 }
 
 uint TranslationUnit::unsavedFilesCount() const

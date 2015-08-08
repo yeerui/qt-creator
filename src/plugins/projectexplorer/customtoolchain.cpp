@@ -78,27 +78,9 @@ static const char messageCapKeyC[] = "ProjectExplorer.CustomToolChain.MessageCap
 // --------------------------------------------------------------------------
 
 CustomToolChain::CustomToolChain(Detection d) :
-    ToolChain(QLatin1String(Constants::CUSTOM_TOOLCHAIN_ID), d),
+    ToolChain(Constants::CUSTOM_TOOLCHAIN_TYPEID, d),
     m_outputParser(Gcc)
 { }
-
-CustomToolChain::CustomToolChain(const QString &id, Detection d) :
-    ToolChain(id, d)
-{ }
-
-CustomToolChain::CustomToolChain(const CustomToolChain &tc) :
-    ToolChain(tc),
-    m_compilerCommand(tc.m_compilerCommand),
-    m_makeCommand(tc.m_makeCommand),
-    m_targetAbi(tc.m_targetAbi),
-    m_predefinedMacros(tc.m_predefinedMacros),
-    m_systemHeaderPaths(tc.m_systemHeaderPaths)
-{ }
-
-QString CustomToolChain::type() const
-{
-    return QLatin1String("custom");
-}
 
 QString CustomToolChain::typeDisplayName() const
 {
@@ -390,7 +372,7 @@ namespace Internal {
 
 CustomToolChainFactory::CustomToolChainFactory()
 {
-    setId(Constants::CUSTOM_TOOLCHAIN_ID);
+    setTypeId(Constants::CUSTOM_TOOLCHAIN_TYPEID);
     setDisplayName(tr("Custom"));
 }
 
@@ -401,14 +383,13 @@ bool CustomToolChainFactory::canCreate()
 
 ToolChain *CustomToolChainFactory::create()
 {
-    return createToolChain(false);
+    return new CustomToolChain(ToolChain::ManualDetection);
 }
 
 // Used by the ToolChainManager to restore user-generated tool chains
 bool CustomToolChainFactory::canRestore(const QVariantMap &data)
 {
-    const QString id = idFromMap(data);
-    return id.startsWith(QLatin1String(Constants::CUSTOM_TOOLCHAIN_ID) + QLatin1Char(':'));
+    return typeIdFromMap(data) == Constants::CUSTOM_TOOLCHAIN_TYPEID;
 }
 
 ToolChain *CustomToolChainFactory::restore(const QVariantMap &data)
@@ -419,11 +400,6 @@ ToolChain *CustomToolChainFactory::restore(const QVariantMap &data)
 
     delete tc;
     return 0;
-}
-
-CustomToolChain *CustomToolChainFactory::createToolChain(bool autoDetect)
-{
-    return new CustomToolChain(autoDetect ? ToolChain::AutoDetection : ToolChain::ManualDetection);
 }
 
 // --------------------------------------------------------------------------

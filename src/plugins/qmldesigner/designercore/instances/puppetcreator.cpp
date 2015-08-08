@@ -50,7 +50,6 @@
 
 
 #include <qmldesignerplugin.h>
-#include <designersettings.h>
 #include "puppetbuildprogressdialog.h"
 
 
@@ -111,7 +110,7 @@ QDateTime PuppetCreator::puppetSourceLastModified() const
 bool PuppetCreator::useOnlyFallbackPuppet() const
 {
     DesignerSettings settings = QmlDesignerPlugin::instance()->settings();
-    return  settings.useOnlyFallbackPuppet
+    return settings.useOnlyFallbackPuppet
             || !qgetenv("USE_ONLY_FALLBACK_PUPPET").isEmpty() || m_kit == 0 || !m_kit->isValid();
 }
 
@@ -120,6 +119,7 @@ PuppetCreator::PuppetCreator(ProjectExplorer::Kit *kit, const QString &qtCreator
       m_kit(kit),
       m_availablePuppetType(FallbackPuppet),
       m_model(model),
+      m_designerSettings(QmlDesignerPlugin::instance()->settings()),
       m_puppetVersion(puppetVersion)
 {
 }
@@ -228,15 +228,17 @@ bool PuppetCreator::build(const QString &qmlPuppetProjectFilePath) const
                     buildArguments.append(idealProcessCount());
                 }
                 buildSucceeded = startBuildProcess(buildDirectory.path(), buildingCommand, buildArguments, &progressDialog);
-                progressDialog.close();
             }
 
-            if (!buildSucceeded)
-                Core::AsynchronousMessageBox::warning(QCoreApplication::translate("PuppetCreator", "QML Emulation Layer (QML Puppet) Building was Unsuccessful"),
-                                                       QCoreApplication::translate("PuppetCreator",
-                                                                     "The QML emulation layer (QML Puppet) cannot be built. "
-                                                                     "The fallback emulation layer, which does not support all features, will be used."
-                                                                     ));
+            if (!buildSucceeded) {
+                progressDialog.setWindowTitle(QCoreApplication::translate("PuppetCreator", "QML Emulation Layer (QML Puppet) Building was Unsuccessful"));
+                progressDialog.setErrorMessage(QCoreApplication::translate("PuppetCreator",
+                                                                           "The QML emulation layer (QML Puppet) cannot be built. "
+                                                                           "The fallback emulation layer, which does not support all features, will be used."
+                                                                           ));
+                // now we want to keep the dialog open
+                progressDialog.exec();
+            }
         }
     } else {
         Core::AsynchronousMessageBox::warning(QCoreApplication::translate("PuppetCreator", "Qt Version is not supported"),
@@ -305,22 +307,38 @@ void PuppetCreator::createQml2PuppetExecutableIfMissing()
     }
 }
 
+QString PuppetCreator::defaultPuppetToplevelBuildDirectory()
+{
+    return Core::ICore::userResourcePath()
+            + QStringLiteral("/qmlpuppet/");
+}
+
+QString PuppetCreator::qmlPuppetToplevelBuildDirectory() const
+{
+    if (m_designerSettings.puppetToplevelBuildDirectory.isEmpty())
+        return defaultPuppetToplevelBuildDirectory();
+    return QmlDesignerPlugin::instance()->settings().puppetToplevelBuildDirectory;
+}
+
 QString PuppetCreator::qmlPuppetDirectory(PuppetType puppetType) const
 {
-
     if (puppetType == UserSpacePuppet)
-        return Core::ICore::userResourcePath()
-                + QStringLiteral("/qmlpuppet/")
-                + QCoreApplication::applicationVersion() + QStringLiteral("/")
-                + qtHash();
-
+        return qmlPuppetToplevelBuildDirectory() + QStringLiteral("/")
+            + QCoreApplication::applicationVersion() + QStringLiteral("/") + QString::fromLatin1(qtHash());
 
     return qmlPuppetFallbackDirectory();
 }
 
+QString PuppetCreator::defaultPuppetFallbackDirectory()
+{
+    return Core::ICore::libexecPath();
+}
+
 QString PuppetCreator::qmlPuppetFallbackDirectory() const
 {
-    return QCoreApplication::applicationDirPath();
+    if (m_designerSettings.puppetFallbackDirectory.isEmpty())
+        return defaultPuppetFallbackDirectory();
+    return QmlDesignerPlugin::instance()->settings().puppetFallbackDirectory;
 }
 
 QString PuppetCreator::qml2PuppetPath(PuppetType puppetType) const
@@ -347,13 +365,20 @@ QProcessEnvironment PuppetCreator::processEnvironment() const
     environment.set("QML_USE_MOCKUPS", "true");
     environment.set("QML_PUPPET_MODE", "true");
 
+    const QString controlsStyle = QmlDesignerPlugin::instance()->settings().controlsStyle;
+    if (!controlsStyle.isEmpty())
+        environment.set(QLatin1String("QT_QUICK_CONTROLS_STYLE"), controlsStyle);
+
+    if (!m_qrcMapping.isEmpty()) {
+        environment.set(QLatin1String("QMLDESIGNER_RC_PATHS"), m_qrcMapping);
+    }
+
     if (m_availablePuppetType != FallbackPuppet) {
         if (m_puppetVersion == Qml1Puppet)
             environment.appendOrSet("QML_IMPORT_PATH", m_model->importPaths().join(pathSep), pathSep);
         else
             environment.appendOrSet("QML2_IMPORT_PATH", m_model->importPaths().join(pathSep), pathSep);
     }
-
     return environment.toProcessEnvironment();
 }
 
@@ -384,6 +409,11 @@ QString PuppetCreator::compileLog() const
     return m_compileLog;
 }
 
+void PuppetCreator::setQrcMappingString(const QString qrcMapping)
+{
+    m_qrcMapping = qrcMapping;
+}
+
 bool PuppetCreator::startBuildProcess(const QString &buildDirectoryPath,
                                       const QString &command,
                                       const QStringList &processArguments,
@@ -392,21 +422,31 @@ bool PuppetCreator::startBuildProcess(const QString &buildDirectoryPath,
     if (command.isEmpty())
         return false;
 
+    const QString errorOutputFilePath(buildDirectoryPath + QLatin1String("/build_error_output.txt"));
+    if (QFile::exists(errorOutputFilePath))
+        QFile(errorOutputFilePath).remove();
+    progressDialog->setErrorOutputFile(errorOutputFilePath);
+
     QProcess process;
+    process.setStandardErrorFile(errorOutputFilePath);
     process.setProcessChannelMode(QProcess::SeparateChannels);
     process.setProcessEnvironment(processEnvironment());
     process.setWorkingDirectory(buildDirectoryPath);
     process.start(command, processArguments);
     process.waitForStarted();
-    while (process.waitForReadyRead(-1)) {
+    while (process.waitForReadyRead(100) || process.state() == QProcess::Running) {
         if (progressDialog->useFallbackPuppet())
             return false;
 
-        QByteArray newOutput = process.readAllStandardOutput();
-        if (progressDialog)
-            progressDialog->newBuildOutput(newOutput);
+        QCoreApplication::processEvents(QEventLoop::ExcludeSocketNotifiers);
 
-        m_compileLog.append(newOutput);
+        QByteArray newOutput = process.readAllStandardOutput();
+        if (!newOutput.isEmpty()) {
+            if (progressDialog)
+                progressDialog->newBuildOutput(newOutput);
+
+            m_compileLog.append(QString::fromLatin1(newOutput));
+        }
     }
 
     process.waitForFinished();

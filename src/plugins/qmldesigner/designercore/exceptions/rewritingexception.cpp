@@ -33,18 +33,18 @@
 using namespace QmlDesigner;
 
 RewritingException::RewritingException(int line,
-                                       const QString &function,
-                                       const QString &file,
-                                       const QString &description,
+                                       const QByteArray &function,
+                                       const QByteArray &file,
+                                       const QByteArray &description,
                                        const QString &documentTextContent):
-        Exception(line, function, file), m_description(description), m_documentTextContent(documentTextContent)
+        Exception(line, function, file), m_description(QString::fromUtf8(description)), m_documentTextContent(documentTextContent)
 {
     createWarning();
 }
 
 QString RewritingException::type() const
 {
-    return "RewritingException";
+    return QLatin1String("RewritingException");
 }
 
 QString RewritingException::description() const

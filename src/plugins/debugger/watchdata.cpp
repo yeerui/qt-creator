@@ -131,7 +131,8 @@ WatchData::WatchData() :
     elided(0),
     wantsChildren(false),
     valueEnabled(true),
-    valueEditable(true)
+    valueEditable(true),
+    outdated(false)
 {
 }
 
@@ -253,19 +254,6 @@ void WatchData::setType(const QByteArray &str, bool guessChildrenFromType)
     }
 }
 
-void WatchData::setHexAddress(const QByteArray &a)
-{
-    bool ok;
-    const qint64 av = a.toULongLong(&ok, 0);
-    if (ok) {
-        address = av;
-    } else {
-        qWarning("WatchData::setHexAddress(): Failed to parse address value '%s' for '%s', '%s'",
-                 a.constData(), iname.constData(), type.constData());
-        address = 0;
-    }
-}
-
 QString WatchData::toString() const
 {
     const char *doubleQuoteComma = "\",";
@@ -312,14 +300,15 @@ QString WatchData::toString() const
     return res + QLatin1Char('}');
 }
 
-// Format a tooltip fow with aligned colon.
-static void formatToolTipRow(QTextStream &str,
-    const QString &category, const QString &value)
+// Format a tooltip row with aligned colon.
+static void formatToolTipRow(QTextStream &str, const QString &category, const QString &value)
 {
     QString val = value.toHtmlEscaped();
     val.replace(QLatin1Char('\n'), QLatin1String("<br>"));
-    str << "<tr><td>" << category << "</td><td> : </td><td>"
-        << val << "</td></tr>";
+    str << "<tr><td>" << category << "</td><td>";
+    if (!category.isEmpty())
+        str << ':';
+    str << "</td><td>" << val << "</td></tr>";
 }
 
 QString WatchData::toToolTip() const
@@ -332,20 +321,22 @@ QString WatchData::toToolTip() const
     formatToolTipRow(str, tr("Internal Type"), QLatin1String(type));
     if (!displayedType.isEmpty())
         formatToolTipRow(str, tr("Displayed Type"), displayedType);
-    QString val = value;
-    // Automatically display hex value for unsigned integers.
-    if (!val.isEmpty() && val.at(0).isDigit() && isIntType(type)) {
-        bool ok;
-        const quint64 intValue = val.toULongLong(&ok);
-        if (ok && intValue)
-            val += QLatin1String(" (hex) ") + QString::number(intValue, 16);
+    bool ok;
+    const quint64 intValue = value.toULongLong(&ok);
+    if (ok && intValue) {
+        formatToolTipRow(str, tr("Value"), QLatin1String("(dec)  ") + value);
+        formatToolTipRow(str, QString(), QLatin1String("(hex)  ") + QString::number(intValue, 16));
+        formatToolTipRow(str, QString(), QLatin1String("(oct)  ") + QString::number(intValue, 8));
+        formatToolTipRow(str, QString(), QLatin1String("(bin)  ") + QString::number(intValue, 2));
+    } else {
+        QString val = value;
+        if (val.size() > 1000) {
+            val.truncate(1000);
+            val += QLatin1Char(' ');
+            val += tr("... <cut off>");
+        }
+        formatToolTipRow(str, tr("Value"), val);
     }
-    if (val.size() > 1000) {
-        val.truncate(1000);
-        val += QLatin1Char(' ');
-        val += tr("... <cut off>");
-    }
-    formatToolTipRow(str, tr("Value"), val);
     if (address)
         formatToolTipRow(str, tr("Object Address"), formatToolTipAddress(address));
     if (origaddr)
@@ -657,7 +648,12 @@ template <class T>
 void readNumericVectorHelper(std::vector<double> *v, const QByteArray &ba)
 {
     const T *p = (const T *) ba.data();
-    std::copy(p, p + ba.size() / sizeof(T), std::back_insert_iterator<std::vector<double> >(*v));
+    const int n = ba.size() / sizeof(T);
+    v->resize(n);
+    // Losing precision in case of 64 bit ints is ok here, as the result
+    // is only used to plot data.
+    for (int i = 0; i != n; ++i)
+        (*v)[i] = static_cast<double>(p[i]);
 }
 
 void readNumericVector(std::vector<double> *v, const QByteArray &rawData, DebuggerEncoding encoding)

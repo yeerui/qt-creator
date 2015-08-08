@@ -140,10 +140,11 @@ QStringList AutotoolsProject::files(FilesMode fileMode) const
 
 // This function, is called at the very beginning, to
 // restore the settings if there are some stored.
-bool AutotoolsProject::fromMap(const QVariantMap &map)
+Project::RestoreResult AutotoolsProject::fromMap(const QVariantMap &map, QString *errorMessage)
 {
-    if (!Project::fromMap(map))
-        return false;
+    RestoreResult result = Project::fromMap(map, errorMessage);
+    if (result != RestoreResult::Ok)
+        return result;
 
     connect(m_fileWatcher, &Utils::FileSystemWatcher::fileChanged,
             this, &AutotoolsProject::onFileChanged);
@@ -155,7 +156,7 @@ bool AutotoolsProject::fromMap(const QVariantMap &map)
     if (!activeTarget() && defaultKit)
         addTarget(createTarget(defaultKit));
 
-    return true;
+    return RestoreResult::Ok;
 }
 
 void AutotoolsProject::loadProjectTree()
@@ -164,8 +165,8 @@ void AutotoolsProject::loadProjectTree()
         // The thread is still busy parsing a previus configuration.
         // Wait until the thread has been finished and delete it.
         // TODO: Discuss whether blocking is acceptable.
-        disconnect(m_makefileParserThread, SIGNAL(finished()),
-                   this, SLOT(makefileParsingFinished()));
+        disconnect(m_makefileParserThread, &QThread::finished,
+                   this, &AutotoolsProject::makefileParsingFinished);
         m_makefileParserThread->wait();
         delete m_makefileParserThread;
         m_makefileParserThread = 0;
@@ -284,7 +285,7 @@ void AutotoolsProject::buildFileNodeTree(const QDir &directory,
     FolderNode *parentFolder = 0;
     FolderNode *oldParentFolder = 0;
 
-    foreach (const QString& file, files) {
+    foreach (const QString &file, files) {
         if (file.endsWith(QLatin1String(".moc")))
             continue;
 
@@ -306,8 +307,8 @@ void AutotoolsProject::buildFileNodeTree(const QDir &directory,
                 parentFolder = m_rootNode;
             }
         }
-        QTC_ASSERT(parentFolder != 0, return);
-        if ((oldParentFolder != parentFolder) && !fileNodes.isEmpty()) {
+        QTC_ASSERT(parentFolder, return);
+        if (oldParentFolder && (oldParentFolder != parentFolder) && !fileNodes.isEmpty()) {
             // AutotoolsProjectNode::addFileNodes() is a very expensive operation. It is
             // important to collect as much file nodes of the same parent folder as
             // possible before invoking it.
@@ -328,7 +329,7 @@ void AutotoolsProject::buildFileNodeTree(const QDir &directory,
         }
     }
 
-    if (!fileNodes.isEmpty())
+    if (parentFolder && !fileNodes.isEmpty())
         parentFolder->addFileNodes(fileNodes);
 
     // Remove unused file nodes and empty folder nodes
@@ -402,6 +403,24 @@ QList<Node *> AutotoolsProject::nodes(FolderNode *parent) const
     return list;
 }
 
+static QStringList filterIncludes(const QString &absSrc, const QString &absBuild,
+                                  const QStringList &in)
+{
+    QStringList result;
+    foreach (const QString i, in) {
+        QString out = i;
+        out.replace(QLatin1String("$(top_srcdir)"), absSrc);
+        out.replace(QLatin1String("$(abs_top_srcdir)"), absSrc);
+
+        out.replace(QLatin1String("$(top_builddir)"), absBuild);
+        out.replace(QLatin1String("$(abs_top_builddir)"), absBuild);
+
+        result << out;
+    }
+
+    return result;
+}
+
 void AutotoolsProject::updateCppCodeModel()
 {
     CppTools::CppModelManager *modelManager = CppTools::CppModelManager::instance();
@@ -427,7 +446,12 @@ void AutotoolsProject::updateCppCodeModel()
     ppBuilder.setCFlags(cflags);
     ppBuilder.setCxxFlags(cxxflags);
 
-    ppBuilder.setIncludePaths(m_makefileParserThread->includePaths());
+    const QString absSrc = projectDirectory().toString();
+    const Target *target = activeTarget();
+    const QString absBuild = (target && target->activeBuildConfiguration())
+            ? target->activeBuildConfiguration()->buildDirectory().toString() : QString();
+
+    ppBuilder.setIncludePaths(filterIncludes(absSrc, absBuild, m_makefileParserThread->includePaths()));
     ppBuilder.setDefines(m_makefileParserThread->defines());
 
     const QList<Core::Id> languages = ppBuilder.createProjectPartsForFiles(m_files);

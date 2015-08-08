@@ -99,7 +99,7 @@ QmlItemNode QmlItemNode::createQmlItemNode(AbstractView *view, const ItemLibrary
 
     NodeAbstractProperty parentProperty = parentQmlItemNode.defaultNodeAbstractProperty();
 
-    return  QmlItemNode::createQmlItemNode(view, itemLibraryEntry, position, parentProperty);
+    return QmlItemNode::createQmlItemNode(view, itemLibraryEntry, position, parentProperty);
 }
 
 QmlItemNode QmlItemNode::createQmlItemNode(AbstractView *view, const ItemLibraryEntry &itemLibraryEntry, const QPointF &position, NodeAbstractProperty parentproperty)
@@ -198,7 +198,7 @@ QmlItemNode QmlItemNode::createQmlItemNodeFromImage(AbstractView *view, const QS
             newQmlItemNode = QmlItemNode(view->createModelNode("QtQuick.Image", metaInfo.majorVersion(), metaInfo.minorVersion(), propertyPairList));
             parentproperty.reparentHere(newQmlItemNode);
 
-            newQmlItemNode.setId(view->generateNewId("image"));
+            newQmlItemNode.setId(view->generateNewId(QLatin1String("image")));
 
             if (!view->currentState().isBaseState()) {
                 newQmlItemNode.modelNode().variantProperty("opacity").setValue(0);
@@ -595,6 +595,19 @@ void QmlItemNode::setPostionInBaseState(const QPointF &position)
 {
     modelNode().variantProperty("x").setValue(qRound(position.x()));
     modelNode().variantProperty("y").setValue(qRound(position.y()));
+}
+
+bool QmlItemNode::isInLayout() const
+{
+    if (isValid() && hasNodeParent()) {
+
+        ModelNode parent = modelNode().parentProperty().parentModelNode();
+
+        if (parent.isValid() && parent.metaInfo().isValid())
+            return parent.metaInfo().isSubclassOf("QtQuick.Layouts.Layout", -1, -1);
+    }
+
+    return false;
 }
 
 void QmlItemNode::setSize(const QSizeF &size)

@@ -34,6 +34,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QMultiHash>
+#include <QTimerEvent>
 
 #include <model.h>
 #include <modelnode.h>
@@ -69,6 +70,7 @@
 #include "componentcompletedcommand.h"
 #include "tokencommand.h"
 #include "removesharedmemorycommand.h"
+#include "debugoutputcommand.h"
 
 #include "nodeinstanceserverproxy.h"
 
@@ -106,7 +108,8 @@ NodeInstanceView::NodeInstanceView(QObject *parent, NodeInstanceServerInterface:
         : AbstractView(parent),
           m_baseStatePreviewImage(QSize(100, 100), QImage::Format_ARGB32),
           m_runModus(runModus),
-          m_currentKit(0)
+          m_currentKit(0),
+          m_restartProcessTimerId(0)
 {
     m_baseStatePreviewImage.fill(0xFFFFFF);
 }
@@ -188,7 +191,7 @@ void NodeInstanceView::handleChrash()
     if (elaspsedTimeSinceLastCrash > 2000)
         restartProcess();
     else
-        emit  qmlPuppetCrashed();
+        emit qmlPuppetCrashed();
 
     emitCustomNotification(QStringLiteral("puppet crashed"));
 }
@@ -197,6 +200,9 @@ void NodeInstanceView::handleChrash()
 
 void NodeInstanceView::restartProcess()
 {
+    if (m_restartProcessTimerId)
+        killTimer(m_restartProcessTimerId);
+
     if (model()) {
         delete nodeInstanceServer();
 
@@ -212,6 +218,14 @@ void NodeInstanceView::restartProcess()
             activateState(newStateInstance);
         }
     }
+
+    m_restartProcessTimerId = 0;
+}
+
+void NodeInstanceView::delayedRestartProcess()
+{
+    if (0 == m_restartProcessTimerId)
+        m_restartProcessTimerId = startTimer(100);
 }
 
 void NodeInstanceView::nodeCreated(const ModelNode &createdNode)
@@ -238,10 +252,6 @@ void NodeInstanceView::nodeAboutToBeRemoved(const ModelNode &removedNode)
     nodeInstanceServer()->removeInstances(createRemoveInstancesCommand(removedNode));
     nodeInstanceServer()->removeSharedMemory(createRemoveSharedMemoryCommand("Image", removedNode.internalId()));
     removeInstanceAndSubInstances(removedNode);
-}
-
-void NodeInstanceView::nodeRemoved(const ModelNode &/*removedNode*/, const NodeAbstractProperty &/*parentProperty*/, PropertyChangeFlags /*propertyChange*/)
-{
 }
 
 void NodeInstanceView::resetHorizontalAnchors(const ModelNode &modelNode)
@@ -339,10 +349,6 @@ void NodeInstanceView::propertiesAboutToBeRemoved(const QList<AbstractProperty>&
         removeInstanceNodeRelationship(node);
 }
 
-void NodeInstanceView::propertiesRemoved(const QList<AbstractProperty>& /*propertyList*/)
-{
-}
-
 void NodeInstanceView::removeInstanceAndSubInstances(const ModelNode &node)
 {
     foreach (const ModelNode &subNode, node.allSubModelNodes()) {
@@ -362,11 +368,6 @@ void NodeInstanceView::rootNodeTypeChanged(const QString &/*type*/, int /*majorV
 void NodeInstanceView::bindingPropertiesChanged(const QList<BindingProperty>& propertyList, PropertyChangeFlags /*propertyChange*/)
 {
     nodeInstanceServer()->changePropertyBindings(createChangeBindingCommand(propertyList));
-}
-
-void NodeInstanceView::signalHandlerPropertiesChanged(const QVector<SignalHandlerProperty> & /*propertyList*/,
-                                                      AbstractView::PropertyChangeFlags /*propertyChange*/)
-{
 }
 
 /*!
@@ -400,11 +401,6 @@ void NodeInstanceView::nodeReparented(const ModelNode &node, const NodeAbstractP
         nodeInstanceServer()->reparentInstances(createReparentInstancesCommand(node, newPropertyParent, oldPropertyParent));
     }
 }
-
-void NodeInstanceView::nodeAboutToBeReparented(const ModelNode &/*node*/, const NodeAbstractProperty &/*newPropertyParent*/, const NodeAbstractProperty &/*oldPropertyParent*/, AbstractView::PropertyChangeFlags /*propertyChange*/)
-{
-}
-
 
 void NodeInstanceView::fileUrlChanged(const QUrl &/*oldUrl*/, const QUrl &newUrl)
 {
@@ -441,61 +437,9 @@ void NodeInstanceView::nodeOrderChanged(const NodeListProperty & listProperty,
     nodeInstanceServer()->reparentInstances(ReparentInstancesCommand(containerList));
 }
 
-/*!
-    Notifies the view that the list of selected model nodes has changed to
-    \a selectedNodeList from \a lastSelectedNodeList.
-
-  Do nothing.
-
-    \sa ModelNode, NodeInstance
-*/
-void NodeInstanceView::selectedNodesChanged(const QList<ModelNode> &/*selectedNodeList*/,
-                                              const QList<ModelNode> &/*lastSelectedNodeList*/)
-{
-}
-
-void NodeInstanceView::scriptFunctionsChanged(const ModelNode &/*node*/, const QStringList &/*scriptFunctionList*/)
-{
-
-}
-
-void NodeInstanceView::instancePropertyChange(const QList<QPair<ModelNode, PropertyName> > &/*propertyList*/)
-{
-
-}
-
-void NodeInstanceView::instancesCompleted(const QVector<ModelNode> &/*completedNodeList*/)
-{
-}
-
 void NodeInstanceView::importsChanged(const QList<Import> &/*addedImports*/, const QList<Import> &/*removedImports*/)
 {
     restartProcess();
-}
-
-void NodeInstanceView::instanceInformationsChange(const QMultiHash<ModelNode, InformationName> &/*informationChangeHash*/)
-{
-
-}
-
-void NodeInstanceView::instancesRenderImageChanged(const QVector<ModelNode> &/*nodeList*/)
-{
-
-}
-
-void NodeInstanceView::instancesPreviewImageChanged(const QVector<ModelNode> &/*nodeList*/)
-{
-
-}
-
-void NodeInstanceView::instancesChildrenChanged(const QVector<ModelNode> &/*nodeList*/)
-{
-
-}
-
-void NodeInstanceView::instancesToken(const QString &/*tokenName*/, int /*tokenNumber*/, const QVector<ModelNode> &/*nodeVector*/)
-{
-
 }
 
 void NodeInstanceView::auxiliaryDataChanged(const ModelNode &node, const PropertyName &name, const QVariant &data)
@@ -526,7 +470,7 @@ void NodeInstanceView::auxiliaryDataChanged(const ModelNode &node, const Propert
 void NodeInstanceView::customNotification(const AbstractView *view, const QString &identifier, const QList<ModelNode> &, const QList<QVariant> &)
 {
     if (view && identifier == QStringLiteral("reset QmlPuppet"))
-        restartProcess();
+        delayedRestartProcess();
 }
 
 void NodeInstanceView::nodeSourceChanged(const ModelNode &node, const QString & newNodeSource)
@@ -536,16 +480,6 @@ void NodeInstanceView::nodeSourceChanged(const ModelNode &node, const QString & 
          ChangeNodeSourceCommand changeNodeSourceCommand(instance.instanceId(), newNodeSource);
          nodeInstanceServer()->changeNodeSource(changeNodeSourceCommand);
      }
-}
-
-void NodeInstanceView::rewriterBeginTransaction()
-{
-
-}
-
-void NodeInstanceView::rewriterEndTransaction()
-{
-
 }
 
 void NodeInstanceView::currentStateChanged(const ModelNode &node)
@@ -1285,8 +1219,23 @@ void NodeInstanceView::token(const TokenCommand &command)
     emitInstanceToken(command.tokenName(), command.tokenNumber(), nodeVector);
 }
 
-void NodeInstanceView::debugOutput(const DebugOutputCommand & /*command*/)
+void NodeInstanceView::debugOutput(const DebugOutputCommand & command)
 {
+    if (command.instanceIds().isEmpty()) {
+        qmlPuppetError(command.text()); // TODO: connect that somewhere to show that to the user
+    } else {
+        QVector<qint32> instanceIdsWithChangedErrors;
+        foreach (qint32 instanceId, command.instanceIds()) {
+            NodeInstance instance = instanceForId(instanceId);
+            if (instance.isValid()) {
+                if (instance.setError(command.text()))
+                    instanceIdsWithChangedErrors.append(instanceId);
+            } else {
+                qmlPuppetError(command.text()); // TODO: connect that somewhere to show that to the user
+            }
+        }
+        emitInstanceErrorChange(instanceIdsWithChangedErrors);
+    }
 }
 
 void NodeInstanceView::sendToken(const QString &token, int number, const QVector<ModelNode> &nodeVector)
@@ -1296,6 +1245,12 @@ void NodeInstanceView::sendToken(const QString &token, int number, const QVector
         instanceIdVector.append(node.internalId());
 
     nodeInstanceServer()->token(TokenCommand(token, number, instanceIdVector));
+}
+
+void NodeInstanceView::timerEvent(QTimerEvent *event)
+{
+    if (m_restartProcessTimerId == event->timerId())
+        restartProcess();
 }
 
 }

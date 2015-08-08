@@ -69,72 +69,12 @@ WidgetInfo StatesEditorView::widgetInfo()
     if (!m_statesEditorWidget)
         m_statesEditorWidget = new StatesEditorWidget(this, m_statesEditorModel.data());
 
-    return createWidgetInfo(m_statesEditorWidget.data(), 0, "StatesEditor", WidgetInfo::TopPane, 0, tr("States Editor"));
-}
-
-void StatesEditorView::nodeCreated(const ModelNode &/*createdNode*/)
-{
-
-}
-
-void StatesEditorView::propertiesAboutToBeRemoved(const QList<AbstractProperty> &/*propertyList*/)
-{
-
+    return createWidgetInfo(m_statesEditorWidget.data(), 0, QLatin1String("StatesEditor"), WidgetInfo::TopPane, 0, tr("States Editor"));
 }
 
 void StatesEditorView::rootNodeTypeChanged(const QString &/*type*/, int /*majorVersion*/, int /*minorVersion*/)
 {
     checkForWindow();
-}
-
-void StatesEditorView::instancePropertyChange(const QList<QPair<ModelNode, PropertyName> > &/*propertyList*/)
-{
-
-}
-
-void StatesEditorView::instancesCompleted(const QVector<ModelNode> &/*completedNodeList*/)
-{
-
-}
-
-void StatesEditorView::instanceInformationsChange(const QMultiHash<ModelNode, InformationName> &/*informationChangeHash*/)
-{
-
-}
-
-void StatesEditorView::instancesRenderImageChanged(const QVector<ModelNode> &/*nodeList*/)
-{
-
-}
-
-void StatesEditorView::instancesChildrenChanged(const QVector<ModelNode> &/*nodeList*/)
-{
-
-}
-
-void StatesEditorView::instancesToken(const QString &/*tokenName*/, int /*tokenNumber*/, const QVector<ModelNode> &/*nodeVector*/)
-{
-
-}
-
-void StatesEditorView::nodeSourceChanged(const ModelNode &/*modelNode*/, const QString &/*newNodeSource*/)
-{
-
-}
-
-void StatesEditorView::rewriterBeginTransaction()
-{
-
-}
-
-void StatesEditorView::rewriterEndTransaction()
-{
-
-}
-
-void StatesEditorView::importsChanged(const QList<Import> &/*addedImports*/, const QList<Import> &/*removedImports*/)
-{
-
 }
 
 void StatesEditorView::removeState(int nodeId)
@@ -198,15 +138,15 @@ void StatesEditorView::addState()
     QString newStateName;
     int index = 1;
     while (true) {
-        newStateName = QString("State%1").arg(index++);
+        newStateName = QString(QStringLiteral("State%1")).arg(index++);
         if (!modelStateNames.contains(newStateName))
             break;
     }
 
     try {
         if ((rootStateGroup().allStates().count() < 1) && //QtQuick import might be missing
-            (!model()->hasImport(Import::createLibraryImport("QtQuick", "1.0"), true, true)))
-            model()->changeImports(QList<Import>() << Import::createLibraryImport("QtQuick", "1.0"), QList<Import>());
+            (!model()->hasImport(Import::createLibraryImport(QLatin1String("QtQuick"), QLatin1String("1.0")), true, true)))
+            model()->changeImports(QList<Import>() << Import::createLibraryImport(QLatin1String("QtQuick"), QLatin1String("1.0")), QList<Import>());
         ModelNode newState = rootStateGroup().addState(newStateName);
         setCurrentState(newState);
     }  catch (const RewritingException &e) {
@@ -236,7 +176,7 @@ void StatesEditorView::duplicateCurrentState()
     QString newName = state.name();
 
     // Strip out numbers at the end of the string
-    QRegExp regEx(QString("[0-9]+$"));
+    QRegExp regEx(QLatin1String("[0-9]+$"));
     int numberIndex = newName.indexOf(regEx);
     if ((numberIndex != -1) && (numberIndex+regEx.matchedLength()==newName.length()))
         newName = newName.left(numberIndex);
@@ -340,12 +280,6 @@ void StatesEditorView::propertiesRemoved(const QList<AbstractProperty>& property
     }
 }
 
-
-void StatesEditorView::variantPropertiesChanged(const QList<VariantProperty> &/*propertyList*/, PropertyChangeFlags /*propertyChange*/)
-{
-}
-
-
 void StatesEditorView::nodeAboutToBeRemoved(const ModelNode &removedNode)
 {
     if (removedNode.hasParentProperty()) {
@@ -423,31 +357,6 @@ void StatesEditorView::instancesPreviewImageChanged(const QVector<ModelNode> &no
 
     if (maximumIndex >= 0)
         m_statesEditorModel->updateState(minimumIndex, maximumIndex);
-}
-
-void StatesEditorView::scriptFunctionsChanged(const ModelNode &/*node*/, const QStringList &/*scriptFunctionList*/)
-{
-}
-
-void StatesEditorView::nodeIdChanged(const ModelNode &/*node*/, const QString &/*newId*/, const QString &/*oldId*/)
-{
-
-}
-
-void StatesEditorView::bindingPropertiesChanged(const QList<BindingProperty> &/*propertyList*/, PropertyChangeFlags /*propertyChange*/)
-{
-
-}
-
-void StatesEditorView::signalHandlerPropertiesChanged(const QVector<SignalHandlerProperty> & /*propertyList*/,
-                                                      AbstractView::PropertyChangeFlags /*propertyChange*/)
-{
-
-}
-
-void StatesEditorView::selectedNodesChanged(const QList<ModelNode> &/*selectedNodeList*/, const QList<ModelNode> &/*lastSelectedNodeList*/)
-{
-
 }
 
 } // namespace QmlDesigner

@@ -46,8 +46,8 @@ namespace QmlDesigner {
     the __FILE__ macro.
 */
 InvalidModelStateException::InvalidModelStateException(int line,
-                                                       const QString &function,
-                                                       const QString &file)
+                                                       const QByteArray &function,
+                                                       const QByteArray &file)
   : Exception(line, function, file)
 {
     createWarning();
@@ -58,7 +58,7 @@ InvalidModelStateException::InvalidModelStateException(int line,
 */
 QString InvalidModelStateException::type() const
 {
-    return "InvalidModelStateException";
+    return QLatin1String("InvalidModelStateException");
 }
 
 } // namespace QmlDesigner

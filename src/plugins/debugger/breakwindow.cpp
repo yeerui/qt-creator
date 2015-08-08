@@ -206,7 +206,7 @@ BreakpointDialog::BreakpointDialog(Breakpoint b, QWidget *parent)
     m_labelOneShot->setBuddy(m_checkBoxOneShot);
 
     const QString pathToolTip =
-        tr("<html><head/><body><p>Determines how the path is specified "
+        tr("<p>Determines how the path is specified "
                 "when setting breakpoints:</p><ul>"
            "<li><i>Use Engine Default</i>: Preferred setting of the "
                 "debugger engine.</li>"
@@ -217,8 +217,7 @@ BreakpointDialog::BreakpointDialog(Breakpoint b, QWidget *parent)
                 "useful when using a source tree whose location does "
                 "not match the one used when building the modules. "
                 "It is the engine default for GDB as using full paths can "
-                "be slow with this engine.</li>"
-           "</ul></body></html>");
+                "be slow with this engine.</li></ul>");
     m_comboBoxPathUsage = new QComboBox(groupBoxAdvanced);
     m_comboBoxPathUsage->addItem(tr("Use Engine Default"));
     m_comboBoxPathUsage->addItem(tr("Use Full Path"));
@@ -229,8 +228,8 @@ BreakpointDialog::BreakpointDialog(Breakpoint b, QWidget *parent)
     m_labelUseFullPath->setToolTip(pathToolTip);
 
     const QString moduleToolTip =
-        tr("Specifying the module (base name of the library or executable)\n"
-           "for function or file type breakpoints can significantly speed up\n"
+        tr("<p>Specifying the module (base name of the library or executable) "
+           "for function or file type breakpoints can significantly speed up "
            "debugger start-up times (CDB, LLDB).");
     m_lineEditModule = new QLineEdit(groupBoxAdvanced);
     m_lineEditModule->setToolTip(moduleToolTip);
@@ -239,7 +238,7 @@ BreakpointDialog::BreakpointDialog(Breakpoint b, QWidget *parent)
     m_labelModule->setToolTip(moduleToolTip);
 
     const QString commandsToolTip =
-        tr("Debugger commands to be executed when the breakpoint is hit.\n"
+        tr("<p>Debugger commands to be executed when the breakpoint is hit. "
            "This feature is only available for GDB.");
     m_textEditCommands = new SmallTextEdit(groupBoxAdvanced);
     m_textEditCommands->setToolTip(commandsToolTip);
@@ -384,13 +383,17 @@ void BreakpointDialog::setPartsEnabled(unsigned partsMask)
     m_lineEditModule->setEnabled(partsMask & ModulePart);
 
     m_labelTracepoint->setEnabled(partsMask & TracePointPart);
+    m_labelTracepoint->hide();
     m_checkBoxTracepoint->setEnabled(partsMask & TracePointPart);
+    m_checkBoxTracepoint->hide();
 
-    m_labelCommands->setEnabled(partsMask & TracePointPart);
-    m_textEditCommands->setEnabled(partsMask & TracePointPart);
+    m_labelCommands->setEnabled(partsMask & CommandPart);
+    m_textEditCommands->setEnabled(partsMask & CommandPart);
 
     m_labelMessage->setEnabled(partsMask & TracePointPart);
+    m_labelMessage->hide();
     m_lineEditMessage->setEnabled(partsMask & TracePointPart);
+    m_lineEditMessage->hide();
 }
 
 void BreakpointDialog::clearOtherParts(unsigned partsMask)
@@ -421,9 +424,10 @@ void BreakpointDialog::clearOtherParts(unsigned partsMask)
 
     if (partsMask & OneShotPart)
         m_checkBoxOneShot->setChecked(false);
+    if (invertedPartsMask & CommandPart)
+        m_textEditCommands->clear();
     if (invertedPartsMask & TracePointPart) {
         m_checkBoxTracepoint->setChecked(false);
-        m_textEditCommands->clear();
         m_lineEditMessage->clear();
     }
 }
@@ -457,9 +461,10 @@ void BreakpointDialog::getParts(unsigned partsMask, BreakpointParameters *data) 
 
     if (partsMask & OneShotPart)
         data->oneShot = m_checkBoxOneShot->isChecked();
+    if (partsMask & CommandPart)
+        data->command = m_textEditCommands->toPlainText().trimmed();
     if (partsMask & TracePointPart) {
         data->tracepoint = m_checkBoxTracepoint->isChecked();
-        data->command = m_textEditCommands->toPlainText().trimmed();
         data->message = m_lineEditMessage->text();
     }
 }
@@ -468,7 +473,6 @@ void BreakpointDialog::setParts(unsigned mask, const BreakpointParameters &data)
 {
     m_checkBoxEnabled->setChecked(data.enabled);
     m_comboBoxPathUsage->setCurrentIndex(data.pathUsage);
-    m_textEditCommands->setPlainText(data.command);
     m_lineEditMessage->setText(data.message);
 
     if (mask & FileAndLinePart) {
@@ -509,6 +513,8 @@ void BreakpointDialog::setParts(unsigned mask, const BreakpointParameters &data)
         m_checkBoxOneShot->setChecked(data.oneShot);
     if (mask & TracePointPart)
         m_checkBoxTracepoint->setChecked(data.tracepoint);
+    if (mask & CommandPart)
+        m_textEditCommands->setPlainText(data.command);
 }
 
 void BreakpointDialog::typeChanged(int)
@@ -522,10 +528,10 @@ void BreakpointDialog::typeChanged(int)
     case LastBreakpointType:
         break;
     case BreakpointByFileAndLine:
-        getParts(FileAndLinePart|ModulePart|AllConditionParts|TracePointPart, &m_savedParameters);
+        getParts(FileAndLinePart|ModulePart|AllConditionParts|TracePointPart|CommandPart, &m_savedParameters);
         break;
     case BreakpointByFunction:
-        getParts(FunctionPart|ModulePart|AllConditionParts|TracePointPart, &m_savedParameters);
+        getParts(FunctionPart|ModulePart|AllConditionParts|TracePointPart|CommandPart, &m_savedParameters);
         break;
     case BreakpointAtThrow:
     case BreakpointAtCatch:
@@ -538,10 +544,10 @@ void BreakpointDialog::typeChanged(int)
         break;
     case BreakpointByAddress:
     case WatchpointAtAddress:
-        getParts(AddressPart|AllConditionParts|TracePointPart, &m_savedParameters);
+        getParts(AddressPart|AllConditionParts|TracePointPart|CommandPart, &m_savedParameters);
         break;
     case WatchpointAtExpression:
-        getParts(ExpressionPart|AllConditionParts|TracePointPart, &m_savedParameters);
+        getParts(ExpressionPart|AllConditionParts|TracePointPart|CommandPart, &m_savedParameters);
         break;
     case BreakpointOnQmlSignalEmit:
         getParts(FunctionPart, &m_savedParameters);
@@ -553,14 +559,14 @@ void BreakpointDialog::typeChanged(int)
     case LastBreakpointType:
         break;
     case BreakpointByFileAndLine:
-        setParts(FileAndLinePart|AllConditionParts|ModulePart|TracePointPart, m_savedParameters);
-        setPartsEnabled(FileAndLinePart|AllConditionParts|ModulePart|TracePointPart);
-        clearOtherParts(FileAndLinePart|AllConditionParts|ModulePart|TracePointPart);
+        setParts(FileAndLinePart|AllConditionParts|ModulePart|TracePointPart|CommandPart, m_savedParameters);
+        setPartsEnabled(FileAndLinePart|AllConditionParts|ModulePart|TracePointPart|CommandPart);
+        clearOtherParts(FileAndLinePart|AllConditionParts|ModulePart|TracePointPart|CommandPart);
         break;
     case BreakpointByFunction:
-        setParts(FunctionPart|AllConditionParts|ModulePart|TracePointPart, m_savedParameters);
-        setPartsEnabled(FunctionPart|AllConditionParts|ModulePart|TracePointPart);
-        clearOtherParts(FunctionPart|AllConditionParts|ModulePart|TracePointPart);
+        setParts(FunctionPart|AllConditionParts|ModulePart|TracePointPart|CommandPart, m_savedParameters);
+        setPartsEnabled(FunctionPart|AllConditionParts|ModulePart|TracePointPart|CommandPart);
+        clearOtherParts(FunctionPart|AllConditionParts|ModulePart|TracePointPart|CommandPart);
         break;
     case BreakpointAtThrow:
     case BreakpointAtCatch:
@@ -568,8 +574,8 @@ void BreakpointDialog::typeChanged(int)
     case BreakpointAtExec:
     //case BreakpointAtVFork:
     case BreakpointAtSysCall:
-        clearOtherParts(AllConditionParts|ModulePart|TracePointPart);
-        setPartsEnabled(AllConditionParts|TracePointPart);
+        clearOtherParts(AllConditionParts|ModulePart|TracePointPart|CommandPart);
+        setPartsEnabled(AllConditionParts|TracePointPart|CommandPart);
         break;
     case BreakpointAtJavaScriptThrow:
         clearOtherParts(AllParts);
@@ -582,14 +588,14 @@ void BreakpointDialog::typeChanged(int)
         break;
     case BreakpointByAddress:
     case WatchpointAtAddress:
-        setParts(AddressPart|AllConditionParts|TracePointPart, m_savedParameters);
-        setPartsEnabled(AddressPart|AllConditionParts|TracePointPart);
-        clearOtherParts(AddressPart|AllConditionParts|TracePointPart);
+        setParts(AddressPart|AllConditionParts|TracePointPart|CommandPart, m_savedParameters);
+        setPartsEnabled(AddressPart|AllConditionParts|TracePointPart|CommandPart);
+        clearOtherParts(AddressPart|AllConditionParts|TracePointPart|CommandPart);
         break;
     case WatchpointAtExpression:
-        setParts(ExpressionPart|AllConditionParts|TracePointPart, m_savedParameters);
-        setPartsEnabled(ExpressionPart|AllConditionParts|TracePointPart);
-        clearOtherParts(ExpressionPart|AllConditionParts|TracePointPart);
+        setParts(ExpressionPart|AllConditionParts|TracePointPart|CommandPart, m_savedParameters);
+        setPartsEnabled(ExpressionPart|AllConditionParts|TracePointPart|CommandPart);
+        clearOtherParts(ExpressionPart|AllConditionParts|TracePointPart|CommandPart);
         break;
     case BreakpointOnQmlSignalEmit:
         setParts(FunctionPart, m_savedParameters);

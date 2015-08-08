@@ -33,13 +33,12 @@
 
 #include <QDialog>
 
-QT_BEGIN_NAMESPACE
+namespace  QmlDesigner {
+
 namespace Ui {
 class PuppetBuildProgressDialog;
 }
-QT_END_NAMESPACE
 
-namespace  QmlDesigner {
 
 class PuppetBuildProgressDialog : public QDialog
 {
@@ -52,6 +51,8 @@ public:
     void setProgress(int progress);
     void newBuildOutput(const QByteArray &standardOutput);
     bool useFallbackPuppet() const;
+    void setErrorOutputFile(const QString &filePath);
+    void setErrorMessage(const QString &message);
 
 private slots:
     void setUseFallbackPuppet();

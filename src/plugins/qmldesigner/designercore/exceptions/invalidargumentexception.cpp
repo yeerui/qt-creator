@@ -46,17 +46,17 @@ namespace QmlDesigner {
     the __FILE__ macro.
 */
 InvalidArgumentException::InvalidArgumentException(int line,
-                                                   const QString &function,
-                                                   const QString &file,
-                                                   const QString &argument)
- : Exception(line, function, file), m_argument(argument)
+                                                   const QByteArray &function,
+                                                   const QByteArray &file,
+                                                   const QByteArray &argument)
+ : Exception(line, function, file), m_argument(QString::fromUtf8(argument))
 {
     createWarning();
 }
 
 QString InvalidArgumentException::description() const
 {
-    if (function() == "createNode")
+    if (function() == QLatin1String("createNode"))
         return QCoreApplication::translate("QmlDesigner::InvalidArgumentException", "Failed to create item of type %1").arg(m_argument);
 
     return Exception::description();
@@ -67,7 +67,7 @@ QString InvalidArgumentException::description() const
 */
 QString InvalidArgumentException::type() const
 {
-    return "InvalidArgumentException";
+    return QLatin1String("InvalidArgumentException");
 }
 
 /*!

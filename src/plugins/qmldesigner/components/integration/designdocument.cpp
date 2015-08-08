@@ -120,7 +120,7 @@ static ComponentTextModifier *createComponentTextModifier(TextModifier *original
                                                           const QString &componentText,
                                                           const ModelNode &componentNode)
 {
-    bool explicitComponent = componentText.contains("Component");
+    bool explicitComponent = componentText.contains(QLatin1String("Component"));
 
     ModelNode rootModelNode = rewriterView->rootModelNode();
 
@@ -171,7 +171,7 @@ Model* DesignDocument::createInFileComponentModel()
 /*!
   Returns any errors that happened when parsing the latest qml file.
   */
-QList<RewriterView::Error> DesignDocument::qmlSyntaxErrors() const
+QList<RewriterError> DesignDocument::qmlSyntaxErrors() const
 {
     return m_rewriterView->errors();
 }
@@ -183,7 +183,7 @@ bool DesignDocument::hasQmlSyntaxErrors() const
 
 QString DesignDocument::displayName() const
 {
-    return fileName();
+    return fileName().toString();
 }
 
 QString DesignDocument::simplfiedDisplayName() const
@@ -193,8 +193,7 @@ QString DesignDocument::simplfiedDisplayName() const
     else
         return rootModelNode().simplifiedTypeName();
 
-    QStringList list = displayName().split(QLatin1Char('/'));
-    return list.last();
+    return fileName().fileName();
 }
 
 void DesignDocument::updateFileName(const Utils::FileName & /*oldFileName*/, const Utils::FileName &newFileName)
@@ -210,9 +209,9 @@ void DesignDocument::updateFileName(const Utils::FileName & /*oldFileName*/, con
     emit displayNameChanged(displayName());
 }
 
-QString DesignDocument::fileName() const
+Utils::FileName DesignDocument::fileName() const
 {
-    return editor()->document()->filePath().toString();
+    return editor()->document()->filePath();
 }
 
 Kit *DesignDocument::currentKit() const
@@ -246,7 +245,7 @@ void DesignDocument::loadDocument(QPlainTextEdit *edit)
 
     m_inFileComponentTextModifier.reset();
 
-    updateFileName(Utils::FileName(), Utils::FileName::fromString(fileName()));
+    updateFileName(Utils::FileName(), fileName());
 
     m_documentLoaded = true;
 }
@@ -301,7 +300,7 @@ void DesignDocument::changeToMaster()
     if (m_inFileComponentModel)
         changeToDocumentModel();
 
-    QmlDesignerPlugin::instance()->viewManager().pushFileOnCrumbleBar(fileName());
+    QmlDesignerPlugin::instance()->viewManager().pushFileOnCrumbleBar(fileName().toString());
     QmlDesignerPlugin::instance()->viewManager().setComponentNode(rootModelNode());
 }
 
@@ -339,7 +338,7 @@ void DesignDocument::close()
 void DesignDocument::updateSubcomponentManager()
 {
     Q_ASSERT(m_subComponentManager);
-    m_subComponentManager->update(QUrl::fromLocalFile(fileName()), currentModel()->imports());
+    m_subComponentManager->update(QUrl::fromLocalFile(fileName().toString()), currentModel()->imports());
 }
 
 void DesignDocument::deleteSelected()
@@ -407,7 +406,7 @@ void DesignDocument::copySelected()
             node.destroy();
         }
         view.changeRootNodeType("QtQuick.Rectangle", 1, 0);
-        view.rootModelNode().setIdWithRefactoring("designer__Selection");
+        view.rootModelNode().setIdWithRefactoring(QLatin1String("designer__Selection"));
 
         foreach (const ModelNode &selectedNode, selectedNodes) {
             ModelNode newNode(view.insertModel(selectedNode));
@@ -478,7 +477,7 @@ void DesignDocument::paste()
     if (rootNode.type() == "empty")
         return;
 
-    if (rootNode.id() == "designer__Selection") {
+    if (rootNode.id() == QLatin1String("designer__Selection")) {
         QList<ModelNode> selectedNodes = rootNode.directSubModelNodes();
         pasteModel->detachView(&view);
         currentModel()->attachView(&view);
@@ -629,28 +628,16 @@ void DesignDocument::redo()
     viewManager().resetPropertyEditorView();
 }
 
-static bool isFileInProject(DesignDocument *designDocument, Project *project)
-{
-    foreach (const QString &fileNameInProject, project->files(Project::ExcludeGeneratedFiles)) {
-        if (designDocument->fileName() == fileNameInProject)
-            return true;
-    }
-
-    return false;
-}
-
 static inline Kit *getActiveKit(DesignDocument *designDocument)
 {
-    Project *currentProject = ProjectTree::currentProject();
+    ProjectExplorer::Project *currentProject = ProjectExplorer::SessionManager::projectForFile(designDocument->fileName());
 
     if (!currentProject)
-        currentProject = SessionManager::projectForFile(Utils::FileName::fromString(designDocument->fileName()));
+        currentProject = ProjectExplorer::ProjectTree::currentProject();
 
     if (!currentProject)
         return 0;
 
-    if (!isFileInProject(designDocument, currentProject))
-        return 0;
 
     QObject::connect(ProjectTree::instance(), &ProjectTree::currentProjectChanged,
                      designDocument, &DesignDocument::updateActiveQtVersion, Qt::UniqueConnection);
@@ -664,6 +651,8 @@ static inline Kit *getActiveKit(DesignDocument *designDocument)
     if (!target)
         return 0;
 
+    if (!target->kit()->isValid())
+        return 0;
     QObject::connect(target, &Target::kitChanged,
                      designDocument, &DesignDocument::updateActiveQtVersion, Qt::UniqueConnection);
 
@@ -679,7 +668,7 @@ void DesignDocument::updateActiveQtVersion()
 QString DesignDocument::contextHelpId() const
 {
     if (view())
-        view()->contextHelpId();
+        return view()->contextHelpId();
 
     return QString();
 }

@@ -13,13 +13,13 @@ SOURCES += \
     qmlprofilerclientmanager.cpp \
     qmlprofilerdatamodel.cpp \
     qmlprofilerdetailsrewriter.cpp \
-    qmlprofilerengine.cpp \
     qmlprofilereventsmodelproxy.cpp \
     qmlprofilereventview.cpp \
     qmlprofilermodelmanager.cpp \
     qmlprofilernotesmodel.cpp \
     qmlprofilerplugin.cpp \
     qmlprofilerrangemodel.cpp \
+    qmlprofilerruncontrol.cpp \
     qmlprofilerruncontrolfactory.cpp \
     qmlprofilerstatemanager.cpp \
     qmlprofilerstatewidget.cpp \
@@ -28,7 +28,6 @@ SOURCES += \
     qmlprofilertool.cpp \
     qmlprofilertracefile.cpp \
     qmlprofilertraceview.cpp \
-    qmlprofilertreeview.cpp \
     qmlprofilerviewmanager.cpp
 
 HEADERS += \
@@ -43,13 +42,13 @@ HEADERS += \
     qmlprofilerconstants.h \
     qmlprofilerdatamodel.h \
     qmlprofilerdetailsrewriter.h \
-    qmlprofilerengine.h \
     qmlprofilereventsmodelproxy.h \
     qmlprofilereventview.h \
     qmlprofilermodelmanager.h \
     qmlprofilernotesmodel.h \
     qmlprofilerplugin.h \
     qmlprofilerrangemodel.h \
+    qmlprofilerruncontrol.h \
     qmlprofilerruncontrolfactory.h \
     qmlprofilerstatemanager.h \
     qmlprofilerstatewidget.h \
@@ -58,7 +57,6 @@ HEADERS += \
     qmlprofilertool.h \
     qmlprofilertracefile.h \
     qmlprofilertraceview.h \
-    qmlprofilertreeview.h \
     qmlprofilerviewmanager.h
 
 RESOURCES += \

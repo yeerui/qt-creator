@@ -43,7 +43,9 @@ namespace Utils {
 
 Q_DECLARE_LOGGING_CATEGORY(verboseRunLog)
 
-ClangCodeModel::Internal::UnsavedFiles createUnsavedFiles(CppTools::WorkingCopy workingCopy);
+ClangCodeModel::Internal::UnsavedFiles createUnsavedFiles(
+        const CppTools::WorkingCopy &workingCopy,
+        const ::Utils::FileNameList &modifiedFiles);
 
 QStringList createClangOptions(const CppTools::ProjectPart::Ptr &pPart,
                                CppTools::ProjectFile::Kind fileKind);
@@ -53,7 +55,7 @@ QStringList createPCHInclusionOptions(const QString &pchFile);
 
 CppTools::ProjectPart::Ptr projectPartForFile(const QString &filePath);
 bool isProjectPartValid(const CppTools::ProjectPart::Ptr projectPart);
-QString projectFilePathForFile(const QString &filePath);
+QString projectPartIdForFile(const QString &filePath);
 
 } // namespace Utils
 } // namespace Clang

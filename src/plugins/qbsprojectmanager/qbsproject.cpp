@@ -603,10 +603,11 @@ void QbsProject::registerQbsProjectParser(QbsProjectParser *p)
         connect(m_qbsProjectParser, SIGNAL(done(bool)), this, SLOT(handleQbsParsingDone(bool)));
 }
 
-bool QbsProject::fromMap(const QVariantMap &map)
+Project::RestoreResult QbsProject::fromMap(const QVariantMap &map, QString *errorMessage)
 {
-    if (!Project::fromMap(map))
-        return false;
+    RestoreResult result = Project::fromMap(map, errorMessage);
+    if (result != RestoreResult::Ok)
+        return result;
 
     Kit *defaultKit = KitManager::defaultKit();
     if (!activeTarget() && defaultKit) {
@@ -617,7 +618,7 @@ bool QbsProject::fromMap(const QVariantMap &map)
         addTarget(t);
     }
 
-    return true;
+    return RestoreResult::Ok;
 }
 
 void QbsProject::generateErrors(const qbs::ErrorInfo &e)
@@ -797,8 +798,6 @@ void QbsProject::updateCppCodeModel()
         }
     }
 
-    if (pinfo.projectParts().isEmpty())
-        return;
     pinfo.finish();
 
     QtSupport::UiCodeModelManager::update(this, uiFiles);
@@ -859,6 +858,13 @@ void QbsProject::updateQmlJsCodeModel()
 
     QmlJS::ModelManagerInterface::ProjectInfo projectInfo =
             modelManager->defaultProjectInfoForProject(this);
+    foreach (const qbs::ProductData &product, m_projectData.allProducts()) {
+        static const QString propertyName = QLatin1String("qmlImportPaths");
+        foreach (const QString &path, product.properties().value(propertyName).toStringList()) {
+            projectInfo.importPaths.maybeInsert(Utils::FileName::fromString(path),
+                                                QmlJS::Dialect::Qml);
+        }
+    }
 
     setProjectLanguage(ProjectExplorer::Constants::LANG_QMLJS, !projectInfo.sourceFiles.isEmpty());
     modelManager->updateProjectInfo(projectInfo, this);

@@ -30,7 +30,7 @@
 
 #include "clangbackendipcintegration.h"
 
-#include "clangcompletion.h"
+#include "clangcompletionassistprocessor.h"
 #include "clangmodelmanagersupport.h"
 #include "clangutils.h"
 #include "pchmanager.h"
@@ -145,8 +145,11 @@ void IpcReceiver::codeCompleted(const CodeCompletedCommand &command)
 
     const quint64 ticket = command.ticketNumber();
     QScopedPointer<ClangCompletionAssistProcessor> processor(m_assistProcessorsTable.take(ticket));
-    if (processor)
-        processor->asyncCompletionsAvailable(command.codeCompletions());
+    if (processor) {
+        const bool finished = processor->handleAvailableAsyncCompletions(command.codeCompletions());
+        if (!finished)
+            processor.take();
+    }
 }
 
 void IpcReceiver::translationUnitDoesNotExist(const TranslationUnitDoesNotExistCommand &command)
@@ -157,7 +160,7 @@ void IpcReceiver::translationUnitDoesNotExist(const TranslationUnitDoesNotExistC
 
 void IpcReceiver::projectPartsDoNotExist(const ProjectPartsDoNotExistCommand &command)
 {
-    QTC_CHECK(!"Got ProjectDoesNotExistCommand");
+    QTC_CHECK(!"Got ProjectPartsDoNotExistCommand");
     qCDebug(log) << "<<< ERROR:" << command;
 }
 
@@ -223,10 +226,8 @@ IpcCommunicator::IpcCommunicator()
 
     connect(Core::EditorManager::instance(), &Core::EditorManager::editorAboutToClose,
             this, &IpcCommunicator::onEditorAboutToClose);
-
-    connect(Core::ICore::instance(), &Core::ICore::coreAboutToClose, [this]() {
-        m_sendMode = IgnoreSendRequests;
-    });
+    connect(Core::ICore::instance(), &Core::ICore::coreAboutToClose,
+            this, &IpcCommunicator::onCoreAboutToClose);
 
     initializeBackend();
 }
@@ -235,13 +236,10 @@ static bool areCommandsRegistered = false;
 
 void IpcCommunicator::initializeBackend()
 {
-    // TODO: Add a asynchron API to ConnectionClient, otherwise we might hang here
-
     if (!areCommandsRegistered) {
         areCommandsRegistered = true;
         Commands::registerCommands();
     }
-    QElapsedTimer timer; timer.start();
 
     const QString clangBackEndProcessPath = backendProcessPath();
     qCDebug(log) << "Starting" << clangBackEndProcessPath;
@@ -253,12 +251,9 @@ void IpcCommunicator::initializeBackend()
     connect(&m_connection, &ConnectionClient::processRestarted,
             this, &IpcCommunicator::onBackendRestarted);
 
-    if (m_connection.connectToServer()) {
-        qCDebug(log) << "...started and connected in" << timer.elapsed() << "ms.";
+    // TODO: Add a asynchron API to ConnectionClient, otherwise we might hang here
+    if (m_connection.connectToServer())
         initializeBackendWithCurrentData();
-    } else {
-        qCDebug(log) << "...failed.";
-    }
 }
 
 void IpcCommunicator::registerEmptyProjectForProjectLessFiles()
@@ -312,8 +307,7 @@ static ClangBackEnd::ProjectPartContainer toProjectPartContainer(
         const CppTools::ProjectPart::Ptr &projectPart)
 {
     const QStringList arguments = projectPartCommandLine(projectPart);
-    return ClangBackEnd::ProjectPartContainer(projectPart->projectFile,
-                                                  Utf8StringVector(arguments));
+    return ClangBackEnd::ProjectPartContainer(projectPart->id(), Utf8StringVector(arguments));
 }
 
 static QVector<ClangBackEnd::ProjectPartContainer> toProjectPartContainers(
@@ -341,13 +335,13 @@ void IpcCommunicator::updateUnsavedFileFromCppEditorDocument(const QString &file
 
 void IpcCommunicator::updateUnsavedFile(const QString &filePath, const QByteArray &contents)
 {
-    const QString projectFilePath = Utils::projectFilePathForFile(filePath);
+    const QString projectPartId = Utils::projectPartIdForFile(filePath);
     const bool hasUnsavedContent = true;
 
     // TODO: Send new only if changed
     registerFilesForCodeCompletion({
         ClangBackEnd::FileContainer(filePath,
-            projectFilePath,
+            projectPartId,
             Utf8String::fromByteArray(contents),
             hasUnsavedContent)
     });
@@ -374,6 +368,11 @@ void IpcCommunicator::onEditorAboutToClose(Core::IEditor *editor)
 {
     if (auto *textEditor = qobject_cast<TextEditor::BaseTextEditor *>(editor))
         m_ipcReceiver.deleteProcessorsOfEditorWidget(textEditor->editorWidget());
+}
+
+void IpcCommunicator::onCoreAboutToClose()
+{
+    m_sendMode = IgnoreSendRequests;
 }
 
 void IpcCommunicator::initializeBackendWithCurrentData()
@@ -429,12 +428,12 @@ void IpcCommunicator::registerProjectPartsForCodeCompletion(
     m_ipcSender->registerProjectPartsForCodeCompletion(command);
 }
 
-void IpcCommunicator::unregisterProjectPartsForCodeCompletion(const QStringList &filePaths)
+void IpcCommunicator::unregisterProjectPartsForCodeCompletion(const QStringList &projectPartIds)
 {
     if (m_sendMode == IgnoreSendRequests)
         return;
 
-    const UnregisterProjectPartsForCodeCompletionCommand command((Utf8StringVector(filePaths)));
+    const UnregisterProjectPartsForCodeCompletionCommand command((Utf8StringVector(projectPartIds)));
     qCDebug(log) << ">>>" << command;
     m_ipcSender->unregisterProjectPartsForCodeCompletion(command);
 }

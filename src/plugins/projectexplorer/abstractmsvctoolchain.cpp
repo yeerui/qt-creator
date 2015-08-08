@@ -47,11 +47,11 @@ namespace ProjectExplorer {
 namespace Internal {
 
 
-AbstractMsvcToolChain::AbstractMsvcToolChain(const QString &id,
+AbstractMsvcToolChain::AbstractMsvcToolChain(Core::Id typeId,
                                              Detection d,
                                              const Abi &abi,
                                              const QString& vcvarsBat) :
-    ToolChain(id, d),
+    ToolChain(typeId, d),
     m_lastEnvironment(Utils::Environment::systemEnvironment()),
     m_abi(abi),
     m_vcvarsBat(vcvarsBat)
@@ -62,12 +62,10 @@ AbstractMsvcToolChain::AbstractMsvcToolChain(const QString &id,
     Q_ASSERT(!m_vcvarsBat.isEmpty());
 }
 
-AbstractMsvcToolChain::AbstractMsvcToolChain(const QString &id, Detection d) :
-    ToolChain(id, d),
+AbstractMsvcToolChain::AbstractMsvcToolChain(Core::Id typeId, Detection d) :
+    ToolChain(typeId, d),
     m_lastEnvironment(Utils::Environment::systemEnvironment())
-{
-
-}
+{ }
 
 Abi AbstractMsvcToolChain::targetAbi() const
 {

@@ -201,7 +201,7 @@ InternalNode::Pointer ModelPrivate::createNode(const TypeName &typeName,
                                                bool isRootNode)
 {
     if (typeName.isEmpty())
-        throw InvalidArgumentException(__LINE__, __FUNCTION__, __FILE__, tr("invalid type"));
+        throw InvalidArgumentException(__LINE__, __FUNCTION__, __FILE__, tr("invalid type").toUtf8());
 
     qint32 internalId = 0;
 
@@ -309,8 +309,10 @@ void ModelPrivate::changeNodeId(const InternalNode::Pointer& internalNodePointer
 
     try {
         notifyNodeIdChanged(internalNodePointer, id, oldId);
+
     } catch (const RewritingException &e) {
-        throw InvalidIdException(__LINE__, __FUNCTION__, __FILE__, id, e.description());
+        throw InvalidIdException(__LINE__, __FUNCTION__, __FILE__, id.toUtf8(), e.description().toUtf8());
+
     }
 }
 
@@ -321,9 +323,9 @@ void ModelPrivate::checkPropertyName(const QString &propertyName)
         throw InvalidPropertyException(__LINE__, __FUNCTION__, __FILE__, "<empty property name>");
     }
 
-    if (propertyName == "id") {
-        Q_ASSERT_X(propertyName != "id", Q_FUNC_INFO, "cannot add property id");
-        throw InvalidPropertyException(__LINE__, __FUNCTION__, __FILE__, propertyName);
+    if (propertyName == QLatin1String("id")) {
+        Q_ASSERT_X(propertyName != QLatin1String("id"), Q_FUNC_INFO, "cannot add property id");
+        throw InvalidPropertyException(__LINE__, __FUNCTION__, __FILE__, propertyName.toUtf8());
     }
 }
 
@@ -430,6 +432,19 @@ void ModelPrivate::notifyInstancePropertyChange(const QList<QPair<ModelNode, Pro
         }
 
         view->instancePropertyChange(adaptedPropertyList);
+    }
+}
+
+void ModelPrivate::notifyInstanceErrorChange(const QVector<qint32> &instanceIds)
+{
+    // no need to notify the rewriter or the instance view
+
+    QVector<ModelNode> errorNodeList;
+    foreach (const QPointer<AbstractView> &view, m_viewList) {
+        Q_ASSERT(view != 0);
+        foreach (qint32 instanceId, instanceIds)
+            errorNodeList.append(ModelNode(model()->d->nodeForInternalId(instanceId), model(), view));
+        view->instanceErrorChange(errorNodeList);
     }
 }
 
@@ -821,7 +836,7 @@ void ModelPrivate::resetModelByRewriter(const QString &description)
     if (rewriterView())
         rewriterView()->resetToLastCorrectQml();
 
-    throw RewritingException(__LINE__, __FUNCTION__, __FILE__, description, rewriterView()->textModifierContent());
+    throw RewritingException(__LINE__, __FUNCTION__, __FILE__, description.toUtf8(), rewriterView()->textModifierContent());
 }
 
 
@@ -1570,7 +1585,7 @@ void ModelPrivate::changeRootNodeType(const TypeName &type, int majorVersion, in
     rootNode()->setType(type);
     rootNode()->setMajorVersion(majorVersion);
     rootNode()->setMinorVersion(minorVersion);
-    notifyRootNodeTypeChanged(type, majorVersion, minorVersion);
+    notifyRootNodeTypeChanged(QString::fromUtf8(type), majorVersion, minorVersion);
 }
 
 void ModelPrivate::setScriptFunctions(const InternalNode::Pointer &internalNodePointer, const QStringList &scriptFunctionList)
@@ -1773,8 +1788,8 @@ static bool compareVersions(const QString &version1, const QString &version2, bo
         return true;
     if (!allowHigherVersion)
         return false;
-    QStringList version1List = version1.split('.');
-    QStringList version2List = version2.split('.');
+    QStringList version1List = version1.split(QLatin1Char('.'));
+    QStringList version2List = version2.split(QLatin1Char('.'));
     if (version1List.count() == 2 && version2List.count() == 2) {
         bool ok;
         int major1 = version1List.first().toInt(&ok);
@@ -1821,7 +1836,7 @@ QString Model::pathForImport(const Import &import)
     if (!rewriterView())
         return QString();
 
-    return  rewriterView()->pathForImport(import);
+    return rewriterView()->pathForImport(import);
 }
 
 QStringList Model::importPaths() const

@@ -87,6 +87,12 @@ static const char HEAD[] = "HEAD";
 static const char CHERRY_PICK_HEAD[] = "CHERRY_PICK_HEAD";
 static const char noColorOption[] = "--no-color";
 static const char decorateOption[] = "--decorate";
+static const char showFormatC[] =
+        "--pretty=format:commit %H%n"
+        "Author: %an <%ae>, %ad (%ar)%n"
+        "Committer: %cn <%ce>, %cd (%cr)%n"
+        "%n"
+        "%B";
 
 using namespace Core;
 using namespace DiffEditor;
@@ -367,7 +373,7 @@ void ShowController::reload()
 {
     QStringList args;
     args << QLatin1String("show") << QLatin1String("-s") << QLatin1String(noColorOption)
-              << QLatin1String(decorateOption) << m_id;
+              << QLatin1String(decorateOption) << QLatin1String(showFormatC) << m_id;
     m_state = GettingDescription;
     runCommand(QList<QStringList>() << args, gitClient()->encoding(m_directory, "i18n.commitEncoding"));
 }
@@ -2484,8 +2490,19 @@ bool GitClient::getCommitData(const QString &workingDirectory,
             commitData.amendSHA1.clear();
         }
         if (!authorFromCherryPick) {
-            commitData.panelData.author = readConfigValue(workingDirectory, QLatin1String("user.name"));
-            commitData.panelData.email = readConfigValue(workingDirectory, QLatin1String("user.email"));
+            // the format is:
+            // Joe Developer <joedev@example.com> unixtimestamp +HHMM
+            QString author_info = readGitVar(workingDirectory, QLatin1String("GIT_AUTHOR_IDENT"));
+            int lt = author_info.lastIndexOf(QLatin1Char('<'));
+            int gt = author_info.lastIndexOf(QLatin1Char('>'));
+            if (gt == -1 || uint(lt) > uint(gt)) {
+                // shouldn't happen!
+                commitData.panelData.author.clear();
+                commitData.panelData.email.clear();
+            } else {
+                commitData.panelData.author = author_info.left(lt - 1);
+                commitData.panelData.email = author_info.mid(lt + 1, gt - lt - 1);
+            }
         }
         // Commit: Get the commit template
         QString templateFilename = gitDirectory.absoluteFilePath(QLatin1String("MERGE_MSG"));
@@ -2827,12 +2844,20 @@ void GitClient::handleMergeConflicts(const QString &workingDir, const QString &c
                                      const QStringList &files, const QString &abortCommand)
 {
     QString message;
-    if (!commit.isEmpty())
+    if (!commit.isEmpty()) {
         message = tr("Conflicts detected with commit %1.").arg(commit);
-    else if (!files.isEmpty())
-        message = tr("Conflicts detected with files:\n%1").arg(files.join(QLatin1Char('\n')));
-    else
+    } else if (!files.isEmpty()) {
+        QString fileList;
+        QStringList partialFiles = files;
+        while (partialFiles.count() > 20)
+            partialFiles.removeLast();
+        fileList = partialFiles.join(QLatin1Char('\n'));
+        if (partialFiles.count() != files.count())
+            fileList += QLatin1String("\n...");
+        message = tr("Conflicts detected with files:\n%1").arg(fileList);
+    } else {
         message = tr("Conflicts detected.");
+    }
     QMessageBox mergeOrAbort(QMessageBox::Question, tr("Conflicts Detected"), message,
                              QMessageBox::NoButton, ICore::mainWindow());
     QPushButton *mergeToolButton = mergeOrAbort.addButton(tr("Run &Merge Tool"),
@@ -3084,13 +3109,25 @@ bool GitClient::synchronousStashList(const QString &workingDirectory,
 // Read a single-line config value, return trimmed
 QString GitClient::readConfigValue(const QString &workingDirectory, const QString &configVar) const
 {
+    QStringList arguments;
+    arguments << QLatin1String("config") << configVar;
+    return readOneLine(workingDirectory, arguments);
+}
+
+QString GitClient::readGitVar(const QString &workingDirectory, const QString &configVar) const
+{
+    QStringList arguments;
+    arguments << QLatin1String("var") << configVar;
+    return readOneLine(workingDirectory, arguments);
+}
+
+QString GitClient::readOneLine(const QString &workingDirectory, const QStringList &arguments) const
+{
     // msysGit always uses UTF-8 for configuration:
     // https://github.com/msysgit/msysgit/wiki/Git-for-Windows-Unicode-Support#convert-config-files
     static QTextCodec *codec = HostOsInfo::isWindowsHost()
             ? QTextCodec::codecForName("UTF-8")
             : QTextCodec::codecForLocale();
-    QStringList arguments;
-    arguments << QLatin1String("config") << configVar;
 
     QByteArray outputText;
     if (!vcsFullySynchronousExec(workingDirectory, arguments, &outputText, 0, silentFlags))

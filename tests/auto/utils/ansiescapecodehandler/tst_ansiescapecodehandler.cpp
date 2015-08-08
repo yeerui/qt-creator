@@ -57,6 +57,9 @@ private Q_SLOTS:
     void testSimpleFormat();
     void testSimpleFormat_data();
     void testLineOverlappingFormat();
+    void testSplitControlSequence();
+    void oneLineBenchmark();
+    void multiLineBenchmark();
 
 private:
     const QString red;
@@ -225,6 +228,31 @@ void tst_AnsiEscapeCodeHandler::testSimpleFormat_data()
             << (FormattedTextList()
                 << FormattedText("All text after this is ", defaultFormat)
                 << FormattedText("not deleted", defaultFormat));
+
+    QTest::newRow("Unfinished control sequence \\x1b")
+            << QString("A text before \x1b") << QTextCharFormat()
+            << (FormattedTextList()
+                << FormattedText("A text before ", defaultFormat));
+
+    QTest::newRow("Unfinished control sequence \\x1b[")
+            << QString("A text before \x1b[") << QTextCharFormat()
+            << (FormattedTextList()
+                << FormattedText("A text before ", defaultFormat));
+
+    QTest::newRow("Unfinished control sequence \\x1b[3")
+            << QString("A text before \x1b[3") << QTextCharFormat()
+            << (FormattedTextList()
+                << FormattedText("A text before ", defaultFormat));
+
+    QTest::newRow("Unfinished control sequence \\x1b[31")
+            << QString("A text before \x1b[31") << QTextCharFormat()
+            << (FormattedTextList()
+                << FormattedText("A text before ", defaultFormat));
+
+    QTest::newRow("Unfinished control sequence \\x1b[31,")
+            << QString("A text before \x1b[31,") << QTextCharFormat()
+            << (FormattedTextList()
+                << FormattedText("A text before ", defaultFormat));
 }
 
 void tst_AnsiEscapeCodeHandler::testLineOverlappingFormat()
@@ -252,6 +280,59 @@ void tst_AnsiEscapeCodeHandler::testLineOverlappingFormat()
     QCOMPARE(result[2].format, boldFormat);
     QCOMPARE(result[3].text, QLatin1String("normal text"));
     QCOMPARE(result[3].format, defaultFormat);
+}
+
+void tst_AnsiEscapeCodeHandler::testSplitControlSequence()
+{
+    // Test line-overlapping formats
+    const QString line1 = "Normal line \x1b";
+    const QString line2 = "[1m bold line";
+
+    QTextCharFormat defaultFormat;
+
+    AnsiEscapeCodeHandler handler;
+    FormattedTextList result;
+    result.append(handler.parseText(FormattedText(line1, defaultFormat)));
+    result.append(handler.parseText(FormattedText(line2, defaultFormat)));
+
+    QTextCharFormat boldFormat;
+    boldFormat.setFontWeight(QFont::Bold);
+
+    QCOMPARE(result.size(), 2);
+    QCOMPARE(result[0].text, QLatin1String("Normal line "));
+    QCOMPARE(result[0].format, defaultFormat);
+    QCOMPARE(result[1].text, QLatin1String(" bold line"));
+    QCOMPARE(result[1].format, boldFormat);
+}
+
+void tst_AnsiEscapeCodeHandler::oneLineBenchmark()
+{
+    const QString line = QLatin1String("Normal text")
+            + mustard256 + QLatin1String(" mustard text ")
+            + bold + QLatin1String(" bold text ")
+            + grayBackground256 + QLatin1String(" gray background text");
+    AnsiEscapeCodeHandler handler;
+    QTextCharFormat defaultFormat;
+
+    QBENCHMARK {
+        handler.parseText(FormattedText(line, defaultFormat));
+    }
+}
+
+void tst_AnsiEscapeCodeHandler::multiLineBenchmark()
+{
+    const QString line1 = QLatin1String("Normal text")
+            + mustard256 + QLatin1String(" mustard text ")
+            + bold;
+    const QString line2 = QLatin1String(" bold text ")
+            + grayBackground256 + QLatin1String(" gray background text");
+    AnsiEscapeCodeHandler handler;
+    QTextCharFormat defaultFormat;
+
+    QBENCHMARK {
+        handler.parseText(FormattedText(line1, defaultFormat));
+        handler.parseText(FormattedText(line2, defaultFormat));
+    }
 }
 
 QTEST_APPLESS_MAIN(tst_AnsiEscapeCodeHandler)

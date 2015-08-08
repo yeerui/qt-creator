@@ -76,37 +76,37 @@ public:
         OutputParserCount
     };
 
-    QString type() const;
-    QString typeDisplayName() const;
-    Abi targetAbi() const;
+    QString typeDisplayName() const override;
+    Abi targetAbi() const override;
     void setTargetAbi(const Abi &);
 
-    bool isValid() const;
+    bool isValid() const override;
 
-    QByteArray predefinedMacros(const QStringList &cxxflags) const;
-    CompilerFlags compilerFlags(const QStringList &cxxflags) const;
-    WarningFlags warningFlags(const QStringList &cxxflags) const;
+    QByteArray predefinedMacros(const QStringList &cxxflags) const override;
+    CompilerFlags compilerFlags(const QStringList &cxxflags) const override;
+    WarningFlags warningFlags(const QStringList &cxxflags) const override;
     const QStringList &rawPredefinedMacros() const;
     void setPredefinedMacros(const QStringList &list);
 
-    QList<HeaderPath> systemHeaderPaths(const QStringList &cxxFlags, const Utils::FileName &) const;
-    void addToEnvironment(Utils::Environment &env) const;
-    QList<Utils::FileName> suggestedMkspecList() const;
-    IOutputParser *outputParser() const;
+    QList<HeaderPath> systemHeaderPaths(const QStringList &cxxFlags,
+                                        const Utils::FileName &) const override;
+    void addToEnvironment(Utils::Environment &env) const override;
+    QList<Utils::FileName> suggestedMkspecList() const override;
+    IOutputParser *outputParser() const override;
     QStringList headerPathsList() const;
     void setHeaderPaths(const QStringList &list);
 
-    QVariantMap toMap() const;
-    bool fromMap(const QVariantMap &data);
+    QVariantMap toMap() const override;
+    bool fromMap(const QVariantMap &data) override;
 
-    ToolChainConfigWidget *configurationWidget();
+    ToolChainConfigWidget *configurationWidget() override;
 
-    bool operator ==(const ToolChain &) const;
+    bool operator ==(const ToolChain &) const override;
 
     void setCompilerCommand(const Utils::FileName &);
-    Utils::FileName compilerCommand() const;
+    Utils::FileName compilerCommand() const override;
     void setMakeCommand(const Utils::FileName &);
-    QString makeCommand(const Utils::Environment &environment) const;
+    QString makeCommand(const Utils::Environment &environment) const override;
 
     void setCxx11Flags(const QStringList &);
     const QStringList &cxx11Flags() const;
@@ -114,7 +114,7 @@ public:
     void setMkspecs(const QString &);
     QString mkspecs() const;
 
-    ToolChain *clone() const;
+    ToolChain *clone() const override;
 
     OutputParser outputParserType() const;
     void setOutputParserType(OutputParser parser);
@@ -123,8 +123,7 @@ public:
     static QString parserName(OutputParser parser);
 
 protected:
-    explicit CustomToolChain(const QString &id, Detection d);
-    CustomToolChain(const CustomToolChain &);
+    CustomToolChain(const CustomToolChain &) = default;
 
 private:
     explicit CustomToolChain(Detection d);
@@ -154,17 +153,12 @@ class CustomToolChainFactory : public ToolChainFactory
 public:
     CustomToolChainFactory();
 
-    bool canCreate();
-    ToolChain *create();
+    bool canCreate() override;
+    ToolChain *create() override;
 
     // Used by the ToolChainManager to restore user-generated tool chains
-    bool canRestore(const QVariantMap &data);
-    ToolChain *restore(const QVariantMap &data);
-
-protected:
-    virtual CustomToolChain *createToolChain(bool autoDetect);
-    QList<ToolChain *> autoDetectToolchains(const QString &compiler,
-                                            const Abi &);
+    bool canRestore(const QVariantMap &data) override;
+    ToolChain *restore(const QVariantMap &data) override;
 };
 
 // --------------------------------------------------------------------------
@@ -186,10 +180,10 @@ private slots:
     void openCustomParserSettingsDialog();
 
 protected:
-    void applyImpl();
-    void discardImpl() { setFromToolchain(); }
-    bool isDirtyImpl() const;
-    void makeReadOnlyImpl();
+    void applyImpl() override;
+    void discardImpl() override { setFromToolchain(); }
+    bool isDirtyImpl() const override;
+    void makeReadOnlyImpl() override;
 
     void setFromToolchain();
 

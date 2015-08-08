@@ -63,8 +63,8 @@ NavigatorWidget::NavigatorWidget(NavigatorView *view) :
 
     setWindowTitle(tr("Navigator", "Title of navigator view"));
 
-    setStyleSheet(QString::fromUtf8(Utils::FileReader::fetchQrc(":/qmldesigner/stylesheet.css")));
-    m_treeView->setStyleSheet(QString::fromUtf8(Utils::FileReader::fetchQrc(":/qmldesigner/scrollbar.css")));
+    setStyleSheet(QString::fromUtf8(Utils::FileReader::fetchQrc(QLatin1String(":/qmldesigner/stylesheet.css"))));
+    m_treeView->setStyleSheet(QString::fromUtf8(Utils::FileReader::fetchQrc(QLatin1String(":/qmldesigner/scrollbar.css"))));
 }
 
 void NavigatorWidget::setTreeModel(QAbstractItemModel* model)
@@ -82,24 +82,24 @@ QList<QToolButton *> NavigatorWidget::createToolBarWidgets()
     QList<QToolButton *> buttons;
 
     buttons.append(new QToolButton());
-    buttons.last()->setIcon(QIcon(":/navigator/icon/arrowleft.png"));
+    buttons.last()->setIcon(QIcon(QLatin1String(":/navigator/icon/arrowleft.png")));
     buttons.last()->setToolTip(tr("Become last sibling of parent (CTRL + Left)."));
     buttons.last()->setShortcut(QKeySequence(Qt::Key_Left | Qt::CTRL));
     connect(buttons.last(), SIGNAL(clicked()), this, SIGNAL(leftButtonClicked()));
     buttons.append(new QToolButton());
-    buttons.last()->setIcon(QIcon(":/navigator/icon/arrowright.png"));
+    buttons.last()->setIcon(QIcon(QLatin1String(":/navigator/icon/arrowright.png")));
     buttons.last()->setToolTip(tr("Become child of last sibling (CTRL + Right)."));
     buttons.last()->setShortcut(QKeySequence(Qt::Key_Right | Qt::CTRL));
     connect(buttons.last(), SIGNAL(clicked()), this, SIGNAL(rightButtonClicked()));
 
     buttons.append(new QToolButton());
-    buttons.last()->setIcon(QIcon(":/navigator/icon/arrowdown.png"));
+    buttons.last()->setIcon(QIcon(QLatin1String(":/navigator/icon/arrowdown.png")));
     buttons.last()->setToolTip(tr("Move down (CTRL + Down)."));
     buttons.last()->setShortcut(QKeySequence(Qt::Key_Down | Qt::CTRL));
     connect(buttons.last(), SIGNAL(clicked()), this, SIGNAL(downButtonClicked()));
 
     buttons.append(new QToolButton());
-    buttons.last()->setIcon(QIcon(":/navigator/icon/arrowup.png"));
+    buttons.last()->setIcon(QIcon(QLatin1String(":/navigator/icon/arrowup.png")));
     buttons.last()->setToolTip(tr("Move up (CTRL + Up)."));
     buttons.last()->setShortcut(QKeySequence(Qt::Key_Up | Qt::CTRL));
     connect(buttons.last(), SIGNAL(clicked()), this, SIGNAL(upButtonClicked()));

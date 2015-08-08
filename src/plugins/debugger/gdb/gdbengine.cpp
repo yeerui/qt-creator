@@ -240,6 +240,8 @@ GdbEngine::GdbEngine(const DebuggerRunParameters &startParameters)
     m_terminalTrap = startParameters.useTerminal;
     m_fullStartDone = false;
     m_systemDumpersLoaded = false;
+    m_rerunPending = false;
+    m_inUpdateLocals = false;
 
     m_debugInfoTaskHandler = new DebugInfoTaskHandler(this);
     //ExtensionSystem::PluginManager::addObject(m_debugInfoTaskHandler);
@@ -441,23 +443,31 @@ void GdbEngine::handleResponse(const QByteArray &buff)
                 }
             }
             if (asyncClass == "stopped") {
-                handleStopResponse(result);
-                m_pendingLogStreamOutput.clear();
-                m_pendingConsoleStreamOutput.clear();
-            } else if (asyncClass == "running") {
-                GdbMi threads = result["thread-id"];
-                threadsHandler()->notifyRunning(threads.data());
-                if (state() == InferiorRunOk || state() == InferiorSetupRequested) {
-                    // We get multiple *running after thread creation and in Windows terminals.
-                    showMessage(QString::fromLatin1("NOTE: INFERIOR STILL RUNNING IN STATE %1.").
-                                arg(QLatin1String(DebuggerEngine::stateName(state()))));
-                } else if (HostOsInfo::isWindowsHost() && (state() == InferiorStopRequested
-                               || state() == InferiorShutdownRequested)) {
-                    // FIXME: Breakpoints on Windows are exceptions which are thrown in newly
-                    // created threads so we have to filter out the running threads messages when
-                    // we request a stop.
+                if (m_inUpdateLocals) {
+                    showMessage(_("UNEXPECTED *stopped NOTIFICATION IGNORED"), LogWarning);
                 } else {
-                    notifyInferiorRunOk();
+                    handleStopResponse(result);
+                    m_pendingLogStreamOutput.clear();
+                    m_pendingConsoleStreamOutput.clear();
+                }
+            } else if (asyncClass == "running") {
+                if (m_inUpdateLocals) {
+                    showMessage(_("UNEXPECTED *running NOTIFICATION IGNORED"), LogWarning);
+                } else {
+                    GdbMi threads = result["thread-id"];
+                    threadsHandler()->notifyRunning(threads.data());
+                    if (state() == InferiorRunOk || state() == InferiorSetupRequested) {
+                        // We get multiple *running after thread creation and in Windows terminals.
+                        showMessage(QString::fromLatin1("NOTE: INFERIOR STILL RUNNING IN STATE %1.").
+                            arg(QLatin1String(DebuggerEngine::stateName(state()))));
+                    } else if (HostOsInfo::isWindowsHost() && (state() == InferiorStopRequested
+                               || state() == InferiorShutdownRequested)) {
+                        // FIXME: Breakpoints on Windows are exceptions which are thrown in newly
+                        // created threads so we have to filter out the running threads messages when
+                        // we request a stop.
+                    } else {
+                        notifyInferiorRunOk();
+                    }
                 }
             } else if (asyncClass == "library-loaded") {
                 // Archer has 'id="/usr/lib/libdrm.so.2",
@@ -597,8 +607,9 @@ void GdbEngine::handleResponse(const QByteArray &buff)
                     // This also triggers when a temporary breakpoint is hit.
                     // We do not really want that, as this loses all information.
                     // FIXME: Use a special marker for this case?
-                    if (!bp.isOneShot())
-                        bp.removeAlienBreakpoint();
+                    // if (!bp.isOneShot()) ... is not sufficient.
+                    // It keeps temporary "Jump" breakpoints alive.
+                    bp.removeAlienBreakpoint();
                 }
             } else if (asyncClass == "cmd-param-changed") {
                 // New since 2012-08-09
@@ -1184,6 +1195,8 @@ void GdbEngine::handleResultRecord(DebuggerResponse *response)
 
     if (!(cmd.flags & Discardable))
         --m_nonDiscardableCount;
+
+    m_inUpdateLocals = (cmd.flags & InUpdateLocals);
 
     if (cmd.callback)
         cmd.callback(*response);
@@ -1972,8 +1985,12 @@ void GdbEngine::handleThreadGroupCreated(const GdbMi &result)
 void GdbEngine::handleThreadGroupExited(const GdbMi &result)
 {
     QByteArray groupId = result["id"].data();
-    if (threadsHandler()->notifyGroupExited(groupId))
-        notifyInferiorExited();
+    if (threadsHandler()->notifyGroupExited(groupId)) {
+        if (m_rerunPending)
+            m_rerunPending = false;
+        else
+            notifyInferiorExited();
+    }
 }
 
 int GdbEngine::currentFrame() const
@@ -3551,7 +3568,9 @@ void GdbEngine::reloadRegisters()
 
     if (true) {
         if (!m_registerNamesListed) {
-            postCommand("-data-list-register-names", NoFlags, CB(handleRegisterListNames));
+            // The MI version does not give register size.
+            // postCommand("-data-list-register-names", NoFlags, CB(handleRegisterListNames));
+            postCommand("maintenance print raw-registers", NoFlags, CB(handleRegisterListing));
             m_registerNamesListed = true;
         }
         // Can cause i386-linux-nat.c:571: internal-error: Got request
@@ -3632,12 +3651,44 @@ void GdbEngine::handleRegisterListNames(const DebuggerResponse &response)
     }
 
     GdbMi names = response.data["register-names"];
-    m_registerNames.clear();
+    m_registers.clear();
     int gdbRegisterNumber = 0;
     foreach (const GdbMi &item, names.children()) {
-        if (!item.data().isEmpty())
-            m_registerNames[gdbRegisterNumber] = item.data();
+        if (!item.data().isEmpty()) {
+            Register reg;
+            reg.name = item.data();
+            m_registers[gdbRegisterNumber] = reg;
+        }
         ++gdbRegisterNumber;
+    }
+}
+
+void GdbEngine::handleRegisterListing(const DebuggerResponse &response)
+{
+    if (response.resultClass != ResultDone) {
+        m_registerNamesListed = false;
+        return;
+    }
+
+    // &"maintenance print raw-registers\n"
+    // >~" Name         Nr  Rel Offset    Size  Type            Raw value\n"
+    // >~" rax           0    0      0       8 int64_t         0x0000000000000005\n"
+    // >~" rip          16   16    128       8 *1              0x000000000040232a\n"
+    // >~" ''          145  145    536       0 int0_t          <invalid>\n"
+
+    m_registers.clear();
+    QList<QByteArray> lines = response.consoleStreamOutput.split('\n');
+    for (int i = 1; i < lines.size(); ++i) {
+        QStringList parts = QString::fromLatin1(lines.at(i))
+                .split(QLatin1Char(' '), QString::SkipEmptyParts);
+        if (parts.size() < 7)
+            continue;
+        int gdbRegisterNumber = parts.at(1).toInt();
+        Register reg;
+        reg.name = parts.at(0).toLatin1();
+        reg.size = parts.at(4).toInt();
+        reg.reportedType = parts.at(5).toLatin1();
+        m_registers[gdbRegisterNumber] = reg;
     }
 }
 
@@ -3650,9 +3701,8 @@ void GdbEngine::handleRegisterListValues(const DebuggerResponse &response)
     // 24^done,register-values=[{number="0",value="0xf423f"},...]
     const GdbMi values = response.data["register-values"];
     foreach (const GdbMi &item, values.children()) {
-        Register reg;
         const int number = item["number"].toInt();
-        reg.name = m_registerNames[number];
+        Register reg = m_registers[number];
         QByteArray data = item["value"].data();
         if (data.startsWith("0x")) {
             reg.value = data;
@@ -4255,6 +4305,18 @@ void GdbEngine::loadInitScript()
     }
 }
 
+void GdbEngine::setEnvironmentVariables()
+{
+    Environment sysEnv = Environment::systemEnvironment();
+    Environment runEnv = runParameters().environment;
+    foreach (const EnvironmentItem &item, sysEnv.diff(runEnv)) {
+        if (item.unset)
+            postCommand("unset environment " + item.name.toUtf8());
+        else
+            postCommand("-gdb-set environment " + item.name.toUtf8() + '=' + item.value.toUtf8());
+    }
+}
+
 void GdbEngine::reloadDebuggingHelpers()
 {
     runCommand("reloadDumpers");
@@ -4322,6 +4384,7 @@ void GdbEngine::resetInferior()
             }
         }
     }
+    m_rerunPending = true;
     requestInterruptInferior();
     runEngine();
 }
@@ -4564,7 +4627,7 @@ bool GdbEngine::prepareCommand()
         QtcProcess::SplitError perr;
         rp.processArgs = QtcProcess::prepareArgs(rp.processArgs, &perr,
                                                  HostOsInfo::hostOs(),
-                    &rp.environment, &rp.workingDirectory).toWindowsArgs();
+                    nullptr, &rp.workingDirectory).toWindowsArgs();
         if (perr != QtcProcess::SplitOk) {
             // perr == BadQuoting is never returned on Windows
             // FIXME? QTCREATORBUG-2809
@@ -4660,7 +4723,7 @@ void GdbEngine::doUpdateLocals(const UpdateParameters &params)
 {
     m_pendingBreakpointRequests = 0;
 
-    watchHandler()->notifyUpdateStarted();
+    watchHandler()->notifyUpdateStarted(params.partialVariables());
 
     DebuggerCommand cmd("showData");
     watchHandler()->appendFormatRequests(&cmd);
@@ -4706,7 +4769,7 @@ void GdbEngine::doUpdateLocals(const UpdateParameters &params)
     cmd.arg("resultvarname", m_resultVarName);
     cmd.arg("partialVariable", params.partialVariable);
     cmd.arg("sortStructMembers", boolSetting(SortStructMembers));
-    cmd.flags = Discardable;
+    cmd.flags = Discardable | InUpdateLocals;
     cmd.callback = [this](const DebuggerResponse &r) { handleStackFrame(r); };
     runCommand(cmd);
 
@@ -4716,7 +4779,8 @@ void GdbEngine::doUpdateLocals(const UpdateParameters &params)
 
 void GdbEngine::handleStackFrame(const DebuggerResponse &response)
 {
-    watchHandler()->notifyUpdateFinished();
+    m_inUpdateLocals = false;
+
     if (response.resultClass == ResultDone) {
         QByteArray out = response.consoleStreamOutput;
         while (out.endsWith(' ') || out.endsWith('\n'))
@@ -4735,6 +4799,7 @@ void GdbEngine::handleStackFrame(const DebuggerResponse &response)
     } else {
         showMessage(_("DUMPER FAILED: " + response.toString()));
     }
+    watchHandler()->notifyUpdateFinished();
 }
 
 QString GdbEngine::msgPtraceError(DebuggerStartMode sm)

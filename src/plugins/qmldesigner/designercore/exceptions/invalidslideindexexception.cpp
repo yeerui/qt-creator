@@ -45,8 +45,8 @@ namespace QmlDesigner {
     the __FILE__ macro.
 */
 InvalidSlideIndexException::InvalidSlideIndexException(int line,
-                                                       const QString &function,
-                                                       const QString &file)
+                                                       const QByteArray &function,
+                                                       const QByteArray &file)
   : Exception(line, function, file)
 {
     createWarning();
@@ -57,7 +57,7 @@ InvalidSlideIndexException::InvalidSlideIndexException(int line,
 */
 QString InvalidSlideIndexException::type() const
 {
-    return "InvalidSlideIndexException";
+    return QLatin1String("InvalidSlideIndexException");
 }
 
 } // namespace QmlDesigner

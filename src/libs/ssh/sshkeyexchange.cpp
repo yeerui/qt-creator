@@ -213,8 +213,8 @@ void SshKeyExchange::sendNewKeysPacket(const SshIncomingPacket &dhReply,
             = new RSA_PublicKey(reply.hostKeyParameters.at(1), reply.hostKeyParameters.at(0));
         sigKey.reset(rsaKey);
     } else {
-        QSSH_ASSERT_AND_RETURN(m_serverHostKeyAlgo == SshCapabilities::PubKeyEcdsa256);
-        const EC_Group domain("secp256r1");
+        QSSH_ASSERT_AND_RETURN(m_serverHostKeyAlgo.startsWith(SshCapabilities::PubKeyEcdsaPrefix));
+        const EC_Group domain(SshCapabilities::oid(m_serverHostKeyAlgo));
         const PointGFp point = OS2ECP(convertByteArray(reply.q), reply.q.count(),
                                       domain.get_curve());
         ECDSA_PublicKey * const ecdsaKey = new ECDSA_PublicKey(domain, point);
@@ -252,27 +252,7 @@ void SshKeyExchange::determineHashingAlgorithm(const SshKeyExchangeInit &kexInit
     const QList<QByteArray> &serverCapabilities = serverToClient
             ? kexInit.macAlgorithmsServerToClient.names
             : kexInit.macAlgorithmsClientToServer.names;
-    const QList<QByteArray> commonAlgos = SshCapabilities::commonCapabilities(
-                SshCapabilities::MacAlgorithms, serverCapabilities);
-    const QByteArray hashAlgo = hashAlgoForKexAlgo();
-    foreach (const QByteArray &potentialAlgo, commonAlgos) {
-        if (potentialAlgo == hashAlgo
-                || !m_kexAlgoName.startsWith(SshCapabilities::EcdhKexNamePrefix)) {
-            *algo = potentialAlgo;
-            break;
-        }
-    }
-
-    if (algo->isEmpty()) {
-        throw SshServerException(SSH_DISCONNECT_KEY_EXCHANGE_FAILED,
-            "Invalid combination of key exchange and hashing algorithms.",
-            QCoreApplication::translate("SshConnection",
-                "Server requested invalid combination of key exchange and hashing algorithms. "
-                "Key exchange algorithm list was: %1.\nHashing algorithm list was %2.")
-                .arg(QString::fromLocal8Bit(kexInit.keyAlgorithms.names.join(", ")))
-                .arg(QString::fromLocal8Bit(serverCapabilities.join(", "))));
-
-    }
+    *algo = SshCapabilities::findBestMatch(SshCapabilities::MacAlgorithms, serverCapabilities);
 }
 
 void SshKeyExchange::checkHostKey(const QByteArray &hostKey)

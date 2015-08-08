@@ -191,7 +191,7 @@ bool QmlObjectNode::isTranslatableText(const PropertyName &name) const
     if (modelNode().metaInfo().isValid() && modelNode().metaInfo().hasProperty(name))
         if (modelNode().metaInfo().propertyTypeName(name) == "QString" || modelNode().metaInfo().propertyTypeName(name) == "string") {
             if (modelNode().hasBindingProperty(name)) {
-                static QRegExp regularExpressionPatter("qsTr\\((\".*\")\\)");
+                static QRegExp regularExpressionPatter(QLatin1String("qsTr\\((\".*\")\\)"));
                 return regularExpressionPatter.exactMatch(modelNode().bindingProperty(name).expression());
             }
 
@@ -204,7 +204,7 @@ bool QmlObjectNode::isTranslatableText(const PropertyName &name) const
 QString QmlObjectNode::stripedTranslatableText(const PropertyName &name) const
 {
     if (modelNode().hasBindingProperty(name)) {
-        static QRegExp regularExpressionPatter("qsTr\\(\"(.*)\"\\)");
+        static QRegExp regularExpressionPatter(QLatin1String("qsTr\\(\"(.*)\"\\)"));
         if (regularExpressionPatter.exactMatch(modelNode().bindingProperty(name).expression()))
             return regularExpressionPatter.cap(1);
     } else {
@@ -273,6 +273,25 @@ static void removeStateOperationsForChildren(const QmlObjectNode &node)
     }
 }
 
+static void removeAliasExports(const QmlObjectNode &node)
+{
+
+    PropertyName propertyName = node.id().toUtf8();
+
+    ModelNode rootNode = node.view()->rootModelNode();
+    bool hasAliasExport = !propertyName.isEmpty()
+            && rootNode.isValid()
+            && rootNode.hasBindingProperty(propertyName)
+            && rootNode.bindingProperty(propertyName).isAliasExport();
+
+    if (hasAliasExport)
+        rootNode.removeProperty(propertyName);
+
+    foreach (const ModelNode &childNode, node.modelNode().directSubModelNodes()) {
+        removeAliasExports(childNode);
+    }
+
+}
 
 /*!
     Deletes this object's node and its dependencies from the model.
@@ -283,6 +302,8 @@ void QmlObjectNode::destroy()
 {
     if (!isValid())
         throw new InvalidModelNodeException(__LINE__, __FUNCTION__, __FILE__);
+
+    removeAliasExports(modelNode());
 
     foreach (QmlModelStateOperation stateOperation, allAffectingStatesOperations()) {
         stateOperation.modelNode().destroy(); //remove of belonging StatesOperations
@@ -417,7 +438,7 @@ QVariant QmlObjectNode::instanceValue(const ModelNode &modelNode, const Property
 
 QString QmlObjectNode::generateTranslatableText(const QString &text)
 {
-    return QString("qsTr(\"%1\")").arg(text);
+    return QString(QStringLiteral("qsTr(\"%1\")")).arg(text);
 }
 
 TypeName QmlObjectNode::instanceType(const PropertyName &name) const
@@ -463,6 +484,22 @@ bool QmlObjectNode::isValidQmlObjectNode(const ModelNode &modelNode)
 bool QmlObjectNode::isValid() const
 {
     return isValidQmlObjectNode(modelNode());
+}
+
+bool QmlObjectNode::hasError() const
+{
+    if (isValid())
+        return nodeInstance().hasError();
+    else
+        qDebug() << "called hasError() on an invalid QmlObjectNode";
+    return false;
+}
+
+QString QmlObjectNode::error() const
+{
+    if (hasError())
+        return nodeInstance().error();
+    return QString();
 }
 
 bool QmlObjectNode::hasNodeParent() const

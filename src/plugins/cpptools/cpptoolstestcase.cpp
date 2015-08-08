@@ -29,6 +29,10 @@
 ****************************************************************************/
 
 #include "cpptoolstestcase.h"
+
+#include "baseeditordocumentparser.h"
+#include "baseeditordocumentprocessor.h"
+#include "editordocumenthandle.h"
 #include "cppmodelmanager.h"
 #include "cppworkingcopy.h"
 
@@ -138,6 +142,31 @@ bool TestCase::garbageCollectGlobalSnapshot()
 {
     CppModelManager::instance()->GC();
     return globalSnapshot().isEmpty();
+}
+
+static bool waitForProcessedEditorDocument_internal(CppEditorDocumentHandle *editorDocument,
+                                                    int timeOutInMs)
+{
+    QTC_ASSERT(editorDocument, return false);
+
+    QTime timer;
+    timer.start();
+
+    forever {
+        if (!editorDocument->processor()->isParserRunning())
+            return true;
+        if (timer.elapsed() > timeOutInMs)
+            return false;
+
+        QCoreApplication::processEvents();
+        QThread::msleep(20);
+    }
+}
+
+bool TestCase::waitForProcessedEditorDocument(const QString &filePath, int timeOutInMs)
+{
+    auto *editorDocument = CppModelManager::instance()->cppEditorDocument(filePath);
+    return waitForProcessedEditorDocument_internal(editorDocument, timeOutInMs);
 }
 
 bool TestCase::parseFiles(const QSet<QString> &filePaths)
@@ -294,23 +323,51 @@ QString TemporaryDir::createFile(const QByteArray &relativePath, const QByteArra
     return filePath;
 }
 
+static bool copyRecursively(const QString &sourceDirPath,
+                            const QString &targetDirPath,
+                            QString *error)
+{
+    auto copyHelper = [](QFileInfo sourceInfo, QFileInfo targetInfo, QString *error) -> bool {
+        const QString sourcePath = sourceInfo.absoluteFilePath();
+        const QString targetPath = targetInfo.absoluteFilePath();
+        if (!QFile::copy(sourcePath, targetPath)) {
+            if (error) {
+                *error = QString::fromLatin1("copyRecursively() failed: \"%1\" to \"%2\".")
+                            .arg(sourcePath, targetPath);
+            }
+            return false;
+        }
+
+        // Copied files from Qt resources are read-only. Make them writable
+        // so that their parent directory can be removed without warnings.
+        QFile file(targetPath);
+        return file.setPermissions(file.permissions() | QFile::WriteUser);
+    };
+
+    return Utils::FileUtils::copyRecursively(Utils::FileName::fromString(sourceDirPath),
+                                             Utils::FileName::fromString(targetDirPath),
+                                             error,
+                                             copyHelper);
+}
+
 TemporaryCopiedDir::TemporaryCopiedDir(const QString &sourceDirPath)
 {
     if (!m_isValid)
         return;
 
-    if (!sourceDirPath.isEmpty()) {
-        QFileInfo fi(sourceDirPath);
-        if (!fi.exists() || !fi.isReadable()) {
-            m_isValid = false;
-            return;
-        }
+    if (sourceDirPath.isEmpty())
+        return;
 
-        if (!Utils::FileUtils::copyRecursively(Utils::FileName::fromString(sourceDirPath),
-                                               Utils::FileName::fromString(path()))) {
-            m_isValid = false;
-            return;
-        }
+    QFileInfo fi(sourceDirPath);
+    if (!fi.exists() || !fi.isReadable()) {
+        m_isValid = false;
+        return;
+    }
+
+    QString errorMessage;
+    if (!copyRecursively(sourceDirPath, path(), &errorMessage)) {
+        QWARN(qPrintable(errorMessage));
+        m_isValid = false;
     }
 }
 

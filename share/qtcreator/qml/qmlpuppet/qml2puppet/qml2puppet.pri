@@ -1,18 +1,5 @@
-
 QT += core gui widgets qml quick network
-!isEmpty(QT.webkit.name) {
-    QT += webkit
-}
-
-!isEmpty(QT.v8.name) {
-    QT += v8
-}
-
 QT += core-private qml-private quick-private gui-private
-
-!isEmpty(QT.v8.name) {
-    QT += v8-private
-}
 
 CONFIG += c++11
 
@@ -43,6 +30,6 @@ osx {
     CONFIG -= app_bundle
     QMAKE_LFLAGS += -Wl,-sectcreate,__TEXT,__info_plist,$$system_quote($$PWD/Info.plist)
 } else {
-    target.path  = $$QTC_PREFIX/bin
+    target.path  = $$QTC_PREFIX/$$relative_path($$IDE_LIBEXEC_PATH, $$IDE_BUILD_TREE)
     INSTALLS    += target
 }

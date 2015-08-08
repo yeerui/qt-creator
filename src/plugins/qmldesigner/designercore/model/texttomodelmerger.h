@@ -44,6 +44,7 @@
 namespace QmlDesigner {
 
 class RewriterView;
+class RewriterError;
 
 namespace Internal {
 
@@ -131,9 +132,19 @@ public:
     void setupCustomParserNodeDelayed(const ModelNode &node, bool synchron);
 
     void delayedSetup();
+
+    QSet<QPair<QString, QString> > qrcMapping() const;
+
 private:
     void setupCustomParserNode(const ModelNode &node);
     void setupComponent(const ModelNode &node);
+    void collectLinkErrors(QList<RewriterError> *errors, const ReadingContext &ctxt);
+    void collectImportErrors(QList<RewriterError> *errors);
+    void collectSemanticErrorsAndWarnings(QList<RewriterError> *errors,
+                                          QList<RewriterError> *warnings);
+    bool showWarningsDialogIgnored(const QList<RewriterError> &warnings);
+
+    void populateQrcMapping(const QString &filePath);
 
     static QString textAt(const QmlJS::Document::Ptr &doc,
                           const QmlJS::AST::SourceLocation &location);
@@ -150,6 +161,7 @@ private:
     QSet<ModelNode> m_setupComponentList;
     QSet<ModelNode> m_setupCustomParserList;
     QmlJS::ViewerContext m_vContext;
+    QSet<QPair<QString, QString> > m_qrcMapping;
 };
 
 class DifferenceHandler

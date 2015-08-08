@@ -58,6 +58,7 @@ def qform__QByteArray():
 
 def qdump__QByteArray(d, value):
     data, size, alloc = d.byteArrayData(value)
+    d.check(0 <= size and size <= alloc and alloc <= 1000 * 1000 * 100)
     d.putNumChild(size)
     elided, p = d.encodeByteArrayHelper(d.extractPointer(value), d.displayStringLimit)
     displayFormat = d.currentItemFormat()
@@ -78,6 +79,7 @@ def qdump__QByteArray(d, value):
 
 def qdump__QByteArrayData(d, value):
     data, size, alloc = d.byteArrayDataHelper(d.addressOf(value))
+    d.check(0 <= size and size <= alloc and alloc <= 1000 * 1000 * 100)
     d.putValue(d.readMemory(data, size), Hex2EncodedLatin1)
     d.putNumChild(1)
     if d.isExpanded():
@@ -621,10 +623,6 @@ def qdump__QHash(d, value):
                 with SubItem(d, i):
                     if isCompact:
                         key = it["key"]
-                        if not key:
-                            # LLDB can't access directly since it's in anonymous union
-                            # for Qt4 optimized int keytype
-                            key = it[1]["key"]
                         d.putMapName(key, j)
                         d.putItem(it["value"])
                         d.putType(valueType)
@@ -638,10 +636,6 @@ def qform__QHashNode():
 
 def qdump__QHashNode(d, value):
     key = value["key"]
-    if not key:
-        # LLDB can't access directly since it's in anonymous union
-        # for Qt4 optimized int keytype
-        key = value[1]["key"]
     val = value["value"]
     if d.isMapCompact(key.type, val.type):
         d.putMapName(key)
@@ -1036,6 +1030,13 @@ def qform__QMultiMap():
     return mapForms()
 
 def qdump__QMultiMap(d, value):
+    qdump__QMap(d, value)
+
+
+def qform__QVariantMap():
+    return mapForms()
+
+def qdump__QVariantMap(d, value):
     qdump__QMap(d, value)
 
 
@@ -1553,7 +1554,7 @@ def qdump__QRegExp(d, value):
 def qdump__QRegion(d, value):
     p = value["d"].dereference()["qt_rgn"]
     if d.isNull(p):
-        d.putValue("<empty>")
+        d.putSpecialValue(SpecialEmptyValue)
         d.putNumChild(0)
     else:
         # struct QRegionPrivate:
@@ -1906,6 +1907,16 @@ def qdump__QUrl(d, value):
                 d.putGenericItem("query", stringType, query, Hex4EncodedLittleEndian)
                 d.putGenericItem("fragment", stringType, fragment, Hex4EncodedLittleEndian)
                 d.putFields(value)
+
+
+def qdump__QUuid(d, value):
+    v = value["data4"]
+    d.putValue("{%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x}"
+                % (value["data1"], value["data2"], value["data3"],
+                   v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]))
+    d.putNumChild(1)
+    d.putPlainChildren(value)
+
 
 def qdumpHelper_QVariant_0(d, blob):
     # QVariant::Invalid
@@ -2499,3 +2510,200 @@ def qdump__QQmlAccessorProperties__Properties(d, value):
     d.putItemCount(size)
     if d.isExpanded():
         d.putArrayData(value["properties"], size)
+
+
+#
+# QJson
+#
+
+def qdumpHelper_qle_cutBits(value, offset, length):
+    return (value >> offset) & ((1 << length) - 1)
+
+def qdump__QJsonPrivate__qle_bitfield(d, value):
+    offset = d.numericTemplateArgument(value.type, 0)
+    length = d.numericTemplateArgument(value.type, 1)
+    val = toInteger(value["val"])
+    d.putValue("%s" % qdumpHelper_qle_cutBits(val, offset, length))
+    d.putNumChild(0)
+
+def qdumpHelper_qle_signedbitfield_value(d, value):
+    offset = d.numericTemplateArgument(value.type, 0)
+    length = d.numericTemplateArgument(value.type, 1)
+    val = toInteger(value["val"])
+    val = (val >> offset) & ((1 << length) - 1)
+    if val >= (1 << (length - 1)):
+        val -= (1 << (length - 1))
+    return val
+
+def qdump__QJsonPrivate__qle_signedbitfield(d, value):
+    d.putValue("%s" % qdumpHelper_qle_signedbitfield_value(d, value))
+    d.putNumChild(0)
+
+def qdump__QJsonPrivate__q_littleendian(d, value):
+    d.putValue("%s" % toInteger(value["val"]))
+    d.putNumChild(0)
+
+
+def qdumpHelper__QJsonValue(d, data, base, pv):
+    """
+    Parameters are the parameters to the
+    QJsonValue(QJsonPrivate::Data *data, QJsonPrivate::Base *base,
+               const QJsonPrivate::Value& pv)
+    constructor. We "inline" the construction here.
+
+    data is passed as pointer integer
+    base is passed as pointer integer
+    pv is passed as 32 bit integer.
+    """
+
+    t = qdumpHelper_qle_cutBits(pv, 0, 3)
+    v = qdumpHelper_qle_cutBits(pv, 5, 27)
+    latinOrIntValue = qdumpHelper_qle_cutBits(pv, 3, 1)
+
+    if t == 0:
+        d.putType("QJsonValue (Null)")
+        d.putValue("Null")
+        d.putNumChild(0)
+        return
+    if t == 1:
+        d.putType("QJsonValue (Bool)")
+        d.putValue("true" if v else "false")
+        d.putNumChild(0)
+        return
+    if t == 2:
+        d.putType("QJsonValue (Number)")
+        if latinOrIntValue:
+            d.putValue(v)
+        else:
+            data = base + v;
+            d.putValue(d.extractBlob(data, 8).extractDouble())
+        d.putNumChild(0)
+        return
+    if t == 3:
+        d.putType("QJsonValue (String)")
+        data = base + v;
+        if latinOrIntValue:
+            length = d.extractUShort(data)
+            d.putValue(d.readMemory(data + 2, length), Hex2EncodedLatin1)
+        else:
+            length = d.extractUInt(data)
+            d.putValue(d.readMemory(data + 4, length * 2), Hex4EncodedLittleEndian)
+        d.putNumChild(1)
+        return
+    if t == 4:
+        d.putType("QJsonValue (Array)")
+        qdumpHelper__QJsonArray(d, data, base + v)
+        return
+    if t == 5:
+        d.putType("QJsonValue (Object)")
+        qdumpHelper__QJsonObject(d, data, base + v)
+        d.putNumChild(0)
+
+
+def qdumpHelper__QJsonArray(d, data, array):
+    """
+    Parameters are the parameters to the
+    QJsonArray(QJsonPrivate::Data *data, QJsonPrivate::Array *array)
+    constructor. We "inline" the construction here.
+
+    array is passed as integer pointer to the QJsonPrivate::Base object.
+    """
+
+    if d.isNull(data):
+        n = 0
+    else:
+        # The 'length' part of the _dummy member:
+        n = qdumpHelper_qle_cutBits(d.extractUInt(array + 4), 1, 31)
+
+    d.putItemCount(n)
+    d.putNumChild(1)
+    if d.isExpanded():
+        with Children(d):
+            table = array + d.extractUInt(array + 8)
+            for i in range(n):
+                with SubItem(d, i):
+                    qdumpHelper__QJsonValue(d, data, array, d.extractUInt(table + 4 * i))
+
+
+def qdumpHelper__QJsonObject(d, data, obj):
+    """
+    Parameters are the parameters to the
+    QJsonObject(QJsonPrivate::Data *data, QJsonPrivate::Object *object);
+    constructor. We "inline" the construction here.
+
+    obj is passed as integer pointer to the QJsonPrivate::Base object.
+    """
+
+    if d.isNull(data):
+        n = 0
+    else:
+        # The 'length' part of the _dummy member:
+        n = qdumpHelper_qle_cutBits(d.extractUInt(obj + 4), 1, 31)
+
+    d.putItemCount(n)
+    d.putNumChild(1)
+    if d.isExpanded():
+        with Children(d):
+            table = obj + d.extractUInt(obj + 8)
+            for i in range(n):
+                with SubItem(d, i):
+                    entryPtr = table + 4 * i # entryAt(i)
+                    entryStart = obj + d.extractUInt(entryPtr) # Entry::value
+                    keyStart = entryStart + 4 # sizeof(QJsonPrivate::Entry) == 4
+                    val = d.extractInt(entryStart)
+                    key = d.extractInt(keyStart)
+                    isLatinKey = qdumpHelper_qle_cutBits(val, 4, 1)
+                    if isLatinKey:
+                        keyLength = d.extractUShort(keyStart)
+                        d.put('key="%s",' % d.readMemory(keyStart + 2, keyLength))
+                        d.put('keyencoded="%s",' % Hex2EncodedLatin1)
+                    else:
+                        keyLength = d.extractUInt(keyStart)
+                        d.put('key="%s",' % d.readMemory(keyStart + 4, keyLength))
+                        d.put('keyencoded="%s",' % Hex4EncodedLittleEndian)
+
+                    qdumpHelper__QJsonValue(d, data, obj, val)
+
+
+def qdump__QJsonValue(d, value):
+    t = toInteger(value["t"])
+    if t == 0:
+        d.putType("QJsonValue (Null)")
+        d.putValue("Null")
+        d.putNumChild(0)
+        return
+    if t == 1:
+        d.putType("QJsonValue (Bool)")
+        v = toInteger(value["b"])
+        d.putValue("true" if v else "false")
+        return
+    if t == 2:
+        d.putType("QJsonValue (Number)")
+        d.putValue(value["dbl"])
+        return
+    if t == 3:
+        d.putType("QJsonValue (String)")
+        d.putStringValueByAddress(toInteger(value["stringData"]))
+        d.putNumChild(0)
+        return
+    if t == 4:
+        d.putType("QJsonValue (Array)")
+        qdumpHelper__QJsonArray(d, toInteger(value["d"]), toInteger(value["base"]))
+        return
+    if t == 5:
+        d.putType("QJsonValue (Object)")
+        qdumpHelper__QJsonObject(d, toInteger(value["d"]), toInteger(value["base"]))
+        return
+    d.putType("QJsonValue (Undefined)")
+    d.putEmptyValue()
+    d.putNumChild(0)
+
+
+def qdump__QJsonArray(d, value):
+    qdumpHelper__QJsonArray(d, toInteger(value["d"]), toInteger(value["a"]))
+
+
+def qdump__QJsonObject(d, value):
+    qdumpHelper__QJsonObject(d, toInteger(value["d"]), toInteger(value["o"]))
+
+

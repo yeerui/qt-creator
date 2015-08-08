@@ -1,8 +1,8 @@
 !isEmpty(QTCREATOR_PRI_INCLUDED):error("qtcreator.pri already included")
 QTCREATOR_PRI_INCLUDED = 1
 
-QTCREATOR_VERSION = 3.4.81
-QTCREATOR_COMPAT_VERSION = 3.4.81
+QTCREATOR_VERSION = 3.5.81
+QTCREATOR_COMPAT_VERSION = 3.5.81
 BINARY_ARTIFACTS_BRANCH = master
 
 # enable c++11
@@ -88,10 +88,13 @@ macx {
     IDE_APP_TARGET   = qtcreator
     IDE_LIBRARY_PATH = $$IDE_BUILD_TREE/$$IDE_LIBRARY_BASENAME/qtcreator
     IDE_PLUGIN_PATH  = $$IDE_LIBRARY_PATH/plugins
-    IDE_LIBEXEC_PATH = $$IDE_APP_PATH # FIXME
     IDE_DATA_PATH    = $$IDE_BUILD_TREE/share/qtcreator
     IDE_DOC_PATH     = $$IDE_BUILD_TREE/share/doc/qtcreator
     IDE_BIN_PATH     = $$IDE_APP_PATH
+    win32: \
+        IDE_LIBEXEC_PATH = $$IDE_APP_PATH
+    else: \
+        IDE_LIBEXEC_PATH = $$IDE_BUILD_TREE/libexec/qtcreator
     !isEqual(IDE_SOURCE_TREE, $$IDE_BUILD_TREE):copydata = 1
 }
 

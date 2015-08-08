@@ -62,6 +62,45 @@ class ModelNodePositionStorage;
 
 } //Internal
 
+class RewriterError {
+public:
+    enum Type {
+        NoError = 0,
+        InternalError = 1,
+        ParseError = 2
+    };
+
+public:
+    RewriterError();
+    RewriterError(const QmlJS::DiagnosticMessage &qmlError, const QUrl &document);
+    RewriterError(const QString &shortDescription);
+    RewriterError(Exception *exception);
+
+    Type type() const
+    { return m_type; }
+
+    int line() const
+    { return m_line; }
+
+    int column() const
+    { return m_column; }
+
+    QString description() const
+    { return m_description; }
+
+    QUrl url() const
+    { return m_url; }
+
+    QString toString() const;
+
+private:
+    Type m_type;
+    int m_line;
+    int m_column;
+    QString m_description;
+    QUrl m_url;
+};
+
 class QMLDESIGNERCORE_EXPORT RewriterView : public AbstractView
 {
     Q_OBJECT
@@ -72,45 +111,6 @@ public:
         Amend
     };
 
-    class Error {
-    public:
-        enum Type {
-            NoError = 0,
-            InternalError = 1,
-            ParseError = 2
-        };
-
-    public:
-        Error();
-        Error(const QmlJS::DiagnosticMessage &qmlError, const QUrl &document);
-        Error(const QString &shortDescription);
-        Error(const Exception *exception);
-
-        Type type() const
-        { return m_type; }
-
-        int line() const
-        { return m_line; }
-
-        int column() const
-        { return m_column; }
-
-        QString description() const
-        { return m_description; }
-
-        QUrl url() const
-        { return m_url; }
-
-        QString toString() const;
-
-    private:
-        Type m_type;
-        int m_line;
-        int m_column;
-        QString m_description;
-        QUrl m_url;
-    };
-
 public:
     RewriterView(DifferenceHandling differenceHandling, QObject *parent);
     ~RewriterView();
@@ -118,16 +118,12 @@ public:
     void modelAttached(Model *model) override;
     void modelAboutToBeDetached(Model *model) override;
     void nodeCreated(const ModelNode &createdNode) override;
-    void nodeAboutToBeRemoved(const ModelNode &removedNode) override;
     void nodeRemoved(const ModelNode &removedNode, const NodeAbstractProperty &parentProperty, PropertyChangeFlags propertyChange) override;
     void propertiesAboutToBeRemoved(const QList<AbstractProperty>& propertyList) override;
     void propertiesRemoved(const QList<AbstractProperty>& propertyList) override;
     void variantPropertiesChanged(const QList<VariantProperty>& propertyList, PropertyChangeFlags propertyChange) override;
     void bindingPropertiesChanged(const QList<BindingProperty>& propertyList, PropertyChangeFlags propertyChange) override;
     void signalHandlerPropertiesChanged(const QVector<SignalHandlerProperty>& propertyList,PropertyChangeFlags propertyChange) override;
-    void nodeAboutToBeReparented(const ModelNode &node, const NodeAbstractProperty &newPropertyParent,
-                                 const NodeAbstractProperty &oldPropertyParent,
-                                 AbstractView::PropertyChangeFlags propertyChange) override;
     void nodeReparented(const ModelNode &node, const NodeAbstractProperty &newPropertyParent,
                         const NodeAbstractProperty &oldPropertyParent,
                         AbstractView::PropertyChangeFlags propertyChange) override;
@@ -137,29 +133,11 @@ public:
     void customNotification(const AbstractView *view, const QString &identifier,
                             const QList<ModelNode> &nodeList,
                             const QList<QVariant> &data) override;
-    void scriptFunctionsChanged(const ModelNode &node, const QStringList &scriptFunctionList) override;
-
-    void instancePropertyChange(const QList<QPair<ModelNode, PropertyName> > &propertyList) override;
-    void instancesCompleted(const QVector<ModelNode> &completedNodeList) override;
-    void instanceInformationsChange(const QMultiHash<ModelNode, InformationName> &informationChangeHash) override;
-    void instancesRenderImageChanged(const QVector<ModelNode> &nodeList) override;
-    void instancesPreviewImageChanged(const QVector<ModelNode> &nodeList) override;
-    void instancesChildrenChanged(const QVector<ModelNode> &nodeList) override;
-    void instancesToken(const QString &tokenName, int tokenNumber, const QVector<ModelNode> &nodeVector) override;
-
-    void nodeSourceChanged(const ModelNode &modelNode, const QString &newNodeSource) override;
 
     void rewriterBeginTransaction() override;
     void rewriterEndTransaction() override;
 
-    void currentStateChanged(const ModelNode &node) override;
-
-
     void importsChanged(const QList<Import> &addedImports, const QList<Import> &removedImports) override;
-
-    void fileUrlChanged(const QUrl &oldUrl, const QUrl &newUrl) override;
-
-    void selectedNodesChanged(const QList<ModelNode> &selectedNodeList, const QList<ModelNode> &lastSelectedNodeList) override;
 
     TextModifier *textModifier() const;
     void setTextModifier(TextModifier *textModifier);
@@ -171,10 +149,10 @@ public:
     Internal::ModelNodePositionStorage *positionStorage() const
     { return m_positionStorage; }
 
-    QList<Error> errors() const;
+    QList<RewriterError> errors() const;
     void clearErrors();
-    void setErrors(const QList<Error> &errors);
-    void addError(const Error &error);
+    void setErrors(const QList<RewriterError> &errors);
+    void addError(const RewriterError &error);
 
     void enterErrorState(const QString &errorMessage);
     bool inErrorState() const { return !m_rewritingErrorMessage.isEmpty(); }
@@ -206,8 +184,10 @@ public:
 
     QStringList importDirectories() const;
 
+    QSet<QPair<QString, QString> > qrcMapping() const;
+
 signals:
-    void errorsChanged(const QList<RewriterView::Error> &errors);
+    void errorsChanged(const QList<RewriterError> &errors);
 
 public slots:
     void qmlTextChanged();
@@ -231,7 +211,7 @@ private: //variables
     QScopedPointer<Internal::ModelToTextMerger> m_modelToTextMerger;
     QScopedPointer<Internal::TextToModelMerger> m_textToModelMerger;
     TextModifier *m_textModifier;
-    QList<Error> m_errors;
+    QList<RewriterError> m_errors;
     int transactionLevel;
     RewriterTransaction m_removeDefaultPropertyTransaction;
     QString m_rewritingErrorMessage;

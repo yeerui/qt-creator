@@ -762,7 +762,7 @@ bool JsonFieldPage::ComboBoxField::parseData(const QVariant &data, QString *erro
         m_itemDataList.clear();
         m_itemList.clear();
         *errorMessage = QCoreApplication::translate("ProjectExplorer::JsonFieldPage",
-                                                    "Internal Error: ComboBox items lists got confused.");
+                                                    "Internal Error: ComboBox items lists got mixed up.");
         return false;
     }
 
@@ -820,13 +820,15 @@ void JsonFieldPage::ComboBoxField::initializeData(MacroExpander *expander)
         if (!tmpConditions.at(i)) {
             tmpItems.removeAt(i);
             tmpData.removeAt(i);
-            if (i <= index)
+            if (i < index && index > 0)
                 --index;
         }
     }
+
+    if (index < 0 || index >= tmpData.count())
+        index = 0;
     w->setItems(tmpItems, tmpData);
     w->setInsertPolicy(QComboBox::NoInsert);
-
     w->setCurrentIndex(index);
 }
 

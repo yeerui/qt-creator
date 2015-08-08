@@ -84,7 +84,7 @@ static inline bool checkIfDerivedFromItem(const QString &fileName)
     QmlJS::Document::MutablePtr document =
             QmlJS::Document::create(fileName.isEmpty() ?
                                         QStringLiteral("<internal>") : fileName, QmlJS::Dialect::Qml);
-    document->setSource(source);
+    document->setSource(QString::fromUtf8(source));
     document->parseQml();
 
 
@@ -113,7 +113,7 @@ static inline bool checkIfDerivedFromItem(const QString &fileName)
     QList<const QmlJS::ObjectValue *> prototypes = QmlJS::PrototypeIterator(objectValue, context).all();
 
     foreach (const QmlJS::ObjectValue *prototype, prototypes) {
-        if (prototype->className() == "Item")
+        if (prototype->className() == QLatin1String("Item"))
             return true;
     }
 
@@ -193,7 +193,7 @@ void SubComponentManager::parseDirectories()
             parseDirectory(dirInfo.canonicalFilePath());
 
         foreach (const QString &subDir, QDir(QFileInfo(file).path()).entryList(QDir::Dirs | QDir::NoDot | QDir::NoDotDot)) {
-            parseDirectory(dirInfo.canonicalFilePath() + "/" + subDir, true, subDir.toUtf8());
+            parseDirectory(dirInfo.canonicalFilePath() + QLatin1String("/") + subDir, true, subDir.toUtf8());
         }
     }
 
@@ -209,6 +209,15 @@ void SubComponentManager::parseDirectories()
             foreach (const QString &path, importPaths()) {
                 QString fullUrl  = path + QLatin1Char('/') + url;
                 dirInfo = QFileInfo(fullUrl);
+
+                if (dirInfo.exists() && dirInfo.isDir()) {
+                    //### todo full qualified names QString nameSpace = import.uri();
+                    parseDirectory(dirInfo.canonicalFilePath(), false);
+                }
+
+                QString fullUrlVersion = path + QLatin1Char('/') + url + QLatin1Char('.') + import.version().split(".").first();
+                dirInfo = QFileInfo(fullUrlVersion);
+
                 if (dirInfo.exists() && dirInfo.isDir()) {
                     //### todo full qualified names QString nameSpace = import.uri();
                     parseDirectory(dirInfo.canonicalFilePath(), false);
@@ -223,10 +232,10 @@ void SubComponentManager::parseDirectory(const QString &canonicalDirPath, bool a
     if (!model() || !model()->rewriterView())
         return;
 
-    QDir designerDir(canonicalDirPath + Constants::QML_DESIGNER_SUBFOLDER);
+    QDir designerDir(canonicalDirPath + QLatin1String(Constants::QML_DESIGNER_SUBFOLDER));
     if (designerDir.exists()) {
         QStringList filter;
-        filter << "*.metainfo";
+        filter << QLatin1String("*.metainfo");
         designerDir.setNameFilters(filter);
 
         QStringList metaFiles = designerDir.entryList(QDir::Files);
@@ -294,7 +303,7 @@ void SubComponentManager::parseDirectory(const QString &canonicalDirPath, bool a
             continue;
         }
         // oldFileInfo > newFileInfo
-        parseFile(newFileInfo.filePath(), addToLibrary, qualification);
+        parseFile(newFileInfo.filePath(), addToLibrary, QString::fromUtf8(qualification));
         ++newIter;
     }
 
@@ -305,7 +314,7 @@ void SubComponentManager::parseDirectory(const QString &canonicalDirPath, bool a
     }
 
     while (newIter != newList.constEnd()) {
-        parseFile(newIter->filePath(), addToLibrary, qualification);
+        parseFile(newIter->filePath(), addToLibrary, QString::fromUtf8(qualification));
         if (debug)
             qDebug() << "m_watcher.addPath(" << newIter->filePath() << ')';
         ++newIter;
@@ -350,7 +359,7 @@ void SubComponentManager::unregisterQmlFile(const QFileInfo &fileInfo, const QSt
 {
     QString componentName = fileInfo.baseName();
     if (!qualifier.isEmpty())
-        componentName = qualifier + '.' + componentName;
+        componentName = qualifier + QLatin1Char('.') + componentName;
 }
 
 
@@ -371,7 +380,7 @@ void SubComponentManager::registerQmlFile(const QFileInfo &fileInfo, const QStri
         fixedQualifier = qualifier;
         if (qualifier.right(1) == QStringLiteral("."))
             fixedQualifier.chop(1); //remove last char if it is a dot
-        componentName = fixedQualifier + '.' + componentName;
+        componentName = fixedQualifier + QLatin1Char('.') + componentName;
     }
 
     if (debug)
@@ -382,7 +391,7 @@ void SubComponentManager::registerQmlFile(const QFileInfo &fileInfo, const QStri
         ItemLibraryEntry itemLibraryEntry;
         itemLibraryEntry.setType(componentName.toUtf8(), -1, -1);
         itemLibraryEntry.setName(baseComponentName);
-        itemLibraryEntry.setCategory("QML Components");
+        itemLibraryEntry.setCategory(QLatin1String("QML Components"));
         if (!qualifier.isEmpty()) {
             itemLibraryEntry.setRequiredImport(fixedQualifier);
         }

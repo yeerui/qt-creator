@@ -93,7 +93,7 @@ public:
     {
         m_iconButton = new IconButton;
         m_iconButton->setPixmap(QPixmap(QLatin1String(":/core/images/replace.png")));
-        m_iconButton->setToolTip(VariableChooser::tr("Insert variable"));
+        m_iconButton->setToolTip(VariableChooser::tr("Insert Variable"));
         m_iconButton->hide();
         connect(m_iconButton.data(), static_cast<void(QAbstractButton::*)(bool)>(&QAbstractButton::clicked),
                 this, &VariableChooserPrivate::updatePositionAndShow);
@@ -176,8 +176,13 @@ public:
                 return m_variable;
         }
 
-        if (role == Qt::ToolTipRole)
-            return m_expander->variableDescription(m_variable.toUtf8());
+        if (role == Qt::ToolTipRole) {
+            QString description = m_expander->variableDescription(m_variable.toUtf8());
+            const QString value = m_expander->value(m_variable.toUtf8()).toHtmlEscaped();
+            if (!value.isEmpty())
+                description += QLatin1String("<p>") + VariableChooser::tr("Current Value: %1").arg(value);
+            return description;
+        }
 
         if (role == UnexpandedTextRole)
             return QString(QLatin1String("%{") + m_variable + QLatin1Char('}'));
@@ -205,14 +210,14 @@ void VariableTreeView::contextMenuEvent(QContextMenuEvent *ev)
     QAction *insertExpandedAction = 0;
 
     if (unexpandedText.isEmpty()) {
-        insertUnexpandedAction = menu.addAction(VariableChooser::tr("Insert unexpanded value"));
+        insertUnexpandedAction = menu.addAction(VariableChooser::tr("Insert Unexpanded Value"));
         insertUnexpandedAction->setEnabled(false);
     } else {
         insertUnexpandedAction = menu.addAction(VariableChooser::tr("Insert \"%1\"").arg(unexpandedText));
     }
 
     if (expandedText.isEmpty()) {
-        insertExpandedAction = menu.addAction(VariableChooser::tr("Insert expanded value"));
+        insertExpandedAction = menu.addAction(VariableChooser::tr("Insert Expanded Value"));
         insertExpandedAction->setEnabled(false);
     } else {
         insertExpandedAction = menu.addAction(VariableChooser::tr("Insert \"%1\"").arg(expandedText));
@@ -229,8 +234,8 @@ void VariableTreeView::contextMenuEvent(QContextMenuEvent *ev)
 
 void VariableTreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
-    Q_UNUSED(previous);
     m_target->updateDescription(current);
+    QTreeView::currentChanged(current, previous);
 }
 
 VariableChooserPrivate::VariableChooserPrivate(VariableChooser *parent)
@@ -250,6 +255,7 @@ VariableChooserPrivate::VariableChooserPrivate(VariableChooser *parent)
     m_variableDescription->setAlignment(Qt::AlignLeft|Qt::AlignTop);
     m_variableDescription->setWordWrap(true);
     m_variableDescription->setAttribute(Qt::WA_MacSmallSize);
+    m_variableDescription->setTextInteractionFlags(Qt::TextBrowserInteraction);
 
     QVBoxLayout *verticalLayout = new QVBoxLayout(q);
     verticalLayout->setContentsMargins(3, 3, 3, 12);

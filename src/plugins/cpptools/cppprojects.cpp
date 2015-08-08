@@ -113,7 +113,7 @@ void ProjectPart::evaluateToolchain(const ToolChain *tc,
     }
 
     toolchainDefines = tc->predefinedMacros(commandLineFlags);
-    toolchainType = tc->type();
+    toolchainType = tc->typeId();
     updateLanguageFeatures();
 }
 
@@ -146,7 +146,10 @@ ProjectPart::Ptr ProjectPart::copy() const
 
 QString ProjectPart::id() const
 {
-    return QDir::fromNativeSeparators(projectFile) + QLatin1Char(' ') + displayName;
+    QString projectPartId = QDir::fromNativeSeparators(projectFile);
+    if (!displayName.isEmpty())
+        projectPartId.append(QLatin1Char(' ') + displayName);
+    return projectPartId;
 }
 
 QByteArray ProjectPart::readProjectConfigFile(const ProjectPart::Ptr &part)
@@ -669,13 +672,15 @@ void CompilerOptionsBuilder::addOptionsForLanguage(bool checkForBorlandExtension
         opts << (gnuExtensions ? QLatin1String("-std=gnu++98") : QLatin1String("-std=c++98"));
         break;
     case ProjectPart::CXX03:
+        // Clang 3.6 does not know -std=gnu++03.
         opts << QLatin1String("-std=c++03");
         break;
     case ProjectPart::CXX14:
-        opts << QLatin1String("-std=c++1y"); // TODO: change to c++14 after 3.5
+        opts << (gnuExtensions ? QLatin1String("-std=gnu++14") : QLatin1String("-std=c++14"));
         break;
     case ProjectPart::CXX17:
-        opts << QLatin1String("-std=c++1z"); // TODO: change to c++17 at some point in the future
+        // TODO: Change to (probably) "gnu++17"/"c++17" at some point in the future.
+        opts << (gnuExtensions ? QLatin1String("-std=gnu++1z") : QLatin1String("-std=c++1z"));
         break;
     }
 
@@ -711,7 +716,7 @@ bool CompilerOptionsBuilder::excludeDefineLine(const QByteArray &defineLine) con
     // The right-hand sides are gcc built-ins that clang does not understand, and they'd
     // override clang's own (non-macro, it seems) definitions of the symbols on the left-hand
     // side.
-    const bool isGccToolchain = m_projectPart->toolchainType == QLatin1String("gcc");
+    const bool isGccToolchain = m_projectPart->toolchainType == ProjectExplorer::Constants::GCC_TOOLCHAIN_TYPEID;
     if (isGccToolchain && defineLine.contains("has_include"))
         return true;
 

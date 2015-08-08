@@ -64,14 +64,8 @@ static void setQnxEnvironment(Utils::Environment &env, const QList<Utils::Enviro
 }
 
 QnxToolChain::QnxToolChain(ToolChain::Detection d)
-    : GccToolChain(QLatin1String(Constants::QNX_TOOLCHAIN_ID), d)
-{
-}
-
-QString QnxToolChain::type() const
-{
-    return QLatin1String(Constants::QNX_TOOLCHAIN_ID);
-}
+    : GccToolChain(Constants::QNX_TOOLCHAIN_ID, d)
+{ }
 
 QString QnxToolChain::typeDisplayName() const
 {
@@ -158,14 +152,13 @@ QStringList QnxToolChain::reinterpretOptions(const QStringList &args) const
 
 QnxToolChainFactory::QnxToolChainFactory()
 {
-    setId(Constants::QNX_TOOLCHAIN_ID);
+    setTypeId(Constants::QNX_TOOLCHAIN_ID);
     setDisplayName(tr("QCC"));
 }
 
 bool QnxToolChainFactory::canRestore(const QVariantMap &data)
 {
-    const QString id = idFromMap(data);
-    return id.startsWith(QLatin1String(Constants::QNX_TOOLCHAIN_ID) + QLatin1Char(':'));
+    return typeIdFromMap(data) == Constants::QNX_TOOLCHAIN_ID;
 }
 
 ToolChain *QnxToolChainFactory::restore(const QVariantMap &data)

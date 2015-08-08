@@ -36,6 +36,7 @@
 #include "task.h"
 
 #include <utils/fileutils.h>
+#include <utils/qtcassert.h>
 
 #include <QCoreApplication>
 #include <QUuid>
@@ -56,20 +57,17 @@ class ToolChainPrivate
 public:
     typedef ToolChain::Detection Detection;
 
-    explicit ToolChainPrivate(const QString &id, Detection d) :
+    explicit ToolChainPrivate(Core::Id typeId, Detection d) :
+        m_id(QUuid::createUuid().toByteArray()),
+        m_typeId(typeId),
         m_detection(d)
     {
-        m_id = createId(id);
+        QTC_ASSERT(m_typeId.isValid(), return);
+        QTC_ASSERT(!m_typeId.toString().contains(QLatin1Char(':')), return);
     }
 
-    static QString createId(const QString &id)
-    {
-        QString newId = id.left(id.indexOf(QLatin1Char(':')));
-        newId.append(QLatin1Char(':') + QUuid::createUuid().toString());
-        return newId;
-    }
-
-    QString m_id;
+    QByteArray m_id;
+    Core::Id m_typeId;
     Detection m_detection;
     mutable QString m_displayName;
 };
@@ -84,12 +82,12 @@ public:
 
 // --------------------------------------------------------------------------
 
-ToolChain::ToolChain(const QString &id, Detection d) :
-    d(new Internal::ToolChainPrivate(id, d))
+ToolChain::ToolChain(Core::Id typeId, Detection d) :
+    d(new Internal::ToolChainPrivate(typeId, d))
 { }
 
 ToolChain::ToolChain(const ToolChain &other) :
-    d(new Internal::ToolChainPrivate(other.d->m_id, ManualDetection))
+    d(new Internal::ToolChainPrivate(other.d->m_typeId, ManualDetection))
 {
     // leave the autodetection bit at false.
     d->m_displayName = QCoreApplication::translate("ProjectExplorer::ToolChain", "Clone of %1")
@@ -122,7 +120,7 @@ ToolChain::Detection ToolChain::detection() const
     return d->m_detection;
 }
 
-QString ToolChain::id() const
+QByteArray ToolChain::id() const
 {
     return d->m_id;
 }
@@ -137,6 +135,11 @@ Utils::FileName ToolChain::suggestedDebugger() const
     return ToolChainManager::defaultDebugger(targetAbi());
 }
 
+Core::Id ToolChain::typeId() const
+{
+    return d->m_typeId;
+}
+
 bool ToolChain::canClone() const
 {
     return true;
@@ -147,11 +150,8 @@ bool ToolChain::operator == (const ToolChain &tc) const
     if (this == &tc)
         return true;
 
-    const QString thisId = id().left(id().indexOf(QLatin1Char(':')));
-    const QString tcId = tc.id().left(tc.id().indexOf(QLatin1Char(':')));
-
     // We ignore displayname
-    return thisId == tcId && isAutoDetected() == tc.isAutoDetected();
+    return typeId() == tc.typeId() && isAutoDetected() == tc.isAutoDetected();
 }
 
 /*!
@@ -163,7 +163,8 @@ bool ToolChain::operator == (const ToolChain &tc) const
 QVariantMap ToolChain::toMap() const
 {
     QVariantMap result;
-    result.insert(QLatin1String(ID_KEY), id());
+    QString idToSave = d->m_typeId.toString() + QLatin1Char(':') + QString::fromUtf8(id());
+    result.insert(QLatin1String(ID_KEY), idToSave);
     result.insert(QLatin1String(DISPLAY_NAME_KEY), displayName());
     result.insert(QLatin1String(AUTODETECT_KEY), isAutoDetected());
 
@@ -192,8 +193,14 @@ void ToolChain::setDetection(ToolChain::Detection de)
 bool ToolChain::fromMap(const QVariantMap &data)
 {
     d->m_displayName = data.value(QLatin1String(DISPLAY_NAME_KEY)).toString();
+
     // make sure we have new style ids:
-    d->m_id = data.value(QLatin1String(ID_KEY)).toString();
+    const QString id = data.value(QLatin1String(ID_KEY)).toString();
+    int pos = id.indexOf(QLatin1Char(':'));
+    QTC_ASSERT(pos > 0, return false);
+    d->m_typeId = Core::Id::fromString(id.left(pos));
+    d->m_id = id.mid(pos + 1).toUtf8();
+
     const bool autoDetect = data.value(QLatin1String(AUTODETECT_KEY), false).toBool();
     d->m_detection = autoDetect ? AutoDetectionFromSettings : ManualDetection;
 
@@ -257,14 +264,22 @@ ToolChain *ToolChainFactory::restore(const QVariantMap &)
     return 0;
 }
 
-QString ToolChainFactory::idFromMap(const QVariantMap &data)
+static QPair<QString, QString> rawIdData(const QVariantMap &data)
 {
-    return data.value(QLatin1String(ID_KEY)).toString();
+    const QString raw = data.value(QLatin1String(ID_KEY)).toString();
+    const int pos = raw.indexOf(QLatin1Char(':'));
+    QTC_ASSERT(pos > 0, return qMakePair(QString::fromLatin1("unknown"), QString::fromLatin1("unknown")));
+    return qMakePair(raw.mid(0, pos), raw.mid(pos + 1));
 }
 
-void ToolChainFactory::idToMap(QVariantMap &data, const QString id)
+QByteArray ToolChainFactory::idFromMap(const QVariantMap &data)
 {
-    data.insert(QLatin1String(ID_KEY), id);
+    return rawIdData(data).second.toUtf8();
+}
+
+Core::Id ToolChainFactory::typeIdFromMap(const QVariantMap &data)
+{
+    return Core::Id::fromString(rawIdData(data).first);
 }
 
 void ToolChainFactory::autoDetectionToMap(QVariantMap &data, bool detected)

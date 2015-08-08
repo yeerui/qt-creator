@@ -301,7 +301,6 @@ public:
     SeparatedView *m_separatedView; // Not owned.
 
     QSet<QByteArray> m_expandedINames;
-    QSet<QByteArray> m_fetchTriggered;
     QTimer m_requestUpdateTimer;
 
     QHash<QString, DisplayFormats> m_reportedTypeFormats; // Type name -> Dumper Formats
@@ -331,7 +330,7 @@ WatchModel::WatchModel(WatchHandler *handler, DebuggerEngine *engine)
         this, &WatchModel::updateStarted);
 
     connect(action(SortStructMembers), &SavedAction::valueChanged,
-        m_engine, &DebuggerEngine::updateAll);
+        m_engine, &DebuggerEngine::updateLocals);
     connect(action(ShowStdNamespace), &SavedAction::valueChanged,
         m_engine, &DebuggerEngine::updateAll);
     connect(action(ShowQtNamespace), &SavedAction::valueChanged,
@@ -512,34 +511,6 @@ static QString quoteUnprintable(const QString &str)
     return encoded;
 }
 
-static QString translate(const QString &str)
-{
-    if (str.startsWith(QLatin1Char('<'))) {
-        if (str == QLatin1String("<empty>"))
-            return WatchHandler::tr("<empty>");
-        if (str == QLatin1String("<uninitialized>"))
-            return WatchHandler::tr("<uninitialized>");
-        if (str == QLatin1String("<invalid>"))
-            return WatchHandler::tr("<invalid>");
-        if (str == QLatin1String("<not accessible>"))
-            return WatchHandler::tr("<not accessible>");
-        if (str.endsWith(QLatin1String(" items>"))) {
-            // '<10 items>' or '<>10 items>' (more than)
-            bool ok;
-            const bool moreThan = str.at(1) == QLatin1Char('>');
-            const int numberPos = moreThan ? 2 : 1;
-            const int len = str.indexOf(QLatin1Char(' ')) - numberPos;
-            const int size = str.mid(numberPos, len).toInt(&ok);
-            QTC_ASSERT(ok, qWarning("WatchHandler: Invalid item count '%s'",
-                qPrintable(str)));
-            return moreThan ?
-                     WatchHandler::tr("<more than %n items>", 0, size) :
-                     WatchHandler::tr("<%n items>", 0, size);
-        }
-    }
-    return quoteUnprintable(str);
-}
-
 QString WatchItem::formattedValue() const
 {
     if (type == "bool") {
@@ -595,12 +566,11 @@ QString WatchItem::formattedValue() const
     if (elided) {
         QString v = value;
         v.chop(1);
-        v = translate(v);
         QString len = elided > 0 ? QString::number(elided) : QLatin1String("unknown length");
         return v + QLatin1String("\"... (") + len  + QLatin1Char(')');
     }
 
-    return translate(value);
+    return quoteUnprintable(value);
 }
 
 // Get a pointer address from pointer values reported by the debugger.
@@ -658,7 +628,7 @@ QVariant WatchItem::editValue() const
             stringValue.replace(QLatin1String("\n"), QLatin1String("\\n"));
         }
     }
-    return QVariant(translate(stringValue));
+    return QVariant(quoteUnprintable(stringValue));
 }
 
 bool WatchItem::canFetchMore() const
@@ -670,20 +640,16 @@ bool WatchItem::canFetchMore() const
         return false;
     if (!model->m_contentsValid && !isInspect())
         return false;
-    return !model->m_fetchTriggered.contains(iname);
+    return true;
 }
 
 void WatchItem::fetchMore()
 {
     WatchModel *model = watchModel();
-    if (model->m_fetchTriggered.contains(iname))
-        return;
-
     model->m_expandedINames.insert(iname);
-    model->m_fetchTriggered.insert(iname);
     if (children().isEmpty()) {
         setChildrenNeeded();
-        model->m_engine->updateWatchData(iname);
+        model->m_engine->expandItem(iname);
     }
 }
 
@@ -940,12 +906,12 @@ bool WatchModel::setData(const QModelIndex &idx, const QVariant &value, int role
 
         case LocalsTypeFormatRole:
             setTypeFormat(item->type, value.toInt());
-            m_engine->updateWatchData(item->iname);
+            m_engine->updateLocals();
             break;
 
         case LocalsIndividualFormatRole: {
             setIndividualFormat(item->iname, value.toInt());
-            m_engine->updateWatchData(item->iname);
+            m_engine->updateLocals();
             break;
         }
     }
@@ -1159,16 +1125,25 @@ void WatchHandler::insertItem(WatchItem *item)
 
 void WatchModel::insertItem(WatchItem *item)
 {
+    QTC_ASSERT(!item->iname.isEmpty(), return);
+
     WatchItem *parent = findItem(parentName(item->iname));
     QTC_ASSERT(parent, return);
 
-    if (WatchItem *existing = parent->findItem(item->iname)) {
-        int row = parent->children().indexOf(existing);
-        delete takeItem(existing);
-        parent->insertChild(row, item);
-    } else {
-        parent->appendChild(item);
+    bool found = false;
+    const QVector<TreeItem *> siblings = parent->children();
+    for (int row = 0, n = siblings.size(); row < n; ++row) {
+        if (static_cast<WatchItem *>(siblings.at(row))->iname == item->iname) {
+            delete takeItem(parent->children().at(row));
+            parent->insertChild(row, item);
+            found = true;
+            break;
+        }
     }
+    if (!found)
+        parent->appendChild(item);
+
+    item->update();
 
     item->walkTree([this](TreeItem *sub) { showEditValue(static_cast<WatchItem *>(sub)); });
 }
@@ -1214,8 +1189,20 @@ void WatchHandler::resetWatchers()
     loadSessionData();
 }
 
-void WatchHandler::notifyUpdateStarted()
+void WatchHandler::notifyUpdateStarted(const QList<QByteArray> &inames)
 {
+    auto marker = [](TreeItem *it) { static_cast<WatchItem *>(it)->outdated = true; };
+
+    if (inames.isEmpty()) {
+        foreach (auto item, m_model->itemsAtLevel<WatchItem *>(2))
+            item->walkTree(marker);
+    } else {
+        foreach (auto iname, inames) {
+            if (WatchItem *item = m_model->findItem(iname))
+                item->walkTree(marker);
+        }
+    }
+
     m_model->m_requestUpdateTimer.start(80);
     m_model->m_contentsValid = false;
     updateWatchersWindow();
@@ -1223,23 +1210,35 @@ void WatchHandler::notifyUpdateStarted()
 
 void WatchHandler::notifyUpdateFinished()
 {
+    struct OutDatedItemsFinder : public TreeItemVisitor
+    {
+        bool preVisit(TreeItem *item)
+        {
+            auto watchItem = static_cast<WatchItem *>(item);
+            if (level() <= 1 || !watchItem->outdated)
+                return true;
+            toRemove.append(watchItem);
+            return false;
+        }
+
+        QList<WatchItem *> toRemove;
+    } finder;
+
+    m_model->root()->walkTree(&finder);
+
+    foreach (auto item, finder.toRemove)
+        delete m_model->takeItem(item);
+
     m_model->m_contentsValid = true;
     updateWatchersWindow();
+    m_model->reexpandItems();
     m_model->m_requestUpdateTimer.stop();
     emit m_model->updateFinished();
 }
 
-void WatchHandler::purgeOutdatedItems(const QSet<QByteArray> &inames)
+void WatchHandler::reexpandItems()
 {
-    foreach (const QByteArray &iname, inames) {
-        WatchItem *item = findItem(iname);
-        delete m_model->takeItem(item);
-    }
-
-    m_model->layoutChanged();
     m_model->reexpandItems();
-    m_model->m_contentsValid = true;
-    updateWatchersWindow();
 }
 
 void WatchHandler::removeItemByIName(const QByteArray &iname)
@@ -1273,14 +1272,14 @@ void WatchHandler::watchExpression(const QString &exp0, const QString &name)
     item->exp = exp;
     item->name = name.isEmpty() ? exp0 : name;
     item->iname = watcherName(exp);
+    m_model->insertItem(item);
     saveWatchers();
 
     if (m_model->m_engine->state() == DebuggerNotReady) {
         item->setAllUnneeded();
         item->setValue(QString(QLatin1Char(' ')));
-        m_model->insertItem(item);
     } else {
-        m_model->m_engine->updateWatchData(item->iname);
+        m_model->m_engine->updateItem(item->iname);
     }
     updateWatchersWindow();
 }
@@ -1634,7 +1633,6 @@ QString WatchHandler::editorContents()
 
 void WatchHandler::scheduleResetLocation()
 {
-    m_model->m_fetchTriggered.clear();
     m_model->m_contentsValid = false;
     m_model->m_resetLocationScheduled = true;
 }

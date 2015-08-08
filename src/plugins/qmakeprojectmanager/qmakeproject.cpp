@@ -360,10 +360,11 @@ void QmakeProject::updateFileList()
     }
 }
 
-bool QmakeProject::fromMap(const QVariantMap &map)
+Project::RestoreResult QmakeProject::fromMap(const QVariantMap &map, QString *errorMessage)
 {
-    if (!Project::fromMap(map))
-        return false;
+    RestoreResult result = Project::fromMap(map, errorMessage);
+    if (result != RestoreResult::Ok)
+        return result;
 
     // Prune targets without buildconfigurations:
     // This can happen esp. when updating from a old version of Qt Creator
@@ -390,7 +391,7 @@ bool QmakeProject::fromMap(const QVariantMap &map)
             this, &QmakeProject::activeTargetWasChanged);
 
     scheduleAsyncUpdate(QmakeProFileNode::ParseNow);
-    return true;
+    return RestoreResult::Ok;
 }
 
 /// equalFileList compares two file lists ignoring
@@ -896,7 +897,9 @@ QString QmakeProject::generatedUiHeader(const FileName &formFile) const
     // the top-level project only.
     if (m_rootProjectNode)
         if (const QmakeProFileNode *pro = proFileNodeOf(m_rootProjectNode, FormType, formFile))
-            return QmakeProFileNode::uiHeaderFile(pro->uiDirectory(pro->buildDir()), formFile);
+            return QmakeProFileNode::uiHeaderFile(
+                        pro->uiDirectory(Utils::FileName::fromString(pro->buildDir())),
+                        formFile);
     return QString();
 }
 

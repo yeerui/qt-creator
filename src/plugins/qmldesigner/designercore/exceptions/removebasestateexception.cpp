@@ -45,8 +45,8 @@ namespace QmlDesigner {
     the __FILE__ macro.
 */
 RemoveBaseStateException::RemoveBaseStateException(int line,
-                                             const QString &function,
-                                             const QString &file)
+                                             const QByteArray &function,
+                                             const QByteArray &file)
   : Exception(line, function, file)
 {
     createWarning();
@@ -57,7 +57,7 @@ Returns the type of this exception as a string.
 */
 QString RemoveBaseStateException::type() const
 {
-    return "RemoveBaseStateException";
+    return QLatin1String("RemoveBaseStateException");
 }
 
 } // namespace QmlDesigner

@@ -144,6 +144,7 @@ ScanStackCommand()
 class PlainDumper:
     def __init__(self, printer):
         self.printer = printer
+        self.typeCache = {}
 
     def __call__(self, d, value):
         printer = self.printer.invoke(value)
@@ -223,6 +224,7 @@ class Dumper(DumperBase):
         # These values will be kept between calls to 'showData'.
         self.isGdb = True
         self.childEventAddress = None
+        self.typeCache = {}
         self.typesReported = {}
         self.typesToReport = {}
         self.qtNamespaceToReport = None
@@ -463,7 +465,7 @@ class Dumper(DumperBase):
             if self.passExceptions:
                 showException("SUBITEM", exType, exValue, exTraceBack)
             self.putNumChild(0)
-            self.putValue("<not accessible>")
+            self.putSpecialValue(SpecialNotAccessibleValue)
         try:
             if self.currentType.value:
                 typeName = self.stripClassTag(self.currentType.value)
@@ -471,7 +473,8 @@ class Dumper(DumperBase):
                     self.put('type="%s",' % typeName) # str(type.unqualified()) ?
 
             if  self.currentValue.value is None:
-                self.put('value="<not accessible>",numchild="0",')
+                self.put('value="",encoding="%d","numchild="0",'
+                        % SpecialNotAccessibleValue)
             else:
                 if not self.currentValue.encoding is None:
                     self.put('valueencoded="%d",' % self.currentValue.encoding)
@@ -751,6 +754,12 @@ class Dumper(DumperBase):
     def extractUInt(self, addr):
         return struct.unpack("I", self.readRawMemory(addr, 4))[0]
 
+    def extractShort(self, addr):
+        return struct.unpack("h", self.readRawMemory(addr, 2))[0]
+
+    def extractUShort(self, addr):
+        return struct.unpack("H", self.readRawMemory(addr, 2))[0]
+
     def extractByte(self, addr):
         return struct.unpack("b", self.readRawMemory(addr, 1))[0]
 
@@ -922,7 +931,7 @@ class Dumper(DumperBase):
         if value is None:
             # Happens for non-available watchers in gdb versions that
             # need to use gdb.execute instead of gdb.parse_and_eval
-            self.putValue("<not available>")
+            self.putSpecialValue(SpecialNotAvailableValue)
             self.putType("<unknown>")
             self.putNumChild(0)
             return
@@ -931,7 +940,7 @@ class Dumper(DumperBase):
         typeName = str(typeobj)
 
         if value.is_optimized_out:
-            self.putValue("<optimized out>")
+            self.putSpecialValue(SpecialOptimizedOutValue)
             self.putType(typeName)
             self.putNumChild(0)
             return
@@ -952,7 +961,7 @@ class Dumper(DumperBase):
             try:
                 # Try to recognize null references explicitly.
                 if toInteger(value.address) == 0:
-                    self.putValue("<null reference>")
+                    self.putSpecialValue(SpecialNullReferenceValue)
                     self.putType(typeName)
                     self.putNumChild(0)
                     return
@@ -980,7 +989,7 @@ class Dumper(DumperBase):
                 self.putBetterType("%s &" % self.currentType.value)
                 return
             except RuntimeError:
-                self.putValue("<optimized out reference>")
+                self.putSpecialValue(SpecialOptimizedOutValue)
                 self.putType(typeName)
                 self.putNumChild(0)
                 return
@@ -1061,7 +1070,7 @@ class Dumper(DumperBase):
             # Anonymous union. We need a dummy name to distinguish
             # multiple anonymous unions in the struct.
             self.putType(typeobj)
-            self.putValue("{...}")
+            self.putSpecialValue(SpecialEmptyStructureValue)
             self.anonNumber += 1
             with Children(self, 1):
                 self.listAnonymous(value, "#%d" % self.anonNumber, typeobj)
@@ -1147,8 +1156,13 @@ class Dumper(DumperBase):
     def putFields(self, value, dumpBase = True):
             fields = value.type.fields()
             if self.sortStructMembers:
-                fields.sort(key = lambda field:
-                    '[' + field.name if field.is_base_class else str(field.name))
+                def sortOrder(field):
+                    if field.is_base_class:
+                        return 0
+                    if field.name and field.name.startswith("_vptr."):
+                        return 1
+                    return 2
+                fields.sort(key = lambda field: "%d%s" % (sortOrder(field), field.name))
 
             #warn("TYPE: %s" % value.type)
             #warn("FIELDS: %s" % fields)
@@ -1699,7 +1713,7 @@ class CliDumper(Dumper):
             if self.passExceptions:
                 showException("SUBITEM", exType, exValue, exTraceBack)
             self.putNumChild(0)
-            self.putValue("<not accessible>")
+            self.putSpecialValue(SpecialNotAccessibleValue)
         try:
             if self.currentType.value:
                 typeName = self.stripClassTag(self.currentType.value)

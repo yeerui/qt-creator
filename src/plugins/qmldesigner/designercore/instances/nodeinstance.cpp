@@ -84,6 +84,8 @@ public:
     QPixmap renderPixmap;
     QPixmap blurredRenderPixmap;
 
+    QString errorMessage;
+
     QHash<PropertyName, QPair<PropertyName, qint32> > anchors;
 };
 
@@ -123,7 +125,7 @@ NodeInstance &NodeInstance::operator=(const NodeInstance &other)
 ModelNode NodeInstance::modelNode() const
 {
     if (d)
-        return  d->modelNode;
+        return d->modelNode;
     else
         return ModelNode();
 }
@@ -168,7 +170,7 @@ void NodeInstance::setY(double y)
 
 bool NodeInstance::hasAnchors() const
 {
-    return  hasAnchor("anchors.fill")
+    return hasAnchor("anchors.fill")
             || hasAnchor("anchors.centerIn")
             || hasAnchor("anchors.top")
             || hasAnchor("anchors.left")
@@ -178,6 +180,17 @@ bool NodeInstance::hasAnchors() const
             || hasAnchor("anchors.verticalCenter")
             || hasAnchor("anchors.baseline");
 }
+
+QString NodeInstance::error() const
+{
+    return d->errorMessage;
+}
+
+bool NodeInstance::hasError() const
+{
+    return !d->errorMessage.isEmpty();
+}
+
 
 bool NodeInstance::isValid() const
 {
@@ -193,7 +206,7 @@ void NodeInstance::makeInvalid()
 QRectF NodeInstance::boundingRect() const
 {
     if (isValid())
-        return  d->boundingRect;
+        return d->boundingRect;
     else
         return QRectF();
 }
@@ -201,7 +214,7 @@ QRectF NodeInstance::boundingRect() const
 QRectF NodeInstance::contentItemBoundingRect() const
 {
     if (isValid())
-        return  d->contentItemBoundingRect;
+        return d->contentItemBoundingRect;
     else
         return QRectF();
 }
@@ -390,6 +403,15 @@ void NodeInstance::setRenderPixmap(const QImage &image)
 {
     d->renderPixmap = QPixmap::fromImage(image);
     d->blurredRenderPixmap = QPixmap();
+}
+
+bool NodeInstance::setError(const QString &errorMessage)
+{
+    if (d->errorMessage != errorMessage) {
+        d->errorMessage = errorMessage;
+        return true;
+    }
+    return false;
 }
 
 void NodeInstance::setParentId(qint32 instanceId)

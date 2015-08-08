@@ -31,7 +31,6 @@
 #include "clangmodelmanagersupport.h"
 
 #include "constants.h"
-#include "clangcompletion.h"
 #include "clangeditordocumentprocessor.h"
 #include "clangutils.h"
 
@@ -50,7 +49,7 @@
 using namespace ClangCodeModel;
 using namespace ClangCodeModel::Internal;
 
-static ModelManagerSupportClang *m_instance = 0;
+static ModelManagerSupportClang *m_instance_forTestsOnly = 0;
 
 static CppTools::CppModelManager *cppModelManager()
 {
@@ -60,8 +59,8 @@ static CppTools::CppModelManager *cppModelManager()
 ModelManagerSupportClang::ModelManagerSupportClang()
     : m_completionAssistProvider(m_ipcCommunicator)
 {
-    QTC_CHECK(!m_instance);
-    m_instance = this;
+    QTC_CHECK(!m_instance_forTestsOnly);
+    m_instance_forTestsOnly = this;
 
     Core::EditorManager *editorManager = Core::EditorManager::instance();
     connect(editorManager, &Core::EditorManager::currentEditorChanged,
@@ -70,6 +69,10 @@ ModelManagerSupportClang::ModelManagerSupportClang()
             this, &ModelManagerSupportClang::onEditorOpened);
 
     CppTools::CppModelManager *modelManager = cppModelManager();
+    connect(modelManager, &CppTools::CppModelManager::abstractEditorSupportContentsUpdated,
+            this, &ModelManagerSupportClang::onAbstractEditorSupportContentsUpdated);
+    connect(modelManager, &CppTools::CppModelManager::abstractEditorSupportRemoved,
+            this, &ModelManagerSupportClang::onAbstractEditorSupportRemoved);
     connect(modelManager, &CppTools::CppModelManager::projectPartsUpdated,
             this, &ModelManagerSupportClang::onProjectPartsUpdated);
     connect(modelManager, &CppTools::CppModelManager::projectPartsRemoved,
@@ -78,7 +81,7 @@ ModelManagerSupportClang::ModelManagerSupportClang()
 
 ModelManagerSupportClang::~ModelManagerSupportClang()
 {
-    m_instance = 0;
+    m_instance_forTestsOnly = 0;
 }
 
 CppTools::CppCompletionAssistProvider *ModelManagerSupportClang::completionAssistProvider()
@@ -114,9 +117,8 @@ void ModelManagerSupportClang::onEditorOpened(Core::IEditor *editor)
     Core::IDocument *document = editor->document();
     QTC_ASSERT(document, return);
     TextEditor::TextDocument *textDocument = qobject_cast<TextEditor::TextDocument *>(document);
-    QTC_ASSERT(textDocument, return);
 
-    if (cppModelManager()->isCppEditor(editor)) {
+    if (textDocument && cppModelManager()->isCppEditor(editor)) {
         // Handle externally changed documents
         connect(textDocument, &Core::IDocument::reloadFinished,
                 this, &ModelManagerSupportClang::onCppDocumentReloadFinished,
@@ -157,9 +159,9 @@ void ModelManagerSupportClang::onAbstractEditorSupportRemoved(const QString &fil
 {
     QTC_ASSERT(!filePath.isEmpty(), return);
     if (!cppModelManager()->cppEditorDocument(filePath)) {
-        const QString projectFilePath = Utils::projectFilePathForFile(filePath);
+        const QString projectPartId = Utils::projectPartIdForFile(filePath);
         m_ipcCommunicator.unregisterFilesForCodeCompletion(
-            {ClangBackEnd::FileContainer(filePath, projectFilePath)});
+            {ClangBackEnd::FileContainer(filePath, projectPartId)});
     }
 }
 
@@ -171,15 +173,18 @@ void ModelManagerSupportClang::onProjectPartsUpdated(ProjectExplorer::Project *p
     m_ipcCommunicator.registerProjectsParts(projectInfo.projectParts());
 }
 
-void ModelManagerSupportClang::onProjectPartsRemoved(const QStringList &projectFiles)
+void ModelManagerSupportClang::onProjectPartsRemoved(const QStringList &projectPartIds)
 {
-    m_ipcCommunicator.unregisterProjectPartsForCodeCompletion(projectFiles);
+    if (!projectPartIds.isEmpty())
+        m_ipcCommunicator.unregisterProjectPartsForCodeCompletion(projectPartIds);
 }
 
-ModelManagerSupportClang *ModelManagerSupportClang::instance()
+#ifdef QT_TESTLIB_LIB
+ModelManagerSupportClang *ModelManagerSupportClang::instance_forTestsOnly()
 {
-    return m_instance;
+    return m_instance_forTestsOnly;
 }
+#endif
 
 IpcCommunicator &ModelManagerSupportClang::ipcCommunicator()
 {

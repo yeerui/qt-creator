@@ -547,10 +547,6 @@ void CdbEngine::setupEngine()
 {
     if (debug)
         qDebug(">setupEngine");
-    // Nag to add symbol server and cache
-    QStringList symbolPaths = stringListSetting(CdbSymbolPaths);
-    if (CdbSymbolPathListEditor::promptToAddSymbolPaths(&symbolPaths))
-        action(CdbSymbolPaths)->setValue(symbolPaths);
 
     init();
     if (!m_logTime.elapsed())
@@ -1344,7 +1340,7 @@ void CdbEngine::doUpdateLocals(const UpdateParameters &updateParameters)
         return;
     }
 
-    watchHandler()->notifyUpdateStarted();
+    watchHandler()->notifyUpdateStarted(updateParameters.partialVariables());
 
     /* Watchers: Forcibly discard old symbol group as switching from
      * thread 0/frame 0 -> thread 1/assembly -> thread 0/frame 0 will otherwise re-use it
@@ -1779,7 +1775,6 @@ void CdbEngine::handleRegistersExt(const CdbResponse &response)
 
 void CdbEngine::handleLocals(const CdbResponse &response, bool partialUpdate)
 {
-    watchHandler()->notifyUpdateFinished();
     if (response.success) {
         if (boolSetting(VerboseLog))
             showMessage(QLatin1String("Locals: ") + QString::fromLatin1(response.extensionReply), LogDebug);
@@ -1800,6 +1795,7 @@ void CdbEngine::handleLocals(const CdbResponse &response, bool partialUpdate)
     } else {
         showMessage(QString::fromLatin1(response.errorMessage), LogWarning);
     }
+    watchHandler()->notifyUpdateFinished();
 }
 
 void CdbEngine::handleExpandLocals(const CdbResponse &response)
@@ -2353,6 +2349,8 @@ void CdbEngine::handleExtensionMessage(char t, int token, const QByteArray &what
     }
 
     if (what == "event") {
+        if (message.startsWith("Process exited"))
+            notifyInferiorExited();
         showStatusMessage(QString::fromLatin1(message),  5000);
         return;
     }
@@ -2383,16 +2381,18 @@ void CdbEngine::handleExtensionMessage(char t, int token, const QByteArray &what
         GdbMi gdbmi;
         gdbmi.fromString(message);
         exception.fromGdbMI(gdbmi);
-        // Don't show the Win32 x86 emulation subsystem breakpoint hit exception.
-        if (exception.exceptionCode == winExceptionWX86Breakpoint)
+        // Don't show the Win32 x86 emulation subsystem breakpoint hit or the
+        // set thread names exception.
+        if (exception.exceptionCode == winExceptionWX86Breakpoint
+                || exception.exceptionCode == winExceptionSetThreadName) {
             return;
+        }
         const QString message = exception.toString(true);
         showStatusMessage(message);
         // Report C++ exception in application output as well.
         if (exception.exceptionCode == winExceptionCppException)
             showMessage(message + QLatin1Char('\n'), AppOutput);
-        if (!isDebuggerWinException(exception.exceptionCode)
-                && exception.exceptionCode != winExceptionSetThreadName) {
+        if (!isDebuggerWinException(exception.exceptionCode)) {
             const Task::TaskType type =
                     isFatalWinException(exception.exceptionCode) ? Task::Error : Task::Warning;
             const FileName fileName = exception.file.isEmpty() ?
@@ -2541,7 +2541,14 @@ void CdbEngine::parseOutputLine(QByteArray line)
             }
         }
     }
-    showMessage(QString::fromLocal8Bit(line), LogMisc);
+    // output(64): ModLoad: 00007ffb`842b0000 00007ffb`843ee000   C:\Windows\system32\KERNEL32.DLL
+    // output(32): ModLoad: 00007ffb 00007ffb   C:\Windows\system32\KERNEL32.DLL
+    if (line.startsWith("ModLoad: ")) {
+        QRegExp moduleRegExp(QLatin1String(
+                                 "[0-9a-fA-F]+(`[0-9a-fA-F]+)? [0-9a-fA-F]+(`[0-9a-fA-F]+)? (.*)"));
+        if (moduleRegExp.indexIn(QLatin1String(line)) > -1)
+            showStatusMessage(tr("Module loaded: ") + moduleRegExp.cap(3).trimmed(), 3000);
+    }
 }
 
 void CdbEngine::readyReadStandardOut()

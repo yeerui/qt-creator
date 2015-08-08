@@ -343,7 +343,7 @@ Utils::Environment MsvcToolChain::readEnvironmentSetting(Utils::Environment& env
 
 MsvcToolChain::MsvcToolChain(const QString &name, const Abi &abi,
                              const QString &varsBat, const QString &varsBatArg, Detection d) :
-    AbstractMsvcToolChain(QLatin1String(Constants::MSVC_TOOLCHAIN_ID), d, abi, varsBat),
+    AbstractMsvcToolChain(Constants::MSVC_TOOLCHAIN_TYPEID, d, abi, varsBat),
     m_varsBatArg(varsBatArg)
 {
     Q_ASSERT(!name.isEmpty());
@@ -360,7 +360,7 @@ bool MsvcToolChain::isValid() const
 }
 
 MsvcToolChain::MsvcToolChain() :
-    AbstractMsvcToolChain(QLatin1String(Constants::MSVC_TOOLCHAIN_ID), ManualDetection)
+    AbstractMsvcToolChain(Constants::MSVC_TOOLCHAIN_TYPEID, ManualDetection)
 {
 }
 
@@ -371,11 +371,6 @@ MsvcToolChain *MsvcToolChain::readFromMap(const QVariantMap &data)
         return tc;
     delete tc;
     return 0;
-}
-
-QString MsvcToolChain::type() const
-{
-    return QLatin1String("msvc");
 }
 
 QString MsvcToolChain::typeDisplayName() const
@@ -486,7 +481,7 @@ void MsvcToolChainConfigWidget::setFromToolChain()
 
 MsvcToolChainFactory::MsvcToolChainFactory()
 {
-    setId(Constants::MSVC_TOOLCHAIN_ID);
+    setTypeId(Constants::MSVC_TOOLCHAIN_TYPEID);
     setDisplayName(tr("MSVC"));
 }
 
@@ -632,7 +627,7 @@ bool MsvcToolChain::operator ==(const ToolChain &other) const
 
 bool MsvcToolChainFactory::canRestore(const QVariantMap &data)
 {
-    return idFromMap(data).startsWith(QLatin1String(Constants::MSVC_TOOLCHAIN_ID) + QLatin1Char(':'));
+    return typeIdFromMap(data) == Constants::MSVC_TOOLCHAIN_TYPEID;
 }
 
 } // namespace Internal

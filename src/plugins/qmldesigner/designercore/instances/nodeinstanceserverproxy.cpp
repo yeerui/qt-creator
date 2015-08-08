@@ -92,7 +92,7 @@ static bool hasQtQuick1(NodeInstanceView *nodeInstanceView)
 {
     if (nodeInstanceView && nodeInstanceView->model()) {
         foreach (const Import &import ,nodeInstanceView->model()->imports()) {
-            if (import.url() ==  "QtQuick" && import.version().toDouble() < 2.0)
+            if (import.url() ==  QLatin1String("QtQuick") && import.version().toDouble() < 2.0)
                 return true;
         }
     }
@@ -130,7 +130,7 @@ NodeInstanceServerProxy::NodeInstanceServerProxy(NodeInstanceView *nodeInstanceV
 
    PuppetCreator::QmlPuppetVersion puppetVersion = hasQtQuick1(nodeInstanceView) ? PuppetCreator::Qml1Puppet : PuppetCreator::Qml2Puppet;
    PuppetCreator puppetCreator(kit, QString(), nodeInstanceView->model(), puppetVersion);
-
+   puppetCreator.setQrcMappingString(qrcMappingString());
 
    puppetCreator.createPuppetExecutableIfMissing();
 
@@ -326,6 +326,30 @@ void NodeInstanceServerProxy::puppetAlive(NodeInstanceServerProxy::PuppetStreamT
     }
 }
 
+QString NodeInstanceServerProxy::qrcMappingString() const
+{
+    if (m_nodeInstanceView && m_nodeInstanceView.data()->model()) {
+        RewriterView *rewriterView = m_nodeInstanceView.data()->model()->rewriterView();
+        if (rewriterView) {
+            QString mappingString;
+
+            typedef QPair<QString, QString> StringPair;
+
+            foreach (const StringPair &pair, rewriterView->qrcMapping()) {
+                if (!mappingString.isEmpty())
+                    mappingString.append(QLatin1String(","));
+                mappingString.append(pair.first);
+                mappingString.append(QLatin1String("="));
+                mappingString.append(pair.second);
+            }
+
+            return mappingString;
+        }
+    }
+
+    return QString();
+}
+
 void NodeInstanceServerProxy::processFinished()
 {
     processFinished(-1, QProcess::CrashExit);
@@ -354,7 +378,7 @@ void NodeInstanceServerProxy::writeCommand(const QVariant &command)
     writeCommandToIODecive(command, m_thirdSocket.data(), m_writeCommandCounter);
 
     if (m_captureFileForTest.isWritable()) {
-        qDebug() << "Write strean to file: " << m_captureFileForTest.fileName();
+        qDebug() << "Write stream to file: " << m_captureFileForTest.fileName();
         writeCommandToIODecive(command, &m_captureFileForTest, m_writeCommandCounter);
         qDebug() << "\twrite file: " << m_captureFileForTest.pos();
     }

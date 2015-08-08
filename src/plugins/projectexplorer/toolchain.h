@@ -77,12 +77,12 @@ public:
     inline bool isAutoDetected() const { return detection() != ManualDetection; }
     Detection detection() const;
 
-    QString id() const;
+    QByteArray id() const;
 
     virtual QList<Utils::FileName> suggestedMkspecList() const;
     virtual Utils::FileName suggestedDebugger() const;
 
-    virtual QString type() const = 0;
+    Core::Id typeId() const;
     virtual QString typeDisplayName() const = 0;
     virtual Abi targetAbi() const = 0;
 
@@ -157,7 +157,7 @@ public:
     virtual QVariantMap toMap() const;
     virtual QList<Task> validateKit(const Kit *k) const;
 protected:
-    explicit ToolChain(const QString &id, Detection d);
+    explicit ToolChain(Core::Id typeId, Detection d);
     explicit ToolChain(const ToolChain &);
 
     void toolChainUpdated();
@@ -179,7 +179,7 @@ class PROJECTEXPLORER_EXPORT ToolChainFactory : public QObject
     Q_OBJECT
 
 public:
-    Core::Id id() const { return m_id; }
+    Core::Id typeId() const { return m_typeId; }
     QString displayName() const { return m_displayName; }
 
     virtual QList<ToolChain *> autoDetect();
@@ -190,17 +190,17 @@ public:
     virtual bool canRestore(const QVariantMap &data);
     virtual ToolChain *restore(const QVariantMap &data);
 
-    static QString idFromMap(const QVariantMap &data);
-    static void idToMap(QVariantMap &data, const QString id);
+    static QByteArray idFromMap(const QVariantMap &data);
+    static Core::Id typeIdFromMap(const QVariantMap &data);
     static void autoDetectionToMap(QVariantMap &data, bool detected);
 
 protected:
-    void setId(Core::Id id) { m_id = id; }
+    void setTypeId(Core::Id id) { m_typeId = id; }
     void setDisplayName(const QString &name) { m_displayName = name; }
 
 private:
     QString m_displayName;
-    Core::Id m_id;
+    Core::Id m_typeId;
 };
 
 } // namespace ProjectExplorer

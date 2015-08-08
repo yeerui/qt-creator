@@ -635,20 +635,19 @@ void PerforcePlugin::startSubmitProject()
     m_commitMessageFileName = saver.fileName();
 
     args.clear();
-    args << QLatin1String("fstat");
+    args << QLatin1String("files");
     args.append(perforceRelativeProjectDirectory(state));
-    PerforceResponse fstatResult = runP4Cmd(state.currentProjectTopLevel(), args,
+    PerforceResponse filesResult = runP4Cmd(state.currentProjectTopLevel(), args,
                                             RunFullySynchronous|CommandToWindow|StdErrToWindow|ErrorToWindow);
-    if (fstatResult.error) {
+    if (filesResult.error) {
         cleanCommitMessageFile();
         return;
     }
 
-    QStringList fstatLines = fstatResult.stdOut.split(QLatin1Char('\n'));
+    QStringList filesLines = filesResult.stdOut.split(QLatin1Char('\n'));
     QStringList depotFileNames;
-    foreach (const QString &line, fstatLines) {
-        if (line.startsWith(QLatin1String("... depotFile")))
-            depotFileNames.append(line.mid(14));
+    foreach (const QString &line, filesLines) {
+        depotFileNames.append(line.left(line.lastIndexOf(QRegExp(QLatin1String("#[0-9]+\\s-\\s")))));
     }
     if (depotFileNames.isEmpty()) {
         VcsOutputWindow::appendWarning(tr("Project has no files"));
@@ -668,7 +667,7 @@ IEditor *PerforcePlugin::openPerforceSubmitEditor(const QString &fileName, const
     submitEditor->registerActions(m_undoAction, m_redoAction, m_submitCurrentLogAction, m_diffSelectedFiles);
     connect(submitEditor, &VcsBaseSubmitEditor::diffSelectedFiles,
             this, &PerforcePlugin::slotSubmitDiff);
-    submitEditor->setCheckScriptWorkingDirectory(m_commitWorkingDirectory);
+    submitEditor->setCheckScriptWorkingDirectory(m_settings.topLevel());
     return editor;
 }
 
@@ -1250,7 +1249,7 @@ IEditor *PerforcePlugin::showOutputInEditor(const QString &title,
 
 void PerforcePlugin::slotSubmitDiff(const QStringList &files)
 {
-    p4Diff(m_commitWorkingDirectory, files);
+    p4Diff(m_settings.topLevel(), files);
 }
 
 struct PerforceDiffParameters
@@ -1368,7 +1367,6 @@ void PerforcePlugin::cleanCommitMessageFile()
     if (!m_commitMessageFileName.isEmpty()) {
         QFile::remove(m_commitMessageFileName);
         m_commitMessageFileName.clear();
-        m_commitWorkingDirectory.clear();
     }
 }
 

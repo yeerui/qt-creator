@@ -129,8 +129,18 @@ Hex2EncodedFloat4, \
 Hex2EncodedFloat8, \
 IPv6AddressAndHexScopeId, \
 Hex2EncodedUtf8WithoutQuotes, \
-DateTimeInternal \
-    = range(30)
+DateTimeInternal, \
+SpecialEmptyValue, \
+SpecialUninitializedValue, \
+SpecialInvalidValue, \
+SpecialNotAccessibleValue, \
+SpecialItemCountValue, \
+SpecialMinimumItemCountValue, \
+SpecialNotCallableValue, \
+SpecialNullReferenceValue, \
+SpecialOptimizedOutValue, \
+SpecialEmptyStructureValue, \
+    = range(40)
 
 # Display modes. Keep that synchronized with DebuggerDisplay in watchutils.h
 StopDisplay, \
@@ -292,7 +302,7 @@ class Children:
             if self.d.passExceptions:
                 showException("CHILDREN", exType, exValue, exTraceBack)
             self.d.putNumChild(0)
-            self.d.putValue("<not accessible>")
+            self.d.putSpecialValue(SpecialNotAccessibleValue)
         if not self.d.currentMaxNumChild is None:
             if self.d.currentMaxNumChild < self.d.currentNumChild:
                 self.d.put('{name="<incomplete>",value="",type="",numchild="0"},')
@@ -387,12 +397,27 @@ class DumperBase:
         self.isCli = False
 
         # Later set, or not set:
-        # cachedQtVersion
         self.stringCutOff = 10000
         self.displayStringLimit = 100
 
+        self.resetCaches()
+
+        self.childrenPrefix = 'children=['
+        self.childrenSuffix = '],'
+
+        self.dumpermodules = [
+            "qttypes",
+            "stdtypes",
+            "misctypes",
+            "boosttypes",
+            "creatortypes",
+            "personaltypes",
+        ]
+
+
+    def resetCaches(self):
         # This is a cache mapping from 'type name' to 'display alternatives'.
-        self.qqFormats = {}
+        self.qqFormats = { "QVariant (QVariantMap)" : mapForms() }
 
         # This is a cache of all known dumpers.
         self.qqDumpers = {}
@@ -406,18 +431,6 @@ class DumperBase:
         # Maps type names to static metaobjects. If a type is known
         # to not be QObject derived, it contains a 0 value.
         self.knownStaticMetaObjects = {}
-
-        self.childrenPrefix = 'children=['
-        self.childrenSuffix = '],'
-
-        self.dumpermodules = [
-            "qttypes",
-            "stdtypes",
-            "misctypes",
-            "boosttypes",
-            "creatortypes",
-            "personaltypes",
-        ]
 
 
     def putNewline(self):
@@ -460,7 +473,7 @@ class DumperBase:
             return s.decode("hex")
         return bytes.fromhex(s).decode("utf8")
 
-    # Hex decoding operating on str or bytes, return str.
+    # Hex encoding operating on str or bytes, return str.
     def hexencode(self, s):
         if sys.version_info[0] == 2:
             return s.encode("hex")
@@ -689,7 +702,7 @@ class DumperBase:
                 self.putItem(result)
         except:
             with SubItem(self, name):
-                self.putValue("<not callable>")
+                self.putSpecialValue(SpecialNotCallableValue);
                 self.putNumChild(0)
 
     def call(self, value, func, *args):
@@ -813,9 +826,9 @@ class DumperBase:
     def putItemCount(self, count, maximum = 1000000000):
         # This needs to override the default value, so don't use 'put' directly.
         if count > maximum:
-            self.putValue('<>%s items>' % maximum)
+            self.putSpeciaValue(SpecialMinimumItemCountValue, maximum)
         else:
-            self.putValue('<%s items>' % count)
+            self.putSpecialValue(SpecialItemCountValue, count)
         self.putNumChild(count)
 
     def putField(self, name, value):
@@ -833,6 +846,9 @@ class DumperBase:
         # otherwise it's the true length.
         if priority >= self.currentValue.priority:
             self.currentValue = ReportItem(value, encoding, priority, elided)
+
+    def putSpecialValue(self, encoding, value = ""):
+        self.putValue(value, encoding)
 
     def putEmptyValue(self, priority = -10):
         if priority >= self.currentValue.priority:
@@ -893,21 +909,28 @@ class DumperBase:
             p = None
 
         displayFormat = self.currentItemFormat()
-        n = int(arrayType.sizeof / ts)
+        arrayByteSize = arrayType.sizeof
+        if arrayByteSize == 0:
+            # This should not happen. But it does, see QTCREATORBUG-14755.
+            # GDB/GCC produce sizeof == 0 for QProcess arr[3]
+            s = str(value.type)
+            arrayByteSize = int(s[s.find('[')+1:s.find(']')]) * ts;
 
+        n = int(arrayByteSize / ts)
         if displayFormat != RawFormat:
             if innerTypeName == "char":
                 # Use Latin1 as default for char [].
-                blob = self.readMemory(self.addressOf(value), arrayType.sizeof)
+                blob = self.readMemory(self.addressOf(value), arrayByteSize)
                 self.putValue(blob, Hex2EncodedLatin1)
             elif innerTypeName == "wchar_t":
-                blob = self.readMemory(self.addressOf(value), arrayType.sizeof)
+                blob = self.readMemory(self.addressOf(value), arrayByteSize)
                 if innerType.sizeof == 2:
                     self.putValue(blob, Hex4EncodedLittleEndian)
                 else:
                     self.putValue(blob, Hex8EncodedLittleEndian)
             elif p:
-                self.tryPutSimpleFormattedPointer(p, arrayType, innerTypeName, displayFormat, arrayType.sizeof)
+                self.tryPutSimpleFormattedPointer(p, arrayType, innerTypeName,
+                    displayFormat, arrayByteSize)
         self.putNumChild(n)
 
         if self.isExpanded():
@@ -1410,7 +1433,7 @@ class DumperBase:
             else:
                 connections = connections.dereference()
                 connections = connections.cast(self.directBaseClass(connections.type))
-                self.putValue('<>0 items>')
+                self.putSpecialValue(SpecialMinimumItemCountValue, 0)
                 self.putNumChild(1)
             if self.isExpanded():
                 pp = 0
@@ -1674,10 +1697,7 @@ class DumperBase:
             pass
 
     def setupDumpers(self, _ = {}):
-        self.qqDumpers = {}
-        self.qqFormats = {}
-        self.qqEditable = {}
-        self.typeCache = {}
+        self.resetCaches()
 
         for mod in self.dumpermodules:
             m = importlib.import_module(mod)

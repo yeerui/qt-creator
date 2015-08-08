@@ -64,6 +64,7 @@ bool CodeCompletionsExtractor::next()
         extractAvailability();
         extractHasParameters();
         extractCompletionChunks();
+        adaptPriority();
 
         return true;
     }
@@ -87,9 +88,10 @@ bool CodeCompletionsExtractor::peek(const Utf8String &name)
     return false;
 }
 
-QVector<CodeCompletion> CodeCompletionsExtractor::extractAll()
+CodeCompletions CodeCompletionsExtractor::extractAll()
 {
-    QVector<CodeCompletion> codeCompletions;
+    CodeCompletions codeCompletions;
+    codeCompletions.reserve(cxCodeCompleteResults->NumResults);
 
     while (next())
         codeCompletions.append(currentCodeCompletion_);
@@ -107,6 +109,7 @@ void CodeCompletionsExtractor::extractCompletionKind()
             extractMethodCompletionKind();
             break;
         case CXCursor_FunctionDecl:
+        case CXCursor_ConversionFunction:
             currentCodeCompletion_.setCompletionKind(CodeCompletion::FunctionCompletionKind);
             break;
         case CXCursor_VariableRef:
@@ -249,6 +252,66 @@ void CodeCompletionsExtractor::extractHasParameters()
 void CodeCompletionsExtractor::extractCompletionChunks()
 {
     currentCodeCompletion_.setChunks(CodeCompletionChunkConverter::extract(currentCxCodeCompleteResult.CompletionString));
+}
+
+void CodeCompletionsExtractor::adaptPriority()
+{
+    decreasePriorityForDestructors();
+    decreasePriorityForNonAvailableCompletions();
+    decreasePriorityForQObjectInternals();
+    decreasePriorityForSignals();
+    decreasePriorityForOperators();
+}
+
+void CodeCompletionsExtractor::decreasePriorityForNonAvailableCompletions()
+{
+    if (currentCodeCompletion_.availability() != CodeCompletion::Available)
+        currentCodeCompletion_.setPriority(currentCodeCompletion_.priority() * 100);
+}
+
+void CodeCompletionsExtractor::decreasePriorityForDestructors()
+{
+    if (currentCodeCompletion_.completionKind() == CodeCompletion::DestructorCompletionKind)
+        currentCodeCompletion_.setPriority(currentCodeCompletion_.priority() * 100);
+}
+
+void CodeCompletionsExtractor::decreasePriorityForSignals()
+{
+    if (currentCodeCompletion_.completionKind() == CodeCompletion::SignalCompletionKind)
+        currentCodeCompletion_.setPriority(currentCodeCompletion_.priority() * 100);
+}
+
+void CodeCompletionsExtractor::decreasePriorityForQObjectInternals()
+{
+    quint32 priority = currentCodeCompletion_.priority();
+
+    if (currentCodeCompletion_.text().startsWith("qt_"))
+        priority *= 100;
+
+    if (currentCodeCompletion_.text() == Utf8StringLiteral("metaObject"))
+        priority *= 10;
+
+    if (currentCodeCompletion_.text() == Utf8StringLiteral("staticMetaObject"))
+        priority *= 100;
+
+    currentCodeCompletion_.setPriority(priority);
+}
+
+bool isOperator(CXCursorKind cxCursorKind, const Utf8String &name)
+{
+    return cxCursorKind == CXCursor_ConversionFunction
+            || (cxCursorKind == CXCursor_CXXMethod
+                && name.startsWith(Utf8StringLiteral("operator")));
+}
+
+void CodeCompletionsExtractor::decreasePriorityForOperators()
+{
+    quint32 priority = currentCodeCompletion_.priority();
+
+    if (isOperator(currentCxCodeCompleteResult.CursorKind, currentCodeCompletion().text()))
+        priority *= 100;
+
+    currentCodeCompletion_.setPriority(priority);
 }
 
 bool CodeCompletionsExtractor::hasText(const Utf8String &text, CXCompletionString cxCompletionString) const

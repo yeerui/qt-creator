@@ -44,8 +44,8 @@ namespace QmlDesigner {
     the __FILE__ macro.
 */
 InvalidReparentingException::InvalidReparentingException(int line,
-                                                         const QString &function,
-                                                         const QString &file)
+                                                         const QByteArray &function,
+                                                         const QByteArray &file)
  : Exception(line, function, file)
 {
     createWarning();
@@ -56,6 +56,6 @@ Returns the type of this exception as a string.
 */
 QString InvalidReparentingException::type() const
 {
-    return "InvalidReparentingException";
+    return QLatin1String("InvalidReparentingException");
 }
 } // namespace QmlDesigner

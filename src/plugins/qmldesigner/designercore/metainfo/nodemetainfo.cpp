@@ -281,7 +281,7 @@ class PropertyMemberProcessor : public MemberProcessor
 public:
     PropertyMemberProcessor(const ContextPtr &context) : m_context(context)
     {}
-    bool processProperty(const QString &name, const Value *value, const QmlJS::PropertyInfo &)
+    bool processProperty(const QString &name, const Value *value, const QmlJS::PropertyInfo &) override
     {
         PropertyName propertyName = name.toUtf8();
         const ASTPropertyReference *ref = value_cast<ASTPropertyReference>(value);
@@ -1121,6 +1121,11 @@ QString NodeMetaInfoPrivate::importDirectoryPath() const
                     const QString targetPath = QDir(importPath).filePath(importInfo.path());
                     if (QDir(targetPath).exists())
                         return targetPath;
+                    const QString targetPathVersion = QDir(importPath).filePath(importInfo.path()
+                                                                                + QLatin1Char('.')
+                                                                                + QString::number(importInfo.version().majorVersion()));
+                    if (QDir(targetPathVersion).exists())
+                        return targetPathVersion;
                 }
             }
         }
@@ -1225,7 +1230,7 @@ void NodeMetaInfoPrivate::setupPrototypes()
                     QString uri = importInfo.name();
                     uri.replace(QStringLiteral(","), QStringLiteral("."));
                     if (!uri.isEmpty())
-                        description.className = QString(uri + QString::fromLatin1(".") + QString::fromLatin1(description.className)).toLatin1();
+                        description.className = QString(uri + QString::fromLatin1(".") + QString::fromUtf8(description.className)).toUtf8();
                 }
 
                 m_prototypes.append(description);

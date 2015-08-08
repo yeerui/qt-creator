@@ -37,26 +37,56 @@
 
 #include <QString>
 
+#include <vector>
+
 namespace ClangCodeModel {
 namespace Internal {
 
 class CompletionChunksToTextConverter
 {
 public:
-    void parseChunks(const QVector<ClangBackEnd::CodeCompletionChunk> &codeCompletionChunks);
+    void parseChunks(const ClangBackEnd::CodeCompletionChunks &codeCompletionChunks);
+
+    void setAddPlaceHolderText(bool addPlaceHolderText);
+    void setAddPlaceHolderPositions(bool addPlaceHolderPositions);
+    void setAddResultType(bool addResultType);
+    void setAddSpaces(bool addSpaces);
+    void setAddExtraVerticalSpaceBetweenBraces(bool addExtraVerticalSpaceBetweenBraces);
+    void setAddHtmlTags(bool addHtmlTags);
+    void setAddOptional(bool addOptional);
 
     const QString &text() const;
+    const std::vector<int> &placeholderPositions() const;
+    bool hasPlaceholderPositions() const;
 
-    static QString convert(const QVector<ClangBackEnd::CodeCompletionChunk> &codeCompletionChunks);
-
+    static QString convertToFunctionSignature(const ClangBackEnd::CodeCompletionChunks &codeCompletionChunks);
+    static QString convertToName(const ClangBackEnd::CodeCompletionChunks &codeCompletionChunks);
+    static QString convertToToolTip(const ClangBackEnd::CodeCompletionChunks &codeCompletionChunks);
 private:
     void parse(const ClangBackEnd::CodeCompletionChunk & codeCompletionChunk);
     void parseResultType(const Utf8String &text);
     void parseText(const Utf8String &text);
-    void parseOptional(const ClangBackEnd::CodeCompletionChunk & optionalCodeCompletionChunk);
+    void parseOptional(const ClangBackEnd::CodeCompletionChunk &optionalCodeCompletionChunk);
+    void parsePlaceHolder(const ClangBackEnd::CodeCompletionChunk &codeCompletionChunk);
+    void parseLeftParen(const ClangBackEnd::CodeCompletionChunk &codeCompletionChunk);
+    void parseLeftBrace(const ClangBackEnd::CodeCompletionChunk &codeCompletionChunk);
+    void addExtraVerticalSpaceBetweenBraces();
+    void addExtraVerticalSpaceBetweenBraces(const ClangBackEnd::CodeCompletionChunks::iterator &);
+
+    bool canAddSpace() const;
 
 private:
+    std::vector<int> m_placeholderPositions;
+    ClangBackEnd::CodeCompletionChunks m_codeCompletionChunks;
+    ClangBackEnd::CodeCompletionChunk m_previousCodeCompletionChunk;
     QString m_text;
+    bool m_addPlaceHolderText = false;
+    bool m_addPlaceHolderPositions = false;
+    bool m_addResultType = false;
+    bool m_addSpaces = false;
+    bool m_addExtraVerticalSpaceBetweenBraces = false;
+    bool m_addHtmlTags = false;
+    bool m_addOptional = false;
 };
 
 } // namespace Internal

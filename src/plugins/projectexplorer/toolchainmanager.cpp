@@ -161,9 +161,10 @@ static QList<ToolChain *> restoreFromFile(const FileName &fileName)
             }
         }
         if (!restored)
-            qWarning("Warning: Unable to restore compiler '%s' stored in %s.",
-                     qPrintable(ToolChainFactory::idFromMap(tcMap)),
-                     qPrintable(fileName.toUserOutput()));
+            qWarning("Warning: '%s': Unable to restore compiler type '%s' for tool chain %s.",
+                     qPrintable(fileName.toUserOutput()),
+                     qPrintable(ToolChainFactory::typeIdFromMap(tcMap).toString()),
+                     qPrintable(QString::fromUtf8(ToolChainFactory::idFromMap(tcMap))));
     }
 
     return result;
@@ -243,9 +244,10 @@ void ToolChainManager::restoreToolChains()
     foreach (ToolChain *tc, tcsToCheck) {
         if (!tc->isValid()) {
             qWarning() << QString::fromLatin1("ToolChain \"%1\" (%2) dropped since it is not valid")
-                          .arg(tc->displayName()).arg(tc->id());
+                          .arg(tc->displayName()).arg(QString::fromUtf8(tc->id()));
             delete tc;
         } else {
+            tc->setDetection(ToolChain::ManualDetection); // "demote" to manual toolchain
             tcsToRegister += tc;
         }
     }
@@ -294,12 +296,24 @@ QList<ToolChain *> ToolChainManager::findToolChains(const Abi &abi)
     return result;
 }
 
-ToolChain *ToolChainManager::findToolChain(const QString &id)
+ToolChain *ToolChainManager::findToolChain(const QByteArray &id)
 {
     if (id.isEmpty())
         return 0;
 
-    return Utils::findOrDefault(d->m_toolChains, Utils::equal(&ToolChain::id, id));
+    ToolChain *tc = Utils::findOrDefault(d->m_toolChains, Utils::equal(&ToolChain::id, id));
+
+    // Compatibility with versions 3.5 and earlier:
+    if (!tc) {
+        const int pos = id.indexOf(':');
+        if (pos < 0)
+            return tc;
+
+        const QByteArray shortId = id.mid(pos + 1);
+
+        tc = Utils::findOrDefault(d->m_toolChains, Utils::equal(&ToolChain::id, shortId));
+    }
+    return tc;
 }
 
 FileName ToolChainManager::defaultDebugger(const Abi &abi)

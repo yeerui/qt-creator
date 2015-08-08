@@ -31,9 +31,10 @@
 #include "clangcodecompletion_test.h"
 
 #include "../clangbackendipcintegration.h"
+#include "../clangcompletionassistinterface.h"
 #include "../clangmodelmanagersupport.h"
 
-#include <clangcodemodel/clangcompletion.h>
+#include <clangcodemodel/clangeditordocumentprocessor.h>
 #include <clangcodemodel/constants.h>
 
 #include <coreplugin/editormanager/editormanager.h>
@@ -45,6 +46,7 @@
 #include <cpptools/cpptoolstestcase.h>
 #include <cpptools/modelmanagertesthelper.h>
 #include <texteditor/codeassist/assistinterface.h>
+#include <texteditor/codeassist/assistproposalitem.h>
 #include <texteditor/codeassist/completionassistprovider.h>
 #include <texteditor/codeassist/genericproposalmodel.h>
 #include <texteditor/codeassist/iassistprocessor.h>
@@ -70,9 +72,21 @@ using namespace ClangCodeModel::Internal;
 
 namespace {
 
-QString _(const char text[]) { return QString::fromUtf8(text); }
+QString _(const char text[])
+{ return QString::fromUtf8(text); }
+
 QString qrcPath(const QByteArray relativeFilePath)
 { return QLatin1String(":/unittests/ClangCodeModel/") + QString::fromUtf8(relativeFilePath); }
+
+QString fileName(const QString &filePath)
+{ return QFileInfo(filePath).fileName(); }
+
+CppTools::Tests::TemporaryDir *globalTemporaryDir()
+{
+    static CppTools::Tests::TemporaryDir dir;
+    QTC_CHECK(dir.isValid());
+    return &dir;
+}
 
 struct LogOutput
 {
@@ -241,12 +255,14 @@ class ChangeIpcSender
 public:
     ChangeIpcSender(IpcSenderInterface *ipcSender)
     {
-        m_previousSender = ModelManagerSupportClang::instance()->ipcCommunicator().setIpcSender(ipcSender);
+        auto &ipc = ModelManagerSupportClang::instance_forTestsOnly()->ipcCommunicator();
+        m_previousSender = ipc.setIpcSender(ipcSender);
     }
 
     ~ChangeIpcSender()
     {
-        ModelManagerSupportClang::instance()->ipcCommunicator().setIpcSender(m_previousSender);
+        auto &ipc = ModelManagerSupportClang::instance_forTestsOnly()->ipcCommunicator();
+        ipc.setIpcSender(m_previousSender);
     }
 
 private:
@@ -257,8 +273,8 @@ QString toString(const FileContainer &fileContainer)
 {
     QString out;
     QTextStream ts(&out);
-    ts << "  Path: " << QFileInfo(fileContainer.filePath().toString()).fileName()
-       << " ProjectPart: " << fileContainer.projectPartId().toString() << "\n";
+    ts << "  Path: " << fileName(fileContainer.filePath().toString())
+       << " ProjectPart: " << fileName(fileContainer.projectPartId().toString()) << "\n";
     return out;
 }
 
@@ -276,7 +292,7 @@ QString toString(const ProjectPartContainer &projectPartContainer)
     QString out;
     QTextStream ts(&out);
     ts << "  ProjectPartContainer"
-       << " id: " << QFileInfo(projectPartContainer.projectPartId().toString()).fileName();
+       << " id: " << fileName(projectPartContainer.projectPartId().toString());
     return out;
 }
 
@@ -327,7 +343,7 @@ QString toString(const UnregisterProjectPartsForCodeCompletionCommand &command)
     QTextStream ts(&out);
 
     ts << "UnregisterProjectPartsForCodeCompletionCommand\n"
-       << command.filePaths().join(Utf8String::fromUtf8(",")).toByteArray() << "\n";
+       << command.projectPartIds().join(Utf8String::fromUtf8(",")).toByteArray() << "\n";
     return out;
 }
 
@@ -461,11 +477,13 @@ public:
     OpenEditorAtCursorPosition(const TestDocument &testDocument);
     ~OpenEditorAtCursorPosition(); // Close editor
 
-    bool succeeded() const { return m_editor; }
+    bool succeeded() const { return m_editor && m_backendIsNotified; }
+    bool waitUntilBackendIsNotified(int timeout = 10000);
     TextEditor::BaseTextEditor *editor() const { return m_editor; }
 
 private:
     TextEditor::BaseTextEditor *m_editor;
+    bool m_backendIsNotified = false;
 };
 
 OpenEditorAtCursorPosition::OpenEditorAtCursorPosition(const TestDocument &testDocument)
@@ -475,12 +493,38 @@ OpenEditorAtCursorPosition::OpenEditorAtCursorPosition(const TestDocument &testD
     QTC_CHECK(m_editor);
     if (m_editor && testDocument.hasValidCursorPosition())
         m_editor->setCursorPosition(testDocument.cursorPosition);
+    m_backendIsNotified = waitUntilBackendIsNotified();
+    QTC_CHECK(m_backendIsNotified);
 }
 
 OpenEditorAtCursorPosition::~OpenEditorAtCursorPosition()
 {
     if (m_editor)
         Core::EditorManager::closeEditor(m_editor, /* askAboutModifiedEditors= */ false);
+}
+
+bool OpenEditorAtCursorPosition::waitUntilBackendIsNotified(int timeout)
+{
+    QTC_ASSERT(m_editor, return false);
+
+    const QString filePath = m_editor->document()->filePath().toString();
+
+    QTime time;
+    time.start();
+
+    forever {
+        if (time.elapsed() > timeout)
+            return false;
+
+        const auto *processor = ClangEditorDocumentProcessor::get(filePath);
+        if (processor && processor->projectPart())
+            return true;
+
+        QCoreApplication::processEvents();
+        QThread::msleep(20);
+    }
+
+    return false;
 }
 
 CppTools::ProjectPart::Ptr createProjectPart(const QStringList &files,
@@ -568,7 +612,7 @@ public:
         CppTools::Tests::TestCase garbageCollectionGlobalSnapshot;
         QVERIFY(garbageCollectionGlobalSnapshot.succeededSoFar());
 
-        const TestDocument testDocument(testFileName);
+        const TestDocument testDocument(testFileName, globalTemporaryDir());
         QVERIFY(testDocument.isCreatedAndHasValidCursorPosition());
         OpenEditorAtCursorPosition openEditor(testDocument);
 
@@ -611,6 +655,102 @@ bool hasSnippet(ProposalModel model, const QByteArray &text)
 
     return false;
 }
+
+class MonitorGeneratedUiFile : public QObject
+{
+    Q_OBJECT
+
+public:
+    MonitorGeneratedUiFile();
+    bool waitUntilGenerated(int timeout = 10000) const;
+
+private:
+    void onUiFileGenerated() { m_isGenerated = true; }
+
+    bool m_isGenerated = false;
+};
+
+MonitorGeneratedUiFile::MonitorGeneratedUiFile()
+{
+    connect(CppTools::CppModelManager::instance(),
+            &CppTools::CppModelManager::abstractEditorSupportContentsUpdated,
+            this, &MonitorGeneratedUiFile::onUiFileGenerated);
+}
+
+bool MonitorGeneratedUiFile::waitUntilGenerated(int timeout) const
+{
+    if (m_isGenerated)
+        return true;
+
+    QTime time;
+    time.start();
+
+    forever {
+        if (m_isGenerated)
+            return true;
+
+        if (time.elapsed() > timeout)
+            return false;
+
+        QCoreApplication::processEvents();
+        QThread::msleep(20);
+    }
+
+    return false;
+}
+
+class WriteFileAndWaitForReloadedDocument : public QObject
+{
+public:
+    WriteFileAndWaitForReloadedDocument(const QString &filePath,
+                                        const QByteArray &fileContents,
+                                        Core::IDocument *document)
+        : m_filePath(filePath)
+        , m_fileContents(fileContents)
+    {
+        QTC_CHECK(document);
+        connect(document, &Core::IDocument::reloadFinished,
+                this, &WriteFileAndWaitForReloadedDocument::onReloadFinished);
+    }
+
+    void onReloadFinished()
+    {
+        m_onReloadFinished = true;
+    }
+
+    bool wait() const
+    {
+        QTC_ASSERT(writeFile(m_filePath, m_fileContents), return false);
+
+        QTime totalTime;
+        totalTime.start();
+
+        QTime writeFileAgainTime;
+        writeFileAgainTime.start();
+
+        forever {
+            if (m_onReloadFinished)
+                return true;
+
+            if (totalTime.elapsed() > 10000)
+                return false;
+
+            if (writeFileAgainTime.elapsed() > 1000) {
+                // The timestamp did not change, try again now.
+                QTC_ASSERT(writeFile(m_filePath, m_fileContents), return false);
+                writeFileAgainTime.restart();
+            }
+
+            QCoreApplication::processEvents();
+            QThread::msleep(20);
+        }
+    }
+
+private:
+    bool m_onReloadFinished = false;
+    QString m_filePath;
+    QByteArray m_fileContents;
+};
 
 } // anonymous namespace
 
@@ -728,10 +868,19 @@ void ClangCodeCompletionTest::testCompleteFunctions()
     QVERIFY(hasItem(t.proposal, "void f()"));
     QVERIFY(hasItem(t.proposal, "void f(int a)"));
     QVERIFY(hasItem(t.proposal, "void f(const QString &s)"));
-    QVERIFY(hasItem(t.proposal, "void f(char c<i>, int optional</i>)")); // TODO: No default argument?
-    QVERIFY(hasItem(t.proposal, "void f(char c<i>, int optional1, int optional2</i>)")); // TODO: No default argument?
+    QVERIFY(hasItem(t.proposal, "void f(char c, int optional)")); // TODO: No default argument?
+    QVERIFY(hasItem(t.proposal, "void f(char c, int optional1, int optional2)")); // TODO: No default argument?
     QVERIFY(hasItem(t.proposal, "void f(const TType<QString> *t)"));
     QVERIFY(hasItem(t.proposal, "TType<QString> f(bool)"));
+}
+
+void ClangCodeCompletionTest::testCompleteConstructorAndFallbackToGlobalCompletion()
+{
+    ProjectLessCompletionTest t("constructorCompletion.cpp");
+
+    QVERIFY(hasItem(t.proposal, "globalVariable"));
+    QVERIFY(hasItem(t.proposal, "GlobalClassWithCustomConstructor"));
+    QVERIFY(!hasSnippet(t.proposal, "class"));
 }
 
 void ClangCodeCompletionTest::testProjectDependentCompletion()
@@ -863,11 +1012,11 @@ void ClangCodeCompletionTest::testUnsavedFilesTrackingByModifyingIncludedFileExt
     ProposalModel proposal = completionResults(openSource.editor());
     QVERIFY(hasItem(proposal, "globalFromHeader"));
 
-    // Simulate external modification
-    QThread::sleep(1); // Ensures different time stamp and thus that the difference will be noticed
-    QVERIFY(writeFile(headerDocument.filePath, "int globalFromHeaderReloaded;\n"));
-    QSignalSpy waitForReloadedDocument(openHeader.editor()->document(),
-                                       SIGNAL(reloadFinished(bool)));
+    // Simulate external modification and wait for reload
+    WriteFileAndWaitForReloadedDocument waitForReloadedDocument(
+                headerDocument.filePath,
+                "int globalFromHeaderReloaded;\n",
+                openHeader.editor()->document());
     QVERIFY(waitForReloadedDocument.wait());
 
     // Retrigger completion and check if its updated
@@ -879,6 +1028,8 @@ void ClangCodeCompletionTest::testUnsavedFilesTrackingByCompletingUiObject()
 {
     CppTools::Tests::TemporaryCopiedDir testDir(qrcPath("qt-widgets-app"));
     QVERIFY(testDir.isValid());
+
+    MonitorGeneratedUiFile monitorGeneratedUiFile;
 
     // Open project
     const QString projectFilePath = testDir.absolutePath("qt-widgets-app.pro");
@@ -894,11 +1045,11 @@ void ClangCodeCompletionTest::testUnsavedFilesTrackingByCompletingUiObject()
     QVERIFY(openSource.succeeded());
 
     // ...and check comletions
+    QVERIFY(monitorGeneratedUiFile.waitUntilGenerated());
     ProposalModel proposal = completionResults(openSource.editor());
     QVERIFY(hasItem(proposal, "menuBar"));
     QVERIFY(hasItem(proposal, "statusBar"));
     QVERIFY(hasItem(proposal, "centralWidget"));
-    QEXPECT_FAIL("", "Signals are not yet done", Abort);
     QVERIFY(hasItem(proposal, "setupUi"));
 }
 
@@ -918,10 +1069,12 @@ void ClangCodeCompletionTest::testUpdateBackendAfterRestart()
     // ... and modify it, so we have an unsaved file.
     insertTextAtTopOfEditor(openHeader.editor(), "int someGlobal;\n");
     // Open project ...
+    MonitorGeneratedUiFile monitorGeneratedUiFile;
     const QString projectFilePath = testDir.absolutePath("qt-widgets-app.pro");
     CppTools::Tests::ProjectOpenerAndCloser projectManager;
     const CppTools::ProjectInfo projectInfo = projectManager.open(projectFilePath, true);
     QVERIFY(projectInfo.isValid());
+    QVERIFY(monitorGeneratedUiFile.waitUntilGenerated());
     // ...and a file of the project
     const QString completionFile = testDir.absolutePath("mainwindow.cpp");
     const TestDocument testDocument = TestDocument::fromExistingFile(completionFile);
@@ -932,15 +1085,21 @@ void ClangCodeCompletionTest::testUpdateBackendAfterRestart()
     // Check commands that would have been sent
     QVERIFY(compare(LogOutput(spy.senderLog),
                     LogOutput(
-                        "RegisterProjectPartsForCodeCompletionCommand\n"
-                        "  ProjectPartContainer id: qt-widgets-app.pro\n"
                         "RegisterTranslationUnitForCodeCompletionCommand\n"
                         "  Path: myheader.h ProjectPart: \n"
+                        "RegisterProjectPartsForCodeCompletionCommand\n"
+                        "  ProjectPartContainer id: qt-widgets-app.pro qt-widgets-app\n"
+                        "RegisterTranslationUnitForCodeCompletionCommand\n"
+                        "  Path: ui_mainwindow.h ProjectPart: \n"
+                        "RegisterTranslationUnitForCodeCompletionCommand\n"
+                        "  Path: myheader.h ProjectPart: \n"
+                        "RegisterTranslationUnitForCodeCompletionCommand\n"
+                        "  Path: mainwindow.cpp ProjectPart: qt-widgets-app.pro qt-widgets-app\n"
                     )));
     spy.senderLog.clear();
 
     // Kill backend process...
-    IpcCommunicator &ipcCommunicator = ModelManagerSupportClang::instance()->ipcCommunicator();
+    auto &ipcCommunicator = ModelManagerSupportClang::instance_forTestsOnly()->ipcCommunicator();
     ipcCommunicator.killBackendProcess();
     QSignalSpy waitForReinitializedBackend(&ipcCommunicator,
                                            SIGNAL(backendReinitialized()));
@@ -952,7 +1111,7 @@ void ClangCodeCompletionTest::testUpdateBackendAfterRestart()
                         "RegisterProjectPartsForCodeCompletionCommand\n"
                         "  ProjectPartContainer id: \n"
                         "RegisterProjectPartsForCodeCompletionCommand\n"
-                        "  ProjectPartContainer id: qt-widgets-app.pro\n"
+                        "  ProjectPartContainer id: qt-widgets-app.pro qt-widgets-app\n"
                         "RegisterTranslationUnitForCodeCompletionCommand\n"
                         "  Path: myheader.h ProjectPart: \n"
                         "RegisterTranslationUnitForCodeCompletionCommand\n"
@@ -963,3 +1122,5 @@ void ClangCodeCompletionTest::testUpdateBackendAfterRestart()
 } // namespace Tests
 } // namespace Internal
 } // namespace ClangCodeModel
+
+#include "clangcodecompletion_test.moc"

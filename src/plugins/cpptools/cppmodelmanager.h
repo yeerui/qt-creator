@@ -94,7 +94,7 @@ public:
     QFuture<void> updateProjectInfo(const ProjectInfo &newProjectInfo);
 
     /// \return The project part with the given project file
-    ProjectPart::Ptr projectPartForProjectFile(const QString &projectFile) const;
+    ProjectPart::Ptr projectPartForId(const QString &projectPartId) const;
     /// \return All project parts that mention the given file name as one of the sources/headers.
     QList<ProjectPart::Ptr> projectPart(const Utils::FileName &fileName) const;
     QList<ProjectPart::Ptr> projectPart(const QString &fileName) const
@@ -111,6 +111,9 @@ public:
     bool replaceDocument(Document::Ptr newDoc);
 
     void emitDocumentUpdated(CPlusPlus::Document::Ptr doc);
+    void emitAbstractEditorSupportContentsUpdated(const QString &filePath,
+                                                  const QByteArray &contents);
+    void emitAbstractEditorSupportRemoved(const QString &filePath);
 
     bool isCppEditor(Core::IEditor *editor) const;
 
@@ -167,11 +170,14 @@ signals:
     void sourceFilesRefreshed(const QSet<QString> &files);
 
     void projectPartsUpdated(ProjectExplorer::Project *project);
-    void projectPartsRemoved(const QStringList &projectFiles);
+    void projectPartsRemoved(const QStringList &projectPartIds);
 
     void globalSnapshotChanged();
 
     void gcFinished(); // Needed for tests.
+
+    void abstractEditorSupportContentsUpdated(const QString &filePath, const QByteArray &contents);
+    void abstractEditorSupportRemoved(const QString &filePath);
 
 public slots:
     void updateModifiedSourceFiles();
@@ -192,7 +198,7 @@ private slots:
 
 private:
     void delayedGC();
-    void recalculateFileToProjectParts();
+    void recalculateProjectPartMappings();
     void updateCppEditorDocuments() const;
 
     void replaceSnapshot(const CPlusPlus::Snapshot &newSnapshot);

@@ -323,6 +323,10 @@ ICore::ICore(MainWindow *mainwindow)
     // Save settings once after all plugins are initialized:
     connect(PluginManager::instance(), SIGNAL(initializationDone()),
             this, SLOT(saveSettings()));
+    connect(PluginManager::instance(), &PluginManager::testsFinished, [this] (int failedTests) {
+        emit coreAboutToClose();
+        QCoreApplication::exit(failedTests);
+    });
     connect(m_mainwindow, SIGNAL(newItemDialogRunningChanged()),
             this, SIGNAL(newItemDialogRunningChanged()));
 }
@@ -432,9 +436,21 @@ QString ICore::documentationPath()
  */
 QString ICore::libexecPath()
 {
-    const QString libexecPath = QLatin1String(Utils::HostOsInfo::isMacHost()
-                                            ? "/../Resources" : "");
-    return QDir::cleanPath(QCoreApplication::applicationDirPath() + libexecPath);
+    QString path;
+    switch (Utils::HostOsInfo::hostOs()) {
+    case Utils::OsTypeWindows:
+        path = QCoreApplication::applicationDirPath();
+        break;
+    case Utils::OsTypeMac:
+        path = QCoreApplication::applicationDirPath() + QLatin1String("/../Resources");
+        break;
+    case Utils::OsTypeLinux:
+    case Utils::OsTypeOtherUnix:
+    case Utils::OsTypeOther:
+        path = QCoreApplication::applicationDirPath() + QLatin1String("/../libexec/qtcreator");
+        break;
+    }
+    return QDir::cleanPath(path);
 }
 
 static QString compilerString()

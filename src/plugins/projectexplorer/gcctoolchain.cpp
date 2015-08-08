@@ -245,21 +245,11 @@ static QString gccVersion(const FileName &path, const QStringList &env)
 // --------------------------------------------------------------------------
 
 GccToolChain::GccToolChain(Detection d) :
-    ToolChain(QLatin1String(Constants::GCC_TOOLCHAIN_ID), d)
+    ToolChain(Constants::GCC_TOOLCHAIN_TYPEID, d)
 { }
 
-GccToolChain::GccToolChain(const QString &id, Detection d) :
-    ToolChain(id, d)
-{ }
-
-GccToolChain::GccToolChain(const GccToolChain &tc) :
-    ToolChain(tc),
-    m_predefinedMacros(tc.m_predefinedMacros),
-    m_compilerCommand(tc.compilerCommand()),
-    m_targetAbi(tc.m_targetAbi),
-    m_supportedAbis(tc.m_supportedAbis),
-    m_headerPaths(tc.m_headerPaths),
-    m_version(tc.m_version)
+GccToolChain::GccToolChain(Core::Id typeId, Detection d) :
+    ToolChain(typeId, d)
 { }
 
 void GccToolChain::setCompilerCommand(const FileName &path)
@@ -321,11 +311,6 @@ QString GccToolChain::defaultDisplayName() const
 ToolChain::CompilerFlags GccToolChain::defaultCompilerFlags() const
 {
     return CompilerFlags(GnuExtensions);
-}
-
-QString GccToolChain::type() const
-{
-    return QLatin1String("gcc");
 }
 
 QString GccToolChain::typeDisplayName() const
@@ -775,7 +760,7 @@ QString GccToolChain::detectVersion() const
 
 GccToolChainFactory::GccToolChainFactory()
 {
-    setId(Constants::GCC_TOOLCHAIN_ID);
+    setTypeId(Constants::GCC_TOOLCHAIN_TYPEID);
     setDisplayName(tr("GCC"));
 }
 
@@ -805,16 +790,13 @@ QList<ToolChain *> GccToolChainFactory::autoDetect()
 // Used by the ToolChainManager to restore user-generated tool chains
 bool GccToolChainFactory::canRestore(const QVariantMap &data)
 {
-    const QString id = idFromMap(data);
-    return id.startsWith(QLatin1String(Constants::GCC_TOOLCHAIN_ID) + QLatin1Char(':'));
+    return typeIdFromMap(data) == Constants::GCC_TOOLCHAIN_TYPEID;
 }
 
 ToolChain *GccToolChainFactory::restore(const QVariantMap &data)
 {
-    GccToolChain *tc = new GccToolChain(ToolChain::ManualDetection);
-    // Updating from 2.5:
-    QVariantMap updated = data;
-    if (tc->fromMap(updated))
+    GccToolChain *tc = createToolChain(false);
+    if (tc->fromMap(data))
         return tc;
 
     delete tc;
@@ -1024,13 +1006,8 @@ void GccToolChainConfigWidget::handlePlatformLinkerFlagsChange()
 // --------------------------------------------------------------------------
 
 ClangToolChain::ClangToolChain(Detection d) :
-    GccToolChain(QLatin1String(Constants::CLANG_TOOLCHAIN_ID), d)
+    GccToolChain(Constants::CLANG_TOOLCHAIN_TYPEID, d)
 { }
-
-QString ClangToolChain::type() const
-{
-    return QLatin1String("clang");
-}
 
 QString ClangToolChain::typeDisplayName() const
 {
@@ -1128,7 +1105,7 @@ ToolChain *ClangToolChain::clone() const
 ClangToolChainFactory::ClangToolChainFactory()
 {
     setDisplayName(tr("Clang"));
-    setId(Constants::CLANG_TOOLCHAIN_ID);
+    setTypeId(Constants::CLANG_TOOLCHAIN_TYPEID);
 }
 
 QList<ToolChain *> ClangToolChainFactory::autoDetect()
@@ -1137,29 +1114,9 @@ QList<ToolChain *> ClangToolChainFactory::autoDetect()
     return autoDetectToolchains(QLatin1String("clang++"), ha);
 }
 
-bool ClangToolChainFactory::canCreate()
-{
-    return true;
-}
-
-ToolChain *ClangToolChainFactory::create()
-{
-    return createToolChain(false);
-}
-
 bool ClangToolChainFactory::canRestore(const QVariantMap &data)
 {
-    return idFromMap(data).startsWith(QLatin1String(Constants::CLANG_TOOLCHAIN_ID) + QLatin1Char(':'));
-}
-
-ToolChain *ClangToolChainFactory::restore(const QVariantMap &data)
-{
-    ClangToolChain *tc = new ClangToolChain(ToolChain::ManualDetection);
-    if (tc->fromMap(data))
-        return tc;
-
-    delete tc;
-    return 0;
+    return typeIdFromMap(data) == Constants::CLANG_TOOLCHAIN_TYPEID;
 }
 
 GccToolChain *ClangToolChainFactory::createToolChain(bool autoDetect)
@@ -1172,13 +1129,8 @@ GccToolChain *ClangToolChainFactory::createToolChain(bool autoDetect)
 // --------------------------------------------------------------------------
 
 MingwToolChain::MingwToolChain(Detection d) :
-    GccToolChain(QLatin1String(Constants::MINGW_TOOLCHAIN_ID), d)
+    GccToolChain(Constants::MINGW_TOOLCHAIN_TYPEID, d)
 { }
-
-QString MingwToolChain::type() const
-{
-    return QLatin1String("mingw");
-}
 
 QString MingwToolChain::typeDisplayName() const
 {
@@ -1232,7 +1184,7 @@ ToolChain *MingwToolChain::clone() const
 
 MingwToolChainFactory::MingwToolChainFactory()
 {
-    setId(Constants::MINGW_TOOLCHAIN_ID);
+    setTypeId(Constants::MINGW_TOOLCHAIN_TYPEID);
     setDisplayName(tr("MinGW"));
 }
 
@@ -1243,29 +1195,9 @@ QList<ToolChain *> MingwToolChainFactory::autoDetect()
                                 Abi(ha.architecture(), Abi::WindowsOS, Abi::WindowsMSysFlavor, Abi::PEFormat, ha.wordWidth()));
 }
 
-bool MingwToolChainFactory::canCreate()
-{
-    return true;
-}
-
-ToolChain *MingwToolChainFactory::create()
-{
-    return createToolChain(false);
-}
-
 bool MingwToolChainFactory::canRestore(const QVariantMap &data)
 {
-    return idFromMap(data).startsWith(QLatin1String(Constants::MINGW_TOOLCHAIN_ID) + QLatin1Char(':'));
-}
-
-ToolChain *MingwToolChainFactory::restore(const QVariantMap &data)
-{
-    MingwToolChain *tc = new MingwToolChain(ToolChain::ManualDetection);
-    if (tc->fromMap(data))
-        return tc;
-
-    delete tc;
-    return 0;
+    return typeIdFromMap(data) == Constants::MINGW_TOOLCHAIN_TYPEID;
 }
 
 GccToolChain *MingwToolChainFactory::createToolChain(bool autoDetect)
@@ -1278,13 +1210,8 @@ GccToolChain *MingwToolChainFactory::createToolChain(bool autoDetect)
 // --------------------------------------------------------------------------
 
 LinuxIccToolChain::LinuxIccToolChain(Detection d) :
-    GccToolChain(QLatin1String(Constants::LINUXICC_TOOLCHAIN_ID), d)
+    GccToolChain(Constants::LINUXICC_TOOLCHAIN_TYPEID, d)
 { }
-
-QString LinuxIccToolChain::type() const
-{
-    return QLatin1String("icc");
-}
 
 QString LinuxIccToolChain::typeDisplayName() const
 {
@@ -1336,7 +1263,7 @@ ToolChain *LinuxIccToolChain::clone() const
 LinuxIccToolChainFactory::LinuxIccToolChainFactory()
 {
     setDisplayName(tr("Linux ICC"));
-    setId(Constants::LINUXICC_TOOLCHAIN_ID);
+    setTypeId(Constants::LINUXICC_TOOLCHAIN_TYPEID);
 }
 
 QList<ToolChain *> LinuxIccToolChainFactory::autoDetect()
@@ -1344,24 +1271,9 @@ QList<ToolChain *> LinuxIccToolChainFactory::autoDetect()
     return autoDetectToolchains(QLatin1String("icpc"), Abi::hostAbi());
 }
 
-ToolChain *LinuxIccToolChainFactory::create()
-{
-    return createToolChain(false);
-}
-
 bool LinuxIccToolChainFactory::canRestore(const QVariantMap &data)
 {
-    return idFromMap(data).startsWith(QLatin1String(Constants::LINUXICC_TOOLCHAIN_ID) + QLatin1Char(':'));
-}
-
-ToolChain *LinuxIccToolChainFactory::restore(const QVariantMap &data)
-{
-    LinuxIccToolChain *tc = new LinuxIccToolChain(ToolChain::ManualDetection);
-    if (tc->fromMap(data))
-        return tc;
-
-    delete tc;
-    return 0;
+    return typeIdFromMap(data) == Constants::LINUXICC_TOOLCHAIN_TYPEID;
 }
 
 GccToolChain *LinuxIccToolChainFactory::createToolChain(bool autoDetect)

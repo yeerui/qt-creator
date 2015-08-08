@@ -233,6 +233,23 @@ FileName Environment::searchInDirectory(const QStringList &execs, QString direct
     return FileName();
 }
 
+QStringList Environment::appendExeExtensions(const QString &executable) const
+{
+    QFileInfo fi(executable);
+    QStringList execs(executable);
+    if (m_osType == OsTypeWindows) {
+        // Check all the executable extensions on windows:
+        // PATHEXT is only used if the executable has no extension
+        if (fi.suffix().isEmpty()) {
+            QStringList extensions = value(QLatin1String("PATHEXT")).split(QLatin1Char(';'));
+
+            foreach (const QString &ext, extensions)
+                execs << executable + ext.toLower();
+        }
+    }
+    return execs;
+}
+
 FileName Environment::searchInPath(const QString &executable,
                                    const QStringList &additionalDirs) const
 {
@@ -242,27 +259,14 @@ FileName Environment::searchInPath(const QString &executable,
     QString exec = QDir::cleanPath(expandVariables(executable));
     QFileInfo fi(exec);
 
-    QStringList execs(exec);
-    if (m_osType == OsTypeWindows) {
-        // Check all the executable extensions on windows:
-        // PATHEXT is only used if the executable has no extension
-        if (fi.suffix().isEmpty()) {
-            QStringList extensions = value(QLatin1String("PATHEXT")).split(QLatin1Char(';'));
+    QStringList execs = appendExeExtensions(exec);
 
-            foreach (const QString &ext, extensions) {
-                QString tmp = executable + ext.toLower();
-                if (fi.isAbsolute()) {
-                    if (QFile::exists(tmp))
-                        return FileName::fromString(tmp);
-                } else {
-                    execs << tmp;
-                }
-            }
-        }
-    }
-
-    if (fi.isAbsolute())
+    if (fi.isAbsolute()) {
+        foreach (const QString &path, execs)
+            if (QFile::exists(path))
+                return FileName::fromString(path);
         return FileName::fromString(exec);
+    }
 
     QSet<QString> alreadyChecked;
     foreach (const QString &dir, additionalDirs) {
@@ -376,7 +380,7 @@ QList<EnvironmentItem> Environment::diff(const Environment &other) const
         if (thisIt == constEnd()) {
             result.append(EnvironmentItem(otherIt.key(), otherIt.value()));
             ++otherIt;
-        } else if (otherIt == constEnd()) {
+        } else if (otherIt == other.constEnd()) {
             EnvironmentItem item(thisIt.key(), QString());
             item.unset = true;
             result.append(item);
@@ -390,7 +394,8 @@ QList<EnvironmentItem> Environment::diff(const Environment &other) const
             result.append(EnvironmentItem(otherIt.key(), otherIt.value()));
             ++otherIt;
         } else {
-            result.append(EnvironmentItem(otherIt.key(), otherIt.value()));
+            if (thisIt.value() != otherIt.value())
+                result.append(EnvironmentItem(otherIt.key(), otherIt.value()));
             ++otherIt;
             ++thisIt;
         }

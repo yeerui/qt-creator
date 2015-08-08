@@ -78,26 +78,27 @@ void GdbRemoteServerEngine::setupEngine()
 {
     QTC_ASSERT(state() == EngineSetupRequested, qDebug() << state());
     showMessage(_("TRYING TO START ADAPTER"));
-    if (!runParameters().serverStartScript.isEmpty()) {
+    QString serverStartScript = runParameters().serverStartScript;
+    if (!serverStartScript.isEmpty()) {
 
         // Provide script information about the environment
         QString arglist;
-        QtcProcess::addArg(&arglist, runParameters().serverStartScript);
+        QtcProcess::addArg(&arglist, serverStartScript);
         QtcProcess::addArg(&arglist, runParameters().executable);
         QtcProcess::addArg(&arglist, runParameters().remoteChannel);
 
-        m_uploadProc.start(_("/bin/sh ") + arglist);
+        m_uploadProc.start(arglist);
         m_uploadProc.waitForStarted();
     }
     if (!runParameters().workingDirectory.isEmpty())
         m_gdbProc.setWorkingDirectory(runParameters().workingDirectory);
-    if (runParameters().environment.size())
-        m_gdbProc.setEnvironment(runParameters().environment);
 
-    if (runParameters().remoteSetupNeeded)
+    if (runParameters().remoteSetupNeeded) {
         notifyEngineRequestRemoteSetup();
-    else
+    } else {
+        m_startAttempted = true;
         startGdb();
+    }
 }
 
 void GdbRemoteServerEngine::uploadProcError(QProcess::ProcessError error)
@@ -153,7 +154,8 @@ void GdbRemoteServerEngine::readUploadStandardError()
 void GdbRemoteServerEngine::uploadProcFinished()
 {
     if (m_uploadProc.exitStatus() == QProcess::NormalExit && m_uploadProc.exitCode() == 0) {
-        startGdb();
+        if (!m_startAttempted)
+            startGdb();
     } else {
         RemoteSetupResult result;
         result.success = false;
@@ -185,6 +187,8 @@ void GdbRemoteServerEngine::setupInferior()
 
     if (!args.isEmpty())
         postCommand("-exec-arguments " + args.toLocal8Bit());
+
+    setEnvironmentVariables();
 
     // This has to be issued before 'target remote'. On pre-7.0 the
     // command is not present and will result in ' No symbol table is

@@ -37,6 +37,7 @@
 #include <coreplugin/editormanager/editormanager.h>
 #include <coreplugin/icore.h>
 
+#include <bindingproperty.h>
 #include <designmodecontext.h>
 #include <nodeproperty.h>
 #include <nodelistproperty.h>
@@ -85,8 +86,13 @@ NavigatorView::NavigatorView(QObject* parent) :
     NameItemDelegate *idDelegate = new NameItemDelegate(this,
                                                         m_treeModel.data());
     IconCheckboxItemDelegate *showDelegate = new IconCheckboxItemDelegate(this,
-                                                                          ":/qmldesigner/images/eye_open.png",
-                                                                          ":/qmldesigner/images/placeholder.png",
+                                                                          QLatin1String(":/navigator/icon/eye_open.png"),
+                                                                          QLatin1String(":/navigator/icon/eye_closed.png"),
+                                                                          m_treeModel.data());
+
+    IconCheckboxItemDelegate *exportDelegate = new IconCheckboxItemDelegate(this,
+                                                                          QLatin1String(":/navigator/icon/export_checked.png"),
+                                                                          QLatin1String(":/navigator/icon/export_unchecked.png"),
                                                                           m_treeModel.data());
 
 #ifdef _LOCK_ITEMS_
@@ -100,7 +106,8 @@ NavigatorView::NavigatorView(QObject* parent) :
     treeWidget()->setItemDelegateForColumn(1,lockDelegate);
     treeWidget()->setItemDelegateForColumn(2,showDelegate);
 #else
-    treeWidget()->setItemDelegateForColumn(1,showDelegate);
+    treeWidget()->setItemDelegateForColumn(1,exportDelegate);
+    treeWidget()->setItemDelegateForColumn(2,showDelegate);
 #endif
 
 }
@@ -155,29 +162,15 @@ void NavigatorView::importsChanged(const QList<Import> &/*addedImports*/, const 
     treeWidget()->update();
 }
 
-void NavigatorView::nodeCreated(const ModelNode & /*createdNode*/)
+void NavigatorView::bindingPropertiesChanged(const QList<BindingProperty> & propertyList, PropertyChangeFlags /*propertyChange*/)
 {
-}
-
-void NavigatorView::nodeRemoved(const ModelNode & /*removedNode*/, const NodeAbstractProperty & /*parentProperty*/, PropertyChangeFlags /*propertyChange*/)
-{
-}
-
-void NavigatorView::propertiesRemoved(const QList<AbstractProperty> & /*propertyList*/)
-{
-}
-
-void NavigatorView::variantPropertiesChanged(const QList<VariantProperty> & /*propertyList*/, PropertyChangeFlags /*propertyChange*/)
-{
-}
-
-void NavigatorView::bindingPropertiesChanged(const QList<BindingProperty> & /*propertyList*/, PropertyChangeFlags /*propertyChange*/)
-{
-}
-
-void NavigatorView::signalHandlerPropertiesChanged(const QVector<SignalHandlerProperty> & /*propertyList*/,
-                                                   AbstractView::PropertyChangeFlags /*propertyChange*/)
-{
+    foreach (const BindingProperty &bindingProperty, propertyList) {
+        /* If a binding property that exports an item using an alias property has
+         * changed, we have to update the affected item.
+         */
+        if (bindingProperty.isAliasExport())
+            m_treeModel->updateItemRow(modelNodeForId(bindingProperty.expression()));
+    }
 }
 
 void NavigatorView::nodeAboutToBeRemoved(const ModelNode &removedNode)
@@ -185,11 +178,7 @@ void NavigatorView::nodeAboutToBeRemoved(const ModelNode &removedNode)
     m_treeModel->removeSubTree(removedNode);
 }
 
-void NavigatorView::nodeAboutToBeReparented(const ModelNode &/*node*/, const NodeAbstractProperty &/*newPropertyParent*/, const NodeAbstractProperty &/*oldPropertyParent*/, AbstractView::PropertyChangeFlags /*propertyChange*/)
-{
-}
-
-void NavigatorView::nodeReparented(const ModelNode &node, const NodeAbstractProperty & /*newPropertyParent*/, const NodeAbstractProperty & /*oldPropertyParent*/, AbstractView::PropertyChangeFlags /*propertyChange*/)
+void NavigatorView::nodeReparented(const ModelNode &node, const NodeAbstractProperty & newPropertyParent, const NodeAbstractProperty & /*oldPropertyParent*/, AbstractView::PropertyChangeFlags /*propertyChange*/)
 {
     bool blocked = blockSelectionChangedSignal(true);
 
@@ -200,6 +189,11 @@ void NavigatorView::nodeReparented(const ModelNode &node, const NodeAbstractProp
 
     // make sure selection is in sync again
     updateItemSelection();
+
+    if (newPropertyParent.parentModelNode().isValid()) {
+        QModelIndex index = m_treeModel->indexForNode(newPropertyParent.parentModelNode());
+        treeWidget()->expand(index);
+    }
 
     blockSelectionChangedSignal(blocked);
 }
@@ -244,55 +238,10 @@ void NavigatorView::auxiliaryDataChanged(const ModelNode &modelNode, const Prope
     }
 }
 
-void NavigatorView::scriptFunctionsChanged(const ModelNode &/*node*/, const QStringList &/*scriptFunctionList*/)
+void NavigatorView::instanceErrorChange(const QVector<ModelNode> &errorNodeList)
 {
-}
-
-void NavigatorView::instancePropertyChange(const QList<QPair<ModelNode, PropertyName> > &/*propertyList*/)
-{
-}
-
-void NavigatorView::instancesCompleted(const QVector<ModelNode> &/*completedNodeList*/)
-{
-}
-
-void NavigatorView::instanceInformationsChange(const QMultiHash<ModelNode, InformationName> &/*informationChangeHash*/)
-{
-}
-
-void NavigatorView::instancesRenderImageChanged(const QVector<ModelNode> &/*nodeList*/)
-{
-}
-
-void NavigatorView::instancesPreviewImageChanged(const QVector<ModelNode> &/*nodeList*/)
-{
-}
-
-void NavigatorView::instancesChildrenChanged(const QVector<ModelNode> &/*nodeList*/)
-{
-
-}
-
-void NavigatorView::nodeSourceChanged(const ModelNode &, const QString & /*newNodeSource*/)
-{
-
-}
-
-void NavigatorView::rewriterBeginTransaction()
-{
-}
-
-void NavigatorView::rewriterEndTransaction()
-{
-}
-
-void NavigatorView::currentStateChanged(const ModelNode &/*node*/)
-{
-}
-
-void NavigatorView::instancesToken(const QString &/*tokenName*/, int /*tokenNumber*/, const QVector<ModelNode> &/*nodeVector*/)
-{
-
+    foreach (const ModelNode &currentModelNode, errorNodeList)
+        m_treeModel->updateItemRow(currentModelNode);
 }
 
 void NavigatorView::nodeOrderChanged(const NodeListProperty &listProperty, const ModelNode &node, int /*oldIndex*/)
@@ -303,6 +252,10 @@ void NavigatorView::nodeOrderChanged(const NodeListProperty &listProperty, const
         if (node.isInHierarchy())
             m_treeModel->addSubTree(listProperty.parentModelNode());
 
+        if (listProperty.parentModelNode().isValid()) {
+            QModelIndex index = m_treeModel->indexForNode(listProperty.parentModelNode());
+            treeWidget()->expand(index);
+        }
     }
 }
 
